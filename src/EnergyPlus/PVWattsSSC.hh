@@ -56,11 +56,13 @@
 
 namespace EnergyPlus {
 
+// Forward declarations
+struct EnergyPlusData;
+
 namespace PVWatts {
 
     const Real64 AOI_MIN(0.5);
     const Real64 AOI_MAX(89.5);
-    const Real64 DTOR(DataGlobals::DegToRadians);
     enum RADMODE
     {
         DN_DF,
@@ -199,9 +201,10 @@ namespace PVWatts {
         void set_poa_reference(double poa, poaDecompReq *);
         void set_poa_pyranometer(double poa, poaDecompReq *);
 
-        int calc();
+        int calc(EnergyPlusData &state);
 
-        void get_sun(double *solazi,
+        void get_sun(EnergyPlusData &state,
+                     double *solazi,
                      double *solzen,
                      double *solelv,
                      double *soldec,
@@ -211,7 +214,7 @@ namespace PVWatts {
                      double *eccfac,
                      double *tst,
                      double *hextra);
-        void get_angles(double *aoi, double *surftilt, double *surfazi, double *axisrot, double *btdiff);
+        void get_angles(EnergyPlusData &state, double *aoi, double *surftilt, double *surfazi, double *axisrot, double *btdiff);
         void get_poa(double *beam, double *skydiff, double *gnddiff, double *isotrop, double *circum, double *horizon);
         void get_irrad(double *ghi, double *dni, double *dhi);
         double get_ghi();
@@ -234,7 +237,7 @@ namespace PVWatts {
                         double &reduced_gnddiff,
                         double &Fgnddiff);
 
-    double iam(double theta_deg, bool ar_glass); // incidence angle modifier factor relative to normal incidence
+    double iam(EnergyPlusData &state, double theta_deg, bool ar_glass); // incidence angle modifier factor relative to normal incidence
     // static void get_vertices( double axis_tilt, double axis_azimuth, double gcr, double vertices[3][4][3], double rotation);
 
     // static double vec_dot(double a[3], double b[3]);
@@ -243,24 +246,24 @@ namespace PVWatts {
 
     // static void vec_diff( double a[3], double b[3], double result[3] );
 
-    void solarpos(int year, int month, int day, int hour, double minute, double lat, double lng, double tz, double sunn[9]);
+    void solarpos(EnergyPlusData &state, int year, int month, int day, int hour, double minute, double lat, double lng, double tz, double sunn[9]);
 
-    void incidence(int mode, double tilt, double sazm, double rlim, double zen, double azm, bool en_backtrack, double gcr, double angle[5]);
+    void incidence(EnergyPlusData &state, int mode, double tilt, double sazm, double rlim, double zen, double azm, bool en_backtrack, double gcr, double angle[5]);
 
     void
     isotropic(double hextra, double dn, double df, double alb, double inc, double tilt, double zen, double poa[3], double diffc[3] /* can be NULL */);
 
     void
-    perez(double hextra, double dn, double df, double alb, double inc, double tilt, double zen, double poa[3], double diffc[3] /* can be NULL */);
+    perez(EnergyPlusData &state, double hextra, double dn, double df, double alb, double inc, double tilt, double zen, double poa[3], double diffc[3] /* can be NULL */);
 
     void hdkr(double hextra, double dn, double df, double alb, double inc, double tilt, double zen, double poa[3], double diffc[3] /* can be NULL */);
 
-    void poaDecomp(
+    void poaDecomp(EnergyPlusData &state,
         double wfPOA, double angle[], double sun[], double alb, poaDecompReq *pA, double &dn, double &df, double &gh, double poa[3], double diffc[3]);
 
     // static void sun_unit( double sazm, double szen, double sun[3] );
 
-    double iam_nonorm(double theta_deg, bool ar_glass); // non-normalized cover loss (typically use one above!)
+    double iam_nonorm(EnergyPlusData &state, double theta_deg, bool ar_glass); // non-normalized cover loss (typically use one above!)
 
     double ModifiedDISC(const double g[3], const double z[3], double td, double alt, int doy, double &dn);
 
@@ -272,7 +275,8 @@ namespace PVWatts {
 
     double backtrack(double solazi, double solzen, double axis_tilt, double axis_azimuth, double rotlim, double gcr, double rotation_ideal);
 
-    double GTI_DIRINT(const double poa[3],
+    double GTI_DIRINT(EnergyPlusData &state,
+                      const double poa[3],
                       const double inc[3],
                       double zen,
                       double tilt,
@@ -291,7 +295,8 @@ namespace PVWatts {
     double Max(double v1, double v2);
 
     double
-    transmittance(double theta1_deg, /* incidence angle of incoming radiation (deg) */
+    transmittance(EnergyPlusData &state,
+                  double theta1_deg, /* incidence angle of incoming radiation (deg) */
                   double n_cover,    /* refractive index of cover material, n_glass = 1.586 */
                   double n_incoming, /* refractive index of incoming material, typically n_air = 1.0 */
                   double k, /* proportionality constant assumed to be 4 (1/m) for derivation of Bouguer's law (set to zero to skip bougeur's law */

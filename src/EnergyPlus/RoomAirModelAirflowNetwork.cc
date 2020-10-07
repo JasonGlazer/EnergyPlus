@@ -656,7 +656,6 @@ namespace RoomAirModelAirflowNetwork {
 
         // Using/Aliasing
         using DataEnvironment::OutBaroPress;
-        using DataGlobals::SecInHour;
         using DataHeatBalFanSys::MAT;
         using DataHeatBalFanSys::ZoneAirHumRat;
         using DataHVACGlobals::TimeStepSys;
@@ -711,7 +710,7 @@ namespace RoomAirModelAirflowNetwork {
         TempDepCoef = ThisRAFNNode.SumHA + ThisRAFNNode.SumLinkMCp + ThisRAFNNode.SumSysMCp;
         TempIndCoef = ThisRAFNNode.SumIntSensibleGain + ThisRAFNNode.SumHATsurf - ThisRAFNNode.SumHATref + ThisRAFNNode.SumLinkMCpT +
                       ThisRAFNNode.SumSysMCpT + ThisRAFNNode.NonAirSystemResponse + ThisRAFNNode.SysDepZoneLoadsLagged;
-        AirCap = ThisRAFNNode.AirVolume * Zone(ZoneNum).ZoneVolCapMultpSens * ThisRAFNNode.RhoAir * ThisRAFNNode.CpAir / (TimeStepSys * SecInHour);
+        AirCap = ThisRAFNNode.AirVolume * Zone(ZoneNum).ZoneVolCapMultpSens * ThisRAFNNode.RhoAir * ThisRAFNNode.CpAir / (TimeStepSys * state.dataGlobal->SecInHour);
 
         if (ZoneAirSolutionAlgo == UseAnalyticalSolution) {
             if (TempDepCoef == 0.0) { // B=0
@@ -732,7 +731,7 @@ namespace RoomAirModelAirflowNetwork {
         H2OHtOfVap = PsyHgAirFnWTdb(ThisRAFNNode.HumRat, ThisRAFNNode.AirTemp);
         A = ThisRAFNNode.SumLinkM + ThisRAFNNode.SumHmARa + ThisRAFNNode.SumSysM;
         B = (ThisRAFNNode.SumIntLatentGain / H2OHtOfVap) + ThisRAFNNode.SumSysMW + ThisRAFNNode.SumLinkMW + ThisRAFNNode.SumHmARaW;
-        C = ThisRAFNNode.RhoAir * ThisRAFNNode.AirVolume * Zone(ZoneNum).ZoneVolCapMultpMoist / (SecInHour * TimeStepSys);
+        C = ThisRAFNNode.RhoAir * ThisRAFNNode.AirVolume * Zone(ZoneNum).ZoneVolCapMultpMoist / (state.dataGlobal->SecInHour * TimeStepSys);
 
         // Exact solution
         if (ZoneAirSolutionAlgo == UseAnalyticalSolution) {
@@ -861,7 +860,6 @@ namespace RoomAirModelAirflowNetwork {
         // USE STATEMENTS:
         using DataDefineEquip::AirDistUnit;
         using DataGlobals::NumOfZones;
-        using DataGlobals::SecInHour;
         using DataGlobals::TimeStepZone;
         using DataHeatBalance::Zone;
         using DataHeatBalFanSys::MAT;
@@ -1090,13 +1088,13 @@ namespace RoomAirModelAirflowNetwork {
                         SurfWinHeatTransfer(SurfNum) += SurfWinRetHeatGainToZoneAir(SurfNum);
                         if (SurfWinHeatGain(SurfNum) >= 0.0) {
                             SurfWinHeatGainRep(SurfNum) = SurfWinHeatGain(SurfNum);
-                            SurfWinHeatGainRepEnergy(SurfNum) = SurfWinHeatGainRep(SurfNum) * TimeStepZone * SecInHour;
+                            SurfWinHeatGainRepEnergy(SurfNum) = SurfWinHeatGainRep(SurfNum) * TimeStepZone * state.dataGlobal->SecInHour;
                         } else {
                             SurfWinHeatLossRep(SurfNum) = - SurfWinHeatGain(SurfNum);
-                            SurfWinHeatLossRepEnergy(SurfNum) = SurfWinHeatLossRep(SurfNum) * TimeStepZone * SecInHour;
+                            SurfWinHeatLossRepEnergy(SurfNum) = SurfWinHeatLossRep(SurfNum) * TimeStepZone * state.dataGlobal->SecInHour;
                         }
                         SurfWinHeatTransfer(SurfNum) = SurfWinHeatGain(SurfNum);
-                        SurfWinHeatTransferRepEnergy(SurfNum) = SurfWinHeatGain(SurfNum) * TimeStepZone * SecInHour;
+                        SurfWinHeatTransferRepEnergy(SurfNum) = SurfWinHeatGain(SurfNum) * TimeStepZone * state.dataGlobal->SecInHour;
                     }
                 }
 

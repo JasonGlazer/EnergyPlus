@@ -216,7 +216,7 @@ namespace ElectricBaseboardRadiator {
         PowerMet = ElecBaseboard(BaseboardNum).TotPower;
 
         UpdateElectricBaseboard(BaseboardNum);
-        ReportElectricBaseboard(BaseboardNum);
+        ReportElectricBaseboard(state, BaseboardNum);
     }
 
     void GetElectricBaseboardInput(EnergyPlusData &state)
@@ -1101,7 +1101,7 @@ namespace ElectricBaseboardRadiator {
         }
     }
 
-    void ReportElectricBaseboard(int const BaseboardNum)
+    void ReportElectricBaseboard(EnergyPlusData &state, int const BaseboardNum)
     {
 
         // SUBROUTINE INFORMATION:
@@ -1111,11 +1111,11 @@ namespace ElectricBaseboardRadiator {
         // Using/Aliasing
         using DataHVACGlobals::TimeStepSys;
 
-        ElecBaseboard(BaseboardNum).ElecUseLoad = ElecBaseboard(BaseboardNum).ElecUseRate * TimeStepSys * SecInHour;
-        ElecBaseboard(BaseboardNum).TotEnergy = ElecBaseboard(BaseboardNum).TotPower * TimeStepSys * SecInHour;
-        ElecBaseboard(BaseboardNum).Energy = ElecBaseboard(BaseboardNum).Power * TimeStepSys * SecInHour;
-        ElecBaseboard(BaseboardNum).ConvEnergy = ElecBaseboard(BaseboardNum).ConvPower * TimeStepSys * SecInHour;
-        ElecBaseboard(BaseboardNum).RadEnergy = ElecBaseboard(BaseboardNum).RadPower * TimeStepSys * SecInHour;
+        ElecBaseboard(BaseboardNum).ElecUseLoad = ElecBaseboard(BaseboardNum).ElecUseRate * TimeStepSys * state.dataGlobal->SecInHour;
+        ElecBaseboard(BaseboardNum).TotEnergy = ElecBaseboard(BaseboardNum).TotPower * TimeStepSys * state.dataGlobal->SecInHour;
+        ElecBaseboard(BaseboardNum).Energy = ElecBaseboard(BaseboardNum).Power * TimeStepSys * state.dataGlobal->SecInHour;
+        ElecBaseboard(BaseboardNum).ConvEnergy = ElecBaseboard(BaseboardNum).ConvPower * TimeStepSys * state.dataGlobal->SecInHour;
+        ElecBaseboard(BaseboardNum).RadEnergy = ElecBaseboard(BaseboardNum).RadPower * TimeStepSys * state.dataGlobal->SecInHour;
     }
 
     Real64 SumHATsurf(int const ZoneNum) // Zone number

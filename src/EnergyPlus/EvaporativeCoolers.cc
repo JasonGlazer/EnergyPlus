@@ -126,7 +126,6 @@ namespace EvaporativeCoolers {
     using DataGlobals::DisplayExtraWarnings;
     using DataGlobals::MaxNameLength;
     using DataGlobals::ScheduleAlwaysOn;
-    using DataGlobals::SecInHour;
     using DataGlobals::SysSizingCalc;
     using namespace DataLoopNode;
     using DataEnvironment::OutBaroPress;
@@ -269,7 +268,7 @@ namespace EvaporativeCoolers {
         UpdateEvapCooler(EvapCoolNum);
 
         // Report the current Evap Cooler
-        ReportEvapCooler(EvapCoolNum);
+        ReportEvapCooler(state, EvapCoolNum);
     }
 
     // Get Input Section of the Module
@@ -3528,7 +3527,7 @@ namespace EvaporativeCoolers {
     // Beginning of Reporting subroutines for the EvapCooler Module
     // *****************************************************************************
 
-    void ReportEvapCooler(int const EvapCoolNum)
+    void ReportEvapCooler(EnergyPlusData &state, int const EvapCoolNum)
     {
 
         // SUBROUTINE INFORMATION:
@@ -3565,11 +3564,11 @@ namespace EvaporativeCoolers {
         // na
         // report the Evap Cooler energy from this component
         EvapCond(EvapCoolNum).EvapCoolerPower = EvapCond(EvapCoolNum).EvapCoolerPower;
-        EvapCond(EvapCoolNum).EvapCoolerEnergy = EvapCond(EvapCoolNum).EvapCoolerPower * TimeStepSys * SecInHour;
+        EvapCond(EvapCoolNum).EvapCoolerEnergy = EvapCond(EvapCoolNum).EvapCoolerPower * TimeStepSys * state.dataGlobal->SecInHour;
 
         // Report Water comsumption in cubic meters per timestep
-        EvapCond(EvapCoolNum).EvapWaterConsump = EvapCond(EvapCoolNum).EvapWaterConsumpRate * TimeStepSys * SecInHour;
-        EvapCond(EvapCoolNum).EvapWaterStarvMakup = EvapCond(EvapCoolNum).EvapWaterStarvMakupRate * TimeStepSys * SecInHour;
+        EvapCond(EvapCoolNum).EvapWaterConsump = EvapCond(EvapCoolNum).EvapWaterConsumpRate * TimeStepSys * state.dataGlobal->SecInHour;
+        EvapCond(EvapCoolNum).EvapWaterStarvMakup = EvapCond(EvapCoolNum).EvapWaterStarvMakupRate * TimeStepSys * state.dataGlobal->SecInHour;
     }
 
     //***************
@@ -3632,7 +3631,7 @@ namespace EvaporativeCoolers {
 
         CalcZoneEvaporativeCoolerUnit(state, CompNum, ZoneNum, SensibleOutputProvided, LatentOutputProvided);
 
-        ReportZoneEvaporativeCoolerUnit(CompNum);
+        ReportZoneEvaporativeCoolerUnit(state, CompNum);
     }
 
     void GetInputZoneEvaporativeCoolerUnit(EnergyPlusData &state)
@@ -4963,7 +4962,7 @@ namespace EvaporativeCoolers {
         return Residual;
     }
 
-    void ReportZoneEvaporativeCoolerUnit(int const UnitNum) // unit number
+    void ReportZoneEvaporativeCoolerUnit(EnergyPlusData &state, int const UnitNum) // unit number
     {
 
         // SUBROUTINE INFORMATION:
@@ -5012,13 +5011,13 @@ namespace EvaporativeCoolers {
         QSensUnitOut = AirMassFlow * (PsyHFnTdbW(Node(UnitOutletNodeNum).Temp, MinHumRat) - PsyHFnTdbW(Node(ZoneNodeNum).Temp, MinHumRat));
 
         ZoneEvapUnit(UnitNum).UnitTotalCoolingRate = std::abs(min(0.0, QTotUnitOut));
-        ZoneEvapUnit(UnitNum).UnitTotalCoolingEnergy = ZoneEvapUnit(UnitNum).UnitTotalCoolingRate * TimeStepSys * SecInHour;
+        ZoneEvapUnit(UnitNum).UnitTotalCoolingEnergy = ZoneEvapUnit(UnitNum).UnitTotalCoolingRate * TimeStepSys * state.dataGlobal->SecInHour;
         ZoneEvapUnit(UnitNum).UnitSensibleCoolingRate = std::abs(min(0.0, QSensUnitOut));
-        ZoneEvapUnit(UnitNum).UnitSensibleCoolingEnergy = ZoneEvapUnit(UnitNum).UnitSensibleCoolingRate * TimeStepSys * SecInHour;
+        ZoneEvapUnit(UnitNum).UnitSensibleCoolingEnergy = ZoneEvapUnit(UnitNum).UnitSensibleCoolingRate * TimeStepSys * state.dataGlobal->SecInHour;
         ZoneEvapUnit(UnitNum).UnitLatentHeatingRate = std::abs(max(0.0, (QTotUnitOut - QSensUnitOut)));
-        ZoneEvapUnit(UnitNum).UnitLatentHeatingEnergy = ZoneEvapUnit(UnitNum).UnitLatentHeatingRate * TimeStepSys * SecInHour;
+        ZoneEvapUnit(UnitNum).UnitLatentHeatingEnergy = ZoneEvapUnit(UnitNum).UnitLatentHeatingRate * TimeStepSys * state.dataGlobal->SecInHour;
         ZoneEvapUnit(UnitNum).UnitLatentCoolingRate = std::abs(min(0.0, (QTotUnitOut - QSensUnitOut)));
-        ZoneEvapUnit(UnitNum).UnitLatentCoolingEnergy = ZoneEvapUnit(UnitNum).UnitLatentCoolingRate * TimeStepSys * SecInHour;
+        ZoneEvapUnit(UnitNum).UnitLatentCoolingEnergy = ZoneEvapUnit(UnitNum).UnitLatentCoolingRate * TimeStepSys * state.dataGlobal->SecInHour;
         ZoneEvapUnit(UnitNum).UnitFanSpeedRatio = ZoneEvapUnit(UnitNum).FanSpeedRatio;
     }
 

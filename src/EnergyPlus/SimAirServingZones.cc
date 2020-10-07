@@ -5444,7 +5444,7 @@ namespace SimAirServingZones {
         {
             auto const SELECT_CASE_var(CallIndicator);
 
-            if (SELECT_CASE_var == BeginDay) {
+            if (SELECT_CASE_var == state.dataGlobal->BeginDay) {
 
                 // Correct the zone return temperature in ZoneSizing for the case of induction units. The calc in
                 // ZoneEquipmentManager assumes all the air entering the zone goes into the return node.
@@ -5525,7 +5525,7 @@ namespace SimAirServingZones {
 
                 } // End of begin day loop over primary air systems
 
-            } else if (SELECT_CASE_var == DuringDay) {
+            } else if (SELECT_CASE_var == state.dataGlobal->DuringDay) {
 
                 TimeStepInDay = (HourOfDay - 1) * NumOfTimeStepInHour + TimeStep; // calculate current zone time step index
 
@@ -5886,7 +5886,7 @@ namespace SimAirServingZones {
 
                 } // end of loop over primary air systems
 
-            } else if (SELECT_CASE_var == EndDay) {
+            } else if (SELECT_CASE_var == state.dataGlobal->EndDay) {
 
                 // the entire set of std. 62.1 code here seems misplaced, should have been placed in EndSysSizCalc block
                 // Get design flows
@@ -6430,7 +6430,7 @@ namespace SimAirServingZones {
                     }
                 }
 
-            } else if (SELECT_CASE_var == EndSysSizingCalc) {
+            } else if (SELECT_CASE_var == state.dataGlobal->EndDay) {
 
                 // Correct the zone return temperature in FinalZoneSizing for the case of induction units. The calc in
                 // ZoneEquipmentManager assumes all the air entering the zone goes into the return node.

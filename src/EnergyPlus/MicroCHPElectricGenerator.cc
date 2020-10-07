@@ -595,7 +595,7 @@ namespace MicroCHPElectricGenerator {
                                                            this->PlantMassFlowRateMax,
                                                            DataLoopNode::Node(this->PlantInletNodeID).Temp);
 
-        GeneratorDynamicsManager::SetupGeneratorControlStateManager(this->DynamicsControlID);
+        GeneratorDynamicsManager::SetupGeneratorControlStateManager(state, this->DynamicsControlID);
     }
 
     void MicroCHPDataStruct::InitMicroCHPNoNormalizeGenerators(EnergyPlusData &state)
@@ -883,7 +883,8 @@ namespace MicroCHPElectricGenerator {
                     bool ConstrainedDecreasingNdot(false);
                     Real64 MdotFuelAllowed = 0.0;
 
-                    GeneratorDynamicsManager::ManageGeneratorFuelFlow(DataGlobalConstants::iGeneratorMicroCHP,
+                    GeneratorDynamicsManager::ManageGeneratorFuelFlow(state,
+                                                                      DataGlobalConstants::iGeneratorMicroCHP,
                                                                       this->Name,
                                                                       this->DynamicsControlID,
                                                                       RunFlag,
@@ -997,7 +998,8 @@ namespace MicroCHPElectricGenerator {
                 bool ConstrainedDecreasingNdot(false);
                 Real64 MdotFuelAllowed = 0.0;
 
-                GeneratorDynamicsManager::ManageGeneratorFuelFlow(DataGlobalConstants::iGeneratorMicroCHP,
+                GeneratorDynamicsManager::ManageGeneratorFuelFlow(state,
+                                                                  DataGlobalConstants::iGeneratorMicroCHP,
                                                                   this->Name,
                                                                   this->DynamicsControlID,
                                                                   RunFlag,
@@ -1098,7 +1100,7 @@ namespace MicroCHPElectricGenerator {
                 Qgenss = ThermEff * Qgross;    // W
             }
 
-            Real64 dt = DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+            Real64 dt = DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
 
             Teng = FuncDetermineEngineTemp(
                 TcwOut, this->A42Model.MCeng, this->A42Model.UAhx, this->A42Model.UAskin, thisAmbientTemp, Qgenss, this->A42Model.TengLast, dt);
@@ -1107,7 +1109,7 @@ namespace MicroCHPElectricGenerator {
                 state, DataPlant::PlantLoop(this->CWLoopNum).FluidName, TcwIn, DataPlant::PlantLoop(this->CWLoopNum).FluidIndex, RoutineName);
 
             TcwOut = FuncDetermineCoolantWaterExitTemp(
-                TcwIn, this->A42Model.MCcw, this->A42Model.UAhx, MdotCW * Cp, Teng, this->A42Model.TempCWOutLast, dt);
+                state, TcwIn, this->A42Model.MCcw, this->A42Model.UAhx, MdotCW * Cp, Teng, this->A42Model.TempCWOutLast, dt);
 
             // form balance and exit once met.
             bool EnergyBalOK = CheckMicroCHPThermalBalance(this->A42Model.MaxElecPower,
@@ -1172,7 +1174,8 @@ namespace MicroCHPElectricGenerator {
         return (TengLast + a / b) * std::exp(b * time) - a / b;
     }
 
-    Real64 FuncDetermineCoolantWaterExitTemp(Real64 const TcwIn,      // hot water inlet temp
+    Real64 FuncDetermineCoolantWaterExitTemp(EnergyPlusData &state,
+                                             Real64 const TcwIn,      // hot water inlet temp
                                              Real64 const MCcw,       // Fictitious mass and heat capacity of coolant hx
                                              Real64 const UAHX,       // Heat exchanger UA
                                              Real64 const MdotCpcw,   // mass flow and specific heat of coolant water
@@ -1198,7 +1201,7 @@ namespace MicroCHPElectricGenerator {
         Real64 a = (MdotCpcw * TcwIn / MCcw) + (UAHX * Teng / MCcw);
         Real64 b = ((-1.0 * MdotCpcw / MCcw) + (-1.0 * UAHX / MCcw));
 
-        if (b * time < (-1.0 * DataGlobals::MaxEXPArg)) {
+        if (b * time < (-1.0 * state.dataGlobal->MaxEXPArg)) {
             return -a / b;
         } else {
             return (TcwoutLast + a / b) * std::exp(b * time) - a / b;
@@ -1341,7 +1344,7 @@ namespace MicroCHPElectricGenerator {
         static std::string const RoutineName("UpdateMicroCHPGeneratorRecords");
 
         this->A42Model.ACPowerGen = this->A42Model.Pnet;                                                          // electrical power produced [W]
-        this->A42Model.ACEnergyGen = this->A42Model.Pnet * DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour; // energy produced (J)
+        this->A42Model.ACEnergyGen = this->A42Model.Pnet * DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour; // energy produced (J)
         this->A42Model.QdotHX = this->A42Model.UAhx * (this->A42Model.Teng - this->A42Model.TcwOut);              //  heat recovered rate (W)
 
         Real64 Cp = FluidProperties::GetSpecificHeatGlycol(
@@ -1349,7 +1352,7 @@ namespace MicroCHPElectricGenerator {
 
         this->A42Model.QdotHR = this->PlantMassFlowRate * Cp * (this->A42Model.TcwOut - this->A42Model.TcwIn);
         this->A42Model.TotalHeatEnergyRec =
-            this->A42Model.QdotHR * DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour; // heat recovered energy (J)
+            this->A42Model.QdotHR * DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour; // heat recovered energy (J)
 
         this->A42Model.HeatRecInletTemp = this->A42Model.TcwIn;   // Heat Recovery Loop Inlet Temperature (C)
         this->A42Model.HeatRecOutletTemp = this->A42Model.TcwOut; // Heat Recovery Loop Outlet Temperature (C)
@@ -1357,24 +1360,24 @@ namespace MicroCHPElectricGenerator {
         this->A42Model.FuelCompressPower = DataGenerators::FuelSupply(this->FuelSupplyID).PfuelCompEl;
         // electrical power used by fuel supply compressor [W]
         this->A42Model.FuelCompressEnergy =
-            DataGenerators::FuelSupply(this->FuelSupplyID).PfuelCompEl * DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour; // elect energy
+            DataGenerators::FuelSupply(this->FuelSupplyID).PfuelCompEl * DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour; // elect energy
         this->A42Model.FuelCompressSkinLoss = DataGenerators::FuelSupply(this->FuelSupplyID).QskinLoss;
         // heat rate of losses.by fuel supply compressor [W]
         this->A42Model.FuelEnergyHHV = this->A42Model.NdotFuel * DataGenerators::FuelSupply(this->FuelSupplyID).HHV *
                                        DataGenerators::FuelSupply(this->FuelSupplyID).KmolPerSecToKgPerSec * DataHVACGlobals::TimeStepSys *
-                                       DataGlobals::SecInHour;
+                                       state.dataGlobal->SecInHour;
         // reporting: Fuel Energy used (W)
         this->A42Model.FuelEnergyUseRateHHV = this->A42Model.NdotFuel * DataGenerators::FuelSupply(this->FuelSupplyID).HHV *
                                               DataGenerators::FuelSupply(this->FuelSupplyID).KmolPerSecToKgPerSec;
         // reporting: Fuel Energy used (J)
         this->A42Model.FuelEnergyLHV = this->A42Model.NdotFuel * DataGenerators::FuelSupply(this->FuelSupplyID).LHV * 1000000.0 *
-                                       DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+                                       DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
         // reporting: Fuel Energy used (W)
         this->A42Model.FuelEnergyUseRateLHV = this->A42Model.NdotFuel * DataGenerators::FuelSupply(this->FuelSupplyID).LHV * 1000000.0;
 
         this->A42Model.SkinLossPower = this->A42Model.QdotConvZone + this->A42Model.QdotRadZone;
         this->A42Model.SkinLossEnergy =
-            (this->A42Model.QdotConvZone + this->A42Model.QdotRadZone) * DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+            (this->A42Model.QdotConvZone + this->A42Model.QdotRadZone) * DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
         this->A42Model.SkinLossConvect = this->A42Model.QdotConvZone;
         this->A42Model.SkinLossRadiat = this->A42Model.QdotRadZone;
 

@@ -4335,8 +4335,6 @@ namespace VentilatedSlab {
         // Code based loosely on code from IBLAST program (research version)
 
         // Using/Aliasing
-        using DataGlobals::Pi;
-
         // Return value
         Real64 CalcVentSlabHXEffectTerm;
 
@@ -4518,7 +4516,6 @@ namespace VentilatedSlab {
         // Standard EnergyPlus methodology.
 
         // Using/Aliasing
-        using DataGlobals::SecInHour;
         using DataHeatBalance::Zone;
         using DataHVACGlobals::TimeStepSys;
         using DataLoopNode::Node;
@@ -4551,15 +4548,15 @@ namespace VentilatedSlab {
             state.dataVentilatedSlab->VentSlab(Item).RadCoolingPower = -TotalVentSlabRadPower;
         }
 
-        state.dataVentilatedSlab->VentSlab(Item).RadHeatingEnergy = state.dataVentilatedSlab->VentSlab(Item).RadHeatingPower * TimeStepSys * SecInHour;
-        state.dataVentilatedSlab->VentSlab(Item).RadCoolingEnergy = state.dataVentilatedSlab->VentSlab(Item).RadCoolingPower * TimeStepSys * SecInHour;
+        state.dataVentilatedSlab->VentSlab(Item).RadHeatingEnergy = state.dataVentilatedSlab->VentSlab(Item).RadHeatingPower * TimeStepSys * state.dataGlobal->SecInHour;
+        state.dataVentilatedSlab->VentSlab(Item).RadCoolingEnergy = state.dataVentilatedSlab->VentSlab(Item).RadCoolingPower * TimeStepSys * state.dataGlobal->SecInHour;
 
         // Coil Part
-        state.dataVentilatedSlab->VentSlab(Item).HeatCoilEnergy = state.dataVentilatedSlab->VentSlab(Item).HeatCoilPower * TimeStepSys * SecInHour;
-        state.dataVentilatedSlab->VentSlab(Item).SensCoolCoilEnergy = state.dataVentilatedSlab->VentSlab(Item).SensCoolCoilPower * TimeStepSys * SecInHour;
-        state.dataVentilatedSlab->VentSlab(Item).LateCoolCoilEnergy = state.dataVentilatedSlab->VentSlab(Item).LateCoolCoilPower * TimeStepSys * SecInHour;
-        state.dataVentilatedSlab->VentSlab(Item).TotCoolCoilEnergy = state.dataVentilatedSlab->VentSlab(Item).TotCoolCoilPower * TimeStepSys * SecInHour;
-        state.dataVentilatedSlab->VentSlab(Item).ElecFanEnergy = state.dataVentilatedSlab->VentSlab(Item).ElecFanPower * TimeStepSys * SecInHour;
+        state.dataVentilatedSlab->VentSlab(Item).HeatCoilEnergy = state.dataVentilatedSlab->VentSlab(Item).HeatCoilPower * TimeStepSys * state.dataGlobal->SecInHour;
+        state.dataVentilatedSlab->VentSlab(Item).SensCoolCoilEnergy = state.dataVentilatedSlab->VentSlab(Item).SensCoolCoilPower * TimeStepSys * state.dataGlobal->SecInHour;
+        state.dataVentilatedSlab->VentSlab(Item).LateCoolCoilEnergy = state.dataVentilatedSlab->VentSlab(Item).LateCoolCoilPower * TimeStepSys * state.dataGlobal->SecInHour;
+        state.dataVentilatedSlab->VentSlab(Item).TotCoolCoilEnergy = state.dataVentilatedSlab->VentSlab(Item).TotCoolCoilPower * TimeStepSys * state.dataGlobal->SecInHour;
+        state.dataVentilatedSlab->VentSlab(Item).ElecFanEnergy = state.dataVentilatedSlab->VentSlab(Item).ElecFanPower * TimeStepSys * state.dataGlobal->SecInHour;
 
         if ((state.dataVentilatedSlab->VentSlab(Item).SysConfg == state.dataVentilatedSlab->SlabOnly) || (state.dataVentilatedSlab->VentSlab(Item).SysConfg == state.dataVentilatedSlab->SeriesSlabs)) {
             state.dataVentilatedSlab->VentSlab(Item).SlabInTemp = Node(state.dataVentilatedSlab->VentSlab(Item).RadInNode).Temp;

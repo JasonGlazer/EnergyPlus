@@ -116,7 +116,7 @@ namespace BoilerSteam {
         this->initialize(state);
         auto &sim_component(DataPlant::PlantLoop(this->LoopNum).LoopSide(this->LoopSideNum).Branch(this->BranchNum).Comp(this->CompNum));
         this->calculate(state, CurLoad, RunFlag, sim_component.FlowCtrl);
-        this->update(CurLoad, RunFlag, FirstHVACIteration);
+        this->update(state, CurLoad, RunFlag, FirstHVACIteration);
     }
 
     void BoilerSpecs::getDesignCapacities(EnergyPlusData &EP_UNUSED(state), const PlantLocation &, Real64 &MaxLoad, Real64 &MinLoad, Real64 &OptLoad)
@@ -783,7 +783,8 @@ namespace BoilerSteam {
 
     // Beginning of Record Keeping subroutines for the BOILER:SIMPLE Module
 
-    void BoilerSpecs::update(Real64 const MyLoad,                     // boiler operating load
+    void BoilerSpecs::update(EnergyPlusData &state,
+                             Real64 const MyLoad,                     // boiler operating load
                              bool const RunFlag,                      // boiler on when TRUE
                              bool const EP_UNUSED(FirstHVACIteration) // TRUE if First iteration of simulation
     )
@@ -797,7 +798,7 @@ namespace BoilerSteam {
         // PURPOSE OF THIS SUBROUTINE:
         // Boiler simulation reporting
 
-        Real64 ReportingConstant = DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+        Real64 ReportingConstant = DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
         int BoilerInletNode = this->BoilerInletNodeNum;
         int BoilerOutletNode = this->BoilerOutletNodeNum;
 

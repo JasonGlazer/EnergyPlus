@@ -64,6 +64,9 @@
 
 namespace EnergyPlus {
 
+// Forward declarations
+struct EnergyPlusData;
+
 namespace HybridEvapCoolingModel {
 
     enum class SYSTEMOUTPUTS

@@ -236,7 +236,8 @@ namespace MicroCHPElectricGenerator {
                                    Real64 time      // elapsed time since previous evaluation
     );
 
-    Real64 FuncDetermineCoolantWaterExitTemp(Real64 TcwIn,      // hot water inlet temp
+    Real64 FuncDetermineCoolantWaterExitTemp(EnergyPlusData &state,
+                                             Real64 TcwIn,      // hot water inlet temp
                                              Real64 MCcw,       // Fictitious mass and heat capacity of coolant hx
                                              Real64 UAHX,       // Heat exchanger UA
                                              Real64 MdotCpcw,   // mass flow and specific heat of coolant water

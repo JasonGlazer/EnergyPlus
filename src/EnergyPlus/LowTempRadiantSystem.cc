@@ -2270,7 +2270,7 @@ namespace LowTempRadiantSystem {
                                          HydrRadSys(RadSysNum).CWBranchNum,
                                          HydrRadSys(RadSysNum).CWCompNum);
                 }
-                if (HydrRadSys(RadSysNum).OperatingMode != NotOperating && FirstHVACIteration) HydrRadSys(RadSysNum).updateOperatingModeHistory();
+                if (HydrRadSys(RadSysNum).OperatingMode != NotOperating && FirstHVACIteration) HydrRadSys(RadSysNum).updateOperatingModeHistory(state);
 
             } else if (SELECT_CASE_var == ConstantFlowSystem) {
                 CFloRadSys(RadSysNum).WaterMassFlowRate = 0.0;
@@ -2320,7 +2320,7 @@ namespace LowTempRadiantSystem {
                                              CFloRadSys(RadSysNum).CWBranchNum,
                                              CFloRadSys(RadSysNum).CWCompNum);
                 }
-                if (CFloRadSys(RadSysNum).OperatingMode != NotOperating && FirstHVACIteration) CFloRadSys(RadSysNum).updateOperatingModeHistory();
+                if (CFloRadSys(RadSysNum).OperatingMode != NotOperating && FirstHVACIteration) CFloRadSys(RadSysNum).updateOperatingModeHistory(state);
 
             } else if (SELECT_CASE_var == ElectricSystem) {
 
@@ -2330,7 +2330,7 @@ namespace LowTempRadiantSystem {
         }
     }
 
-    void HydronicSystemBaseData::updateOperatingModeHistory()
+    void HydronicSystemBaseData::updateOperatingModeHistory(EnergyPlusData &state)
     {
         // Since this is only called when the operating mode is something other than "not operating",
         // the status from the previous system time step is what it did in the last or previous time step.
@@ -2344,7 +2344,7 @@ namespace LowTempRadiantSystem {
             // So, the day should be the previous day, the hour should bethe last hour of the
             // day, and the time step should be the last time step.
             this->lastDayOfSim = DataGlobals::DayOfSim - 1;
-            this->lastHourOfDay = int(DataGlobals::HoursInDay);
+            this->lastHourOfDay = int(state.dataGlobal->HoursInDay);
             this->lastTimeStep = DataGlobals::NumOfTimeStepInHour;
         } else if (DataGlobals::BeginHourFlag) {
             // It's not the beginning of the day but it is the beginning of an hour other than
@@ -4891,12 +4891,12 @@ namespace LowTempRadiantSystem {
     Real64 ConstantFlowRadiantSystemData::calculateCurrentDailyAverageODB(EnergyPlusData& state)
     {
         Real64 sum = 0.0;
-        for (int hourNumber = 1; hourNumber <= DataGlobals::HoursInDay; ++hourNumber) {
+        for (int hourNumber = 1; hourNumber <= state.dataGlobal->HoursInDay; ++hourNumber) {
             for (int timeStepNumber = 1; timeStepNumber <= DataGlobals::NumOfTimeStepInHour; ++timeStepNumber) {
                 sum += state.dataWeatherManager->TodayOutDryBulbTemp(timeStepNumber, hourNumber);
             }
         }
-        return sum / double(DataGlobals::HoursInDay * DataGlobals::NumOfTimeStepInHour);
+        return sum / double(state.dataGlobal->HoursInDay * DataGlobals::NumOfTimeStepInHour);
     }
 
     void ElectricRadiantSystemData::calculateLowTemperatureRadiantSystem(EnergyPlusData &state,
@@ -5345,8 +5345,6 @@ namespace LowTempRadiantSystem {
         // Heat exchanger information also from Incropera and DeWitt.
         // Code based loosely on code from IBLAST program (research version)
 
-        // Using/Aliasing
-        using DataGlobals::Pi;
         using DataPlant::PlantLoop;
         using FluidProperties::GetSpecificHeatGlycol;
 
@@ -5438,11 +5436,11 @@ namespace LowTempRadiantSystem {
             // NTU = UA/[(Mdot*Cp)min]
             // where: U = h (convection coefficient) and h = (k)(Nu)/D
             //        A = Pi*D*TubeLength
-            NTU = U * Pi * this->TubeDiameterOuter * this->TubeLength / (WaterMassFlow * CpWater); // FlowFraction cancels out here
+            NTU = U * state.dataGlobal->Pi * this->TubeDiameterOuter * this->TubeLength / (WaterMassFlow * CpWater); // FlowFraction cancels out here
         } else {    // (this->FluidToSlabHeatTransfer == FluidToSlabHeatTransferTypes::ConvectionOnly)
 
             // Calculate the Reynold's number from RE=(4*Mdot)/(Pi*Mu*Diameter)
-            ReD = 4.0 * WaterMassFlow * FlowFraction / (Pi * MUactual * this->TubeDiameterInner * NumCircs);
+            ReD = 4.0 * WaterMassFlow * FlowFraction / (state.dataGlobal->Pi * MUactual * this->TubeDiameterInner * NumCircs);
 
             // Calculate the Nusselt number based on what flow regime one is in
             if (ReD >= MaxLaminarRe) { // Turbulent flow --> use Colburn equation
@@ -5458,7 +5456,7 @@ namespace LowTempRadiantSystem {
             // NTU = UA/[(Mdot*Cp)min]
             // where: U = h (convection coefficient) and h = (k)(Nu)/D
             //        A = Pi*D*TubeLength
-            NTU = Pi * Kactual * NuD * this->TubeLength / (WaterMassFlow * CpWater); // FlowFraction cancels out here
+            NTU = state.dataGlobal->Pi * Kactual * NuD * this->TubeLength / (WaterMassFlow * CpWater); // FlowFraction cancels out here
         }
 
         // Calculate Epsilon*MassFlowRate*Cp
@@ -5491,10 +5489,10 @@ namespace LowTempRadiantSystem {
         // Fluid resistance to heat transfer, assumes turbulent flow (Equation B5, p. 38 of ISO Standard 11855-2)
         Real64 distanceBetweenPipes = 2.0 * state.dataConstruction->Construct(constructionNumber).ThicknessPerpend;
         Real64 ratioDiameterToMassFlowLength = this->TubeDiameterInner / WaterMassFlow / this->TubeLength;
-        Real64 rFluid = 0.125 / DataGlobals::Pi * std::pow(distanceBetweenPipes, 0.13) * std::pow(ratioDiameterToMassFlowLength,0.87);
+        Real64 rFluid = 0.125 / state.dataGlobal->Pi * std::pow(distanceBetweenPipes, 0.13) * std::pow(ratioDiameterToMassFlowLength,0.87);
 
         // Resistance to heat transfer (conduction through the piping material, Equation B6, p. 38 of ISO Standard 11855-2)
-        Real64 rTube = 0.5 * distanceBetweenPipes * std::log(this->TubeDiameterOuter/this->TubeDiameterInner) / DataGlobals::Pi / this->TubeConductivity;
+        Real64 rTube = 0.5 * distanceBetweenPipes * std::log(this->TubeDiameterOuter/this->TubeDiameterInner) / state.dataGlobal->Pi / this->TubeConductivity;
 
         calculateUFromISOStandard = 1.0 / (rFluid + rTube);
 
@@ -5608,11 +5606,10 @@ namespace LowTempRadiantSystem {
         return sumHATsurf;
     }
 
-    void VariableFlowRadiantSystemData::reportLowTemperatureRadiantSystem(EnergyPlusData &EP_UNUSED(state))
+    void VariableFlowRadiantSystemData::reportLowTemperatureRadiantSystem(EnergyPlusData &state)
     {
 
         // Using/Aliasing
-        using DataGlobals::SecInHour;
         using DataHeatBalance::Zone;
         using DataHVACGlobals::TimeStepSys;
         using DataLoopNode::Node;
@@ -5645,11 +5642,11 @@ namespace LowTempRadiantSystem {
             this->WaterOutletTemp = this->WaterInletTemp;
         }
 
-        this->HeatEnergy = this->HeatPower * TimeStepSys * SecInHour;
-        this->CoolEnergy = this->CoolPower * TimeStepSys * SecInHour;
+        this->HeatEnergy = this->HeatPower * TimeStepSys * state.dataGlobal->SecInHour;
+        this->CoolEnergy = this->CoolPower * TimeStepSys * state.dataGlobal->SecInHour;
 
         if (this->CondCausedShutDown) {
-            this->CondCausedTimeOff = TimeStepSys * SecInHour;
+            this->CondCausedTimeOff = TimeStepSys * state.dataGlobal->SecInHour;
         } else {
             this->CondCausedTimeOff = 0.0;
         }
@@ -5659,7 +5656,6 @@ namespace LowTempRadiantSystem {
     {
 
         // Using/Aliasing
-        using DataGlobals::SecInHour;
         using DataHeatBalance::Zone;
         using DataHVACGlobals::TimeStepSys;
         using DataLoopNode::Node;
@@ -5718,23 +5714,22 @@ namespace LowTempRadiantSystem {
             this->PumpHeattoFluid = 0.0;
         }
 
-        this->HeatEnergy = this->HeatPower * TimeStepSys * SecInHour;
-        this->CoolEnergy = this->CoolPower * TimeStepSys * SecInHour;
-        this->PumpEnergy = this->PumpPower * TimeStepSys * SecInHour;
-        this->PumpHeattoFluidEnergy = this->PumpHeattoFluid * TimeStepSys * SecInHour;
+        this->HeatEnergy = this->HeatPower * TimeStepSys * state.dataGlobal->SecInHour;
+        this->CoolEnergy = this->CoolPower * TimeStepSys * state.dataGlobal->SecInHour;
+        this->PumpEnergy = this->PumpPower * TimeStepSys * state.dataGlobal->SecInHour;
+        this->PumpHeattoFluidEnergy = this->PumpHeattoFluid * TimeStepSys * state.dataGlobal->SecInHour;
 
         if (this->CondCausedShutDown) {
-            this->CondCausedTimeOff = TimeStepSys * SecInHour;
+            this->CondCausedTimeOff = TimeStepSys * state.dataGlobal->SecInHour;
         } else {
             this->CondCausedTimeOff = 0.0;
         }
     }
 
-    void ElectricRadiantSystemData::reportLowTemperatureRadiantSystem(EnergyPlusData &EP_UNUSED(state))
+    void ElectricRadiantSystemData::reportLowTemperatureRadiantSystem(EnergyPlusData &state)
     {
 
         // Using/Aliasing
-        using DataGlobals::SecInHour;
         using DataHeatBalance::Zone;
         using DataHVACGlobals::TimeStepSys;
 
@@ -5747,7 +5742,7 @@ namespace LowTempRadiantSystem {
         totalRadSysPower *= double(Zone(this->ZonePtr).Multiplier * Zone(this->ZonePtr).ListMultiplier);
 
         this->ElecPower = totalRadSysPower;
-        this->ElecEnergy = this->ElecPower * TimeStepSys * SecInHour;
+        this->ElecEnergy = this->ElecPower * TimeStepSys * state.dataGlobal->SecInHour;
         this->HeatPower = this->ElecPower;
         this->HeatEnergy = this->ElecEnergy;
     }

@@ -186,7 +186,7 @@ namespace ChillerReformulatedEIR {
         if (calledFromLocation.loopNum == this->CWLoopNum) {
             this->initialize(state, RunFlag, CurLoad);
             this->control(state, CurLoad, RunFlag, FirstHVACIteration);
-            this->update(CurLoad, RunFlag);
+            this->update(state, CurLoad, RunFlag);
         } else if (calledFromLocation.loopNum == this->CDLoopNum) {
             int LoopSide = this->CDLoopSideNum;
             PlantUtilities::UpdateChillerComponentCondenserSide(state,
@@ -1690,7 +1690,7 @@ namespace ChillerReformulatedEIR {
         }
     }
 
-    void ReformulatedEIRChillerSpecs::update(Real64 const MyLoad, bool const RunFlag)
+    void ReformulatedEIRChillerSpecs::update(EnergyPlusData &state, Real64 const MyLoad, bool const RunFlag)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR:          Lixing Gu, FSEC
@@ -1736,10 +1736,10 @@ namespace ChillerReformulatedEIR {
             DataLoopNode::Node(this->CondOutletNodeNum).Temp = this->CondOutletTemp;
             // Set node flow rates;  for these load based models
             // assume that sufficient evaporator flow rate is available
-            this->ChillerFalseLoad = this->ChillerFalseLoadRate * DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
-            this->Energy = this->Power * DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
-            this->EvapEnergy = this->QEvaporator * DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
-            this->CondEnergy = this->QCondenser * DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+            this->ChillerFalseLoad = this->ChillerFalseLoadRate * DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
+            this->Energy = this->Power * DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
+            this->EvapEnergy = this->QEvaporator * DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
+            this->CondEnergy = this->QCondenser * DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
             this->EvapInletTemp = DataLoopNode::Node(this->EvapInletNodeNum).Temp;
             this->CondInletTemp = DataLoopNode::Node(this->CondInletNodeNum).Temp;
             this->CondOutletTemp = DataLoopNode::Node(this->CondOutletNodeNum).Temp;
@@ -1752,7 +1752,7 @@ namespace ChillerReformulatedEIR {
             if (this->HeatRecActive) {
 
                 PlantUtilities::SafeCopyPlantNode(this->HeatRecInletNodeNum, this->HeatRecOutletNodeNum);
-                this->EnergyHeatRecovery = this->QHeatRecovery * DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+                this->EnergyHeatRecovery = this->QHeatRecovery * DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
                 DataLoopNode::Node(this->HeatRecOutletNodeNum).Temp = this->HeatRecOutletTemp;
                 this->HeatRecInletTemp = DataLoopNode::Node(this->HeatRecInletNodeNum).Temp;
                 this->HeatRecOutletTemp = DataLoopNode::Node(this->HeatRecOutletNodeNum).Temp;

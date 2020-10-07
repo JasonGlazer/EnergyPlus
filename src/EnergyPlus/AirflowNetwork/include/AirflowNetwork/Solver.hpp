@@ -189,7 +189,8 @@ namespace AirflowNetwork {
                      std::array<Real64, 2> &DF   // Partial derivative:  DF/DP
     );
 
-    int GenericDuct(Real64 const Length,        // Duct length
+    int GenericDuct(EnergyPlusData &state,
+                    Real64 const Length,        // Duct length
                     Real64 const Diameter,      // Duct diameter
                     bool const LFLAG,           // Initialization flag.If = 1, use laminar relationship
                     Real64 const PDROP,         // Total pressure drop across a component (P1 - P2) [Pa]
@@ -251,7 +252,7 @@ namespace AirflowNetwork {
                      Real64 const OwnHeightFactor   // Cosine of deviation angle of the opening plane from the vertical direction
     );
 
-    void PStack();
+    void PStack(EnergyPlusData &state);
 
     Real64 psz(Real64 const Pz0,  // Pressure at altitude z0 [Pa]
                Real64 const Rho0, // density at altitude z0 [kg/m3]

@@ -136,7 +136,6 @@ namespace FanCoilUnits {
     using DataGlobals::BeginDayFlag;
     using DataGlobals::BeginEnvrnFlag;
     using DataGlobals::DisplayExtraWarnings;
-    using DataGlobals::SecInHour;
     using DataGlobals::SysSizingCalc;
     using DataHVACGlobals::ATMixer_InletSide;
     using DataHVACGlobals::ATMixer_SupplySide;
@@ -296,7 +295,7 @@ namespace FanCoilUnits {
         }
 
         // Report the result of the simulation
-        ReportFanCoilUnit(FanCoilNum);
+        ReportFanCoilUnit(state, FanCoilNum);
 
         ZoneEqFanCoil = false;
     }
@@ -4631,7 +4630,7 @@ namespace FanCoilUnits {
         PowerMet = QUnitOut;
     }
 
-    void ReportFanCoilUnit(int const FanCoilNum) // number of the current fan coil unit being simulated
+    void ReportFanCoilUnit(EnergyPlusData &state, int const FanCoilNum) // number of the current fan coil unit being simulated
     {
 
         // SUBROUTINE INFORMATION:
@@ -4668,7 +4667,7 @@ namespace FanCoilUnits {
         Real64 ReportingConstant;
 
         // FLOW
-        ReportingConstant = TimeStepSys * SecInHour;
+        ReportingConstant = TimeStepSys * state.dataGlobal->SecInHour;
         FanCoil(FanCoilNum).HeatEnergy = FanCoil(FanCoilNum).HeatPower * ReportingConstant;
         FanCoil(FanCoilNum).SensCoolEnergy = FanCoil(FanCoilNum).SensCoolPower * ReportingConstant;
         FanCoil(FanCoilNum).TotCoolEnergy = FanCoil(FanCoilNum).TotCoolPower * ReportingConstant;

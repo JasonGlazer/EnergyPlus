@@ -267,7 +267,7 @@ namespace DesiccantDehumidifiers {
 
         UpdateDesiccantDehumidifier(DesicDehumNum);
 
-        ReportDesiccantDehumidifier(DesicDehumNum);
+        ReportDesiccantDehumidifier(state, DesicDehumNum);
     }
 
     void GetDesiccantDehumidifierInput(EnergyPlusData &state)
@@ -3148,7 +3148,7 @@ namespace DesiccantDehumidifiers {
         }
     }
 
-    void ReportDesiccantDehumidifier(int const DesicDehumNum) // number of the current dehumidifier being simulated
+    void ReportDesiccantDehumidifier(EnergyPlusData &state, int const DesicDehumNum) // number of the current dehumidifier being simulated
     {
 
         // SUBROUTINE INFORMATION:
@@ -3185,7 +3185,7 @@ namespace DesiccantDehumidifiers {
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
         Real64 ReportingConstant;
 
-        ReportingConstant = TimeStepSys * SecInHour;
+        ReportingConstant = TimeStepSys * state.dataGlobal->SecInHour;
 
         {
             auto const SELECT_CASE_var(DesicDehum(DesicDehumNum).DehumTypeCode);

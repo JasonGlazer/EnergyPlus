@@ -485,7 +485,6 @@ namespace SurfaceGroundHeatExchanger {
 
         // Using/Aliasing
         using DataGlobals::BeginEnvrnFlag;
-        using DataGlobals::Pi;
         using namespace DataEnvironment;
         using DataHeatBalance::TotConstructs;
         using DataLoopNode::Node;
@@ -1124,7 +1123,6 @@ namespace SurfaceGroundHeatExchanger {
         // Code based loosely on code from IBLAST program (research version)
 
         // Using/Aliasing
-        using DataGlobals::Pi;
         using DataPlant::PlantLoop;
         using FluidProperties::GetSpecificHeatGlycol;
         using General::RoundSigDigits;
@@ -1455,7 +1453,6 @@ namespace SurfaceGroundHeatExchanger {
         // This subroutine simply produces output for Surface ground heat exchangers
 
         // Using/Aliasing
-        using DataGlobals::SecInHour;
         using DataHVACGlobals::TimeStepSys;
         using DataLoopNode::Node;
 
@@ -1467,12 +1464,12 @@ namespace SurfaceGroundHeatExchanger {
         // update other variables from module variables
         this->HeatTransferRate = SourceFlux * this->SurfaceArea;
         this->SurfHeatTransferRate = this->SurfaceArea * (TopSurfFlux + BtmSurfFlux);
-        this->Energy = SourceFlux * this->SurfaceArea * TimeStepSys * SecInHour;
+        this->Energy = SourceFlux * this->SurfaceArea * TimeStepSys * state.dataGlobal->SecInHour;
         this->TopSurfaceTemp = TopSurfTemp;
         this->BtmSurfaceTemp = BtmSurfTemp;
         this->TopSurfaceFlux = TopSurfFlux;
         this->BtmSurfaceFlux = BtmSurfFlux;
-        this->SurfEnergy = SurfaceArea * (TopSurfFlux + BtmSurfFlux) * TimeStepSys * SecInHour;
+        this->SurfEnergy = SurfaceArea * (TopSurfFlux + BtmSurfFlux) * TimeStepSys * state.dataGlobal->SecInHour;
     }
 
 } // namespace SurfaceGroundHeatExchanger

@@ -95,7 +95,6 @@ namespace HeatPumpWaterToWaterCOOLING {
     using DataGlobals::BeginSimFlag;
     using DataGlobals::DayOfSim;
     using DataGlobals::HourOfDay;
-    using DataGlobals::SecInHour;
     using DataGlobals::TimeStep;
     using DataGlobals::TimeStepZone;
     using DataGlobals::WarmupFlag;
@@ -141,7 +140,7 @@ namespace HeatPumpWaterToWaterCOOLING {
         if (calledFromLocation.loopNum == this->LoadLoopNum) { // chilled water loop
             this->initialize(state);
             this->calculate(state, CurLoad);
-            this->update();
+            this->update(state);
         } else if (calledFromLocation.loopNum == this->SourceLoopNum) { // condenser loop
             PlantUtilities::UpdateChillerComponentCondenserSide(state, this->SourceLoopNum,
                                                 this->SourceLoopSideNum,
@@ -931,7 +930,7 @@ namespace HeatPumpWaterToWaterCOOLING {
         this->Running = 1;
     }
 
-    void GshpPeCoolingSpecs::update()
+    void GshpPeCoolingSpecs::update(EnergyPlusData &state)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR:          Dan Fisher
@@ -960,7 +959,7 @@ namespace HeatPumpWaterToWaterCOOLING {
             // set node flow rates;  for these load based models
             // assume that the sufficient Source Side flow rate available
 
-            Real64 const ReportingConstant = DataHVACGlobals::TimeStepSys * SecInHour;
+            Real64 const ReportingConstant = DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
 
             this->Energy = this->Power * ReportingConstant;
             this->QSourceEnergy = QSource * ReportingConstant;

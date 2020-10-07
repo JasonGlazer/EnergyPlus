@@ -305,7 +305,7 @@ namespace HVACMultiSpeedHeatPump {
         UpdateMSHeatPump(state, MSHeatPumpNum);
 
         // Report the result of the simulation
-        ReportMSHeatPump(MSHeatPumpNum);
+        ReportMSHeatPump(state, MSHeatPumpNum);
     }
 
     //******************************************************************************
@@ -4047,7 +4047,7 @@ namespace HVACMultiSpeedHeatPump {
 
     //******************************************************************************
 
-    void ReportMSHeatPump(int const MSHeatPumpNum) // Engine driven heat pump number
+    void ReportMSHeatPump(EnergyPlusData &state, int const MSHeatPumpNum) // Engine driven heat pump number
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR:          Lixing Gu, FSEC
@@ -4079,7 +4079,7 @@ namespace HVACMultiSpeedHeatPump {
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
         Real64 ReportingConstant;
 
-        ReportingConstant = TimeStepSys * SecInHour;
+        ReportingConstant = TimeStepSys * state.dataGlobal->SecInHour;
         MSHeatPumpReport(MSHeatPumpNum).ElecPowerConsumption = MSHeatPump(MSHeatPumpNum).ElecPower * ReportingConstant; // + &
         MSHeatPumpReport(MSHeatPumpNum).HeatRecoveryEnergy = MSHeatPump(MSHeatPumpNum).HeatRecoveryRate * ReportingConstant;
 

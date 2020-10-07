@@ -124,7 +124,7 @@ namespace Boilers {
         auto &sim_component(DataPlant::PlantLoop(this->LoopNum).LoopSide(this->LoopSideNum).Branch(this->BranchNum).Comp(this->CompNum));
         this->InitBoiler(state);
         this->CalcBoilerModel(state, CurLoad, RunFlag, sim_component.FlowCtrl);
-        this->UpdateBoilerRecords(CurLoad, RunFlag);
+        this->UpdateBoilerRecords(state, CurLoad, RunFlag);
     }
 
     void BoilerSpecs::getDesignCapacities(EnergyPlusData &EP_UNUSED(state), const PlantLocation &EP_UNUSED(calledFromLocation), Real64 &MaxLoad, Real64 &MinLoad, Real64 &OptLoad)
@@ -911,7 +911,8 @@ namespace Boilers {
         if (this->BoilerLoad > 0.0) this->ParasiticElecPower = this->ParasiticElecLoad * this->BoilerPLR;
     }
 
-    void BoilerSpecs::UpdateBoilerRecords(Real64 const MyLoad, // boiler operating load
+    void BoilerSpecs::UpdateBoilerRecords(EnergyPlusData &state,
+                                          Real64 const MyLoad, // boiler operating load
                                           bool const RunFlag   // boiler on when TRUE
     )
     {
@@ -922,7 +923,7 @@ namespace Boilers {
         // PURPOSE OF THIS SUBROUTINE:
         // boiler simulation reporting
 
-        Real64 const ReportingConstant = DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+        Real64 const ReportingConstant = DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
         int const BoilerInletNode = this->BoilerInletNodeNum;
         int const BoilerOutletNode = this->BoilerOutletNodeNum;
 

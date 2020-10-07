@@ -2361,7 +2361,7 @@ namespace ThermalComfort {
             // report how the aggregation is conducted
             {
                 auto const SELECT_CASE_var(KindOfSim);
-                if (SELECT_CASE_var == ksDesignDay) {
+                if (SELECT_CASE_var == state.dataGlobal->ksDesignDay) {
                     addFootNoteSubTable(pdstSimpleComfort, "Aggregated over the Design Days");
                 } else if (SELECT_CASE_var == ksRunPeriodDesign) {
                     addFootNoteSubTable(pdstSimpleComfort, "Aggregated over the RunPeriods for Design");
@@ -2546,7 +2546,7 @@ namespace ThermalComfort {
             // report how the aggregation is conducted
             {
                 auto const SELECT_CASE_var(KindOfSim);
-                if (SELECT_CASE_var == ksDesignDay) {
+                if (SELECT_CASE_var == state.dataGlobal->ksDesignDay) {
                     addFootNoteSubTable(pdstUnmetLoads, "Aggregated over the Design Days");
                 } else if (SELECT_CASE_var == ksRunPeriodDesign) {
                     addFootNoteSubTable(pdstUnmetLoads, "Aggregated over the RunPeriods for Design");

@@ -1722,7 +1722,7 @@ namespace MicroturbineElectricGenerator {
         }
     }
 
-    void MTGeneratorSpecs::UpdateMTGeneratorRecords()
+    void MTGeneratorSpecs::UpdateMTGeneratorRecords(EnergyPlusData &state)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR         R. Raustad/D. Shirey
@@ -1749,9 +1749,9 @@ namespace MicroturbineElectricGenerator {
                 DataLoopNode::Node(this->CombustionAirInletNodeNum).MassFlowRateMinAvail;
         }
 
-        this->EnergyGen = this->ElecPowerGenerated * DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
-        this->ExhaustEnergyRec = this->QHeatRecovered * DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
-        this->FuelEnergyHHV = this->FuelEnergyUseRateHHV * DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+        this->EnergyGen = this->ElecPowerGenerated * DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
+        this->ExhaustEnergyRec = this->QHeatRecovered * DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
+        this->FuelEnergyHHV = this->FuelEnergyUseRateHHV * DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
         if (this->FuelEnergyUseRateLHV > 0.0) {
             this->ElectricEfficiencyLHV = this->ElecPowerGenerated / this->FuelEnergyUseRateLHV;
             this->ThermalEfficiencyLHV = this->QHeatRecovered / this->FuelEnergyUseRateLHV;
@@ -1759,8 +1759,8 @@ namespace MicroturbineElectricGenerator {
             this->ElectricEfficiencyLHV = 0.0;
             this->ThermalEfficiencyLHV = 0.0;
         }
-        this->AncillaryEnergy = this->AncillaryPowerRate * DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
-        this->StandbyEnergy = this->StandbyPowerRate * DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+        this->AncillaryEnergy = this->AncillaryPowerRate * DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
+        this->StandbyEnergy = this->StandbyPowerRate * DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
     }
 
 } // namespace MicroturbineElectricGenerator

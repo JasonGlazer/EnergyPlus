@@ -51,6 +51,7 @@
 // C++ Headers
 #include <math.h>
 
+#include <EnergyPlus/Data/EnergyPlusData.hh>
 #include <EnergyPlus/General.hh>
 #include <EnergyPlus/PVWattsSSC.hh>
 
@@ -397,7 +398,8 @@ namespace PVWatts {
         return ((double)tms[0]) + ((double)tms[1]) / 60.0;
     }
 
-    void irrad::get_sun(double *solazi,
+    void irrad::get_sun(EnergyPlusData &state,
+                        double *solazi,
                         double *solzen,
                         double *solelv,
                         double *soldec,
@@ -408,10 +410,10 @@ namespace PVWatts {
                         double *tst,
                         double *hextra)
     {
-        if (solazi != 0) *solazi = sun[0] * (180 / DataGlobals::Pi);
-        if (solzen != 0) *solzen = sun[1] * (180 / DataGlobals::Pi);
-        if (solelv != 0) *solelv = sun[2] * (180 / DataGlobals::Pi);
-        if (soldec != 0) *soldec = sun[3] * (180 / DataGlobals::Pi);
+        if (solazi != 0) *solazi = sun[0] * (180 / state.dataGlobal->Pi);
+        if (solzen != 0) *solzen = sun[1] * (180 / state.dataGlobal->Pi);
+        if (solelv != 0) *solelv = sun[2] * (180 / state.dataGlobal->Pi);
+        if (soldec != 0) *soldec = sun[3] * (180 / state.dataGlobal->Pi);
         if (sunrise != 0) *sunrise = sun[4];
         if (sunset != 0) *sunset = sun[5];
         if (sunup != 0) *sunup = tms[2];
@@ -420,13 +422,13 @@ namespace PVWatts {
         if (hextra != 0) *hextra = sun[8];
     }
 
-    void irrad::get_angles(double *aoi, double *surftilt, double *surfazi, double *axisrot, double *btdiff)
+    void irrad::get_angles(EnergyPlusData &state, double *aoi, double *surftilt, double *surfazi, double *axisrot, double *btdiff)
     {
-        if (aoi != 0) *aoi = angle[0] * (180 / DataGlobals::Pi);
-        if (surftilt != 0) *surftilt = angle[1] * (180 / DataGlobals::Pi);
-        if (surfazi != 0) *surfazi = angle[2] * (180 / DataGlobals::Pi);
-        if (axisrot != 0) *axisrot = angle[3] * (180 / DataGlobals::Pi);
-        if (btdiff != 0) *btdiff = angle[4] * (180 / DataGlobals::Pi);
+        if (aoi != 0) *aoi = angle[0] * (180 / state.dataGlobal->Pi);
+        if (surftilt != 0) *surftilt = angle[1] * (180 / state.dataGlobal->Pi);
+        if (surfazi != 0) *surfazi = angle[2] * (180 / state.dataGlobal->Pi);
+        if (axisrot != 0) *axisrot = angle[3] * (180 / state.dataGlobal->Pi);
+        if (btdiff != 0) *btdiff = angle[4] * (180 / state.dataGlobal->Pi);
     }
 
     void irrad::get_poa(double *beam, double *skydiff, double *gnddiff, double *isotrop, double *circum, double *horizon)
@@ -514,7 +516,7 @@ namespace PVWatts {
         this->poaAll = pA;
     }
 
-    int irrad::calc()
+    int irrad::calc(EnergyPlusData &state)
     {
         int code = check();
         if (code < 0) return -100 + code;
@@ -534,7 +536,7 @@ namespace PVWatts {
         double t_cur = hour + minute / 60.0;
 
         // calculate sunrise and sunset hours in local standard time for the current day
-        solarpos(year, month, day, 12, 0.0, lat, lon, tz, sun);
+        solarpos(state, year, month, day, 12, 0.0, lat, lon, tz, sun);
 
         double t_sunrise = sun[4];
         double t_sunset = sun[5];
@@ -549,7 +551,7 @@ namespace PVWatts {
             tms[0] = hr_calc;
             tms[1] = (int)min_calc;
 
-            solarpos(year, month, day, hr_calc, min_calc, lat, lon, tz, sun);
+            solarpos(state, year, month, day, hr_calc, min_calc, lat, lon, tz, sun);
 
             tms[2] = 2;
         } else if (delt > 0 && t_cur > t_sunset - delt / 2.0 && t_cur <= t_sunset + delt / 2.0) {
@@ -561,20 +563,20 @@ namespace PVWatts {
             tms[0] = hr_calc;
             tms[1] = (int)min_calc;
 
-            solarpos(year, month, day, hr_calc, min_calc, lat, lon, tz, sun);
+            solarpos(state, year, month, day, hr_calc, min_calc, lat, lon, tz, sun);
 
             tms[2] = 3;
         } else if (t_cur >= t_sunrise && t_cur <= t_sunset) {
             // timestep is not sunrise nor sunset, but sun is up  (calculate position at provided t_cur)
             tms[0] = hour;
             tms[1] = (int)minute;
-            solarpos(year, month, day, hour, minute, lat, lon, tz, sun);
+            solarpos(state, year, month, day, hour, minute, lat, lon, tz, sun);
             tms[2] = 1;
         } else {
             // sun is down, assign sundown values
-            sun[0] = -999 * DTOR; // avoid returning a junk azimuth angle (return in radians)
-            sun[1] = -999 * DTOR; // avoid returning a junk zenith angle (return in radians)
-            sun[2] = -999 * DTOR; // avoid returning a junk elevation angle (return in radians)
+            sun[0] = -999 * state.dataGlobal->DegToRadians; // avoid returning a junk azimuth angle (return in radians)
+            sun[1] = -999 * state.dataGlobal->DegToRadians; // avoid returning a junk zenith angle (return in radians)
+            sun[2] = -999 * state.dataGlobal->DegToRadians; // avoid returning a junk elevation angle (return in radians)
             tms[0] = 0;
             tms[1] = 0;
             tms[2] = 0;
@@ -590,7 +592,7 @@ namespace PVWatts {
 
         if (tms[2] > 0) {
             // compute incidence angles onto fixed or tracking surface
-            incidence(track, tilt, sazm, rlim, sun[1], sun[0], en_backtrack, gcr, angle);
+            incidence(state, track, tilt, sazm, rlim, sun[1], sun[0], en_backtrack, gcr, angle);
 
             if (radmode < POA_R) { // Sev 2015-09-11 - Run this code if no POA decomposition is required
                 double hextra = sun[8];
@@ -633,13 +635,13 @@ namespace PVWatts {
                     hdkr(hextra, ibeam, idiff, alb, angle[0], angle[1], sun[1], poa, diffc);
                     break;
                 default:
-                    perez(hextra, ibeam, idiff, alb, angle[0], angle[1], sun[1], poa, diffc);
+                    perez(state, hextra, ibeam, idiff, alb, angle[0], angle[1], sun[1], poa, diffc);
                     break;
                 }
 
                 ghi = idiff;
             } else { // Sev 2015/09/11 - perform a POA decomp.
-                poaDecomp(wfpoa, angle, sun, alb, poaAll, dn, df, gh, poa, diffc);
+                poaDecomp(state, wfpoa, angle, sun, alb, poaAll, dn, df, gh, poa, diffc);
             }
         } else {
             gh = 0;
@@ -812,17 +814,17 @@ namespace PVWatts {
         if (Gr1 > 0) Fgnddiff = reduced_gnddiff / Gr1;
     }
 
-    double iam(double theta, bool ar_glass)
+    double iam(EnergyPlusData &state, double theta, bool ar_glass)
     {
         if (theta < AOI_MIN) theta = AOI_MIN;
         if (theta > AOI_MAX) theta = AOI_MAX;
 
-        double normal = iam_nonorm(1, ar_glass);
-        double actual = iam_nonorm(theta, ar_glass);
+        double normal = iam_nonorm(state, 1, ar_glass);
+        double actual = iam_nonorm(state, theta, ar_glass);
         return actual / normal;
     }
 
-    void solarpos(int year, int month, int day, int hour, double minute, double lat, double lng, double tz, double sunn[9])
+    void solarpos(EnergyPlusData &state, int year, int month, int day, int hour, double minute, double lat, double lng, double tz, double sunn[9])
     {
         /* This function is based on a paper by Michalsky published in Solar Energy
          Vol. 40, No. 3, pp. 227-235, 1988. It calculates solar position for the
@@ -891,21 +893,21 @@ namespace PVWatts {
         mnanom = 357.528 + 0.9856003 * time;
         mnanom = fmod((double)mnanom, 360.0);
         if (mnanom < 0.0) mnanom = mnanom + 360.0;
-        mnanom = mnanom * DTOR; /* Mean anomaly between 0-2pi radians */
+        mnanom = mnanom * state.dataGlobal->DegToRadians; /* Mean anomaly between 0-2pi radians */
 
         eclong = mnlong + 1.915 * sin(mnanom) + 0.020 * sin(2.0 * mnanom);
         eclong = fmod((double)eclong, 360.0);
         if (eclong < 0.0) eclong = eclong + 360.0;
-        eclong = eclong * DTOR; /* Ecliptic longitude between 0-2pi radians */
+        eclong = eclong * state.dataGlobal->DegToRadians; /* Ecliptic longitude between 0-2pi radians */
 
-        oblqec = (23.439 - 0.0000004 * time) * DTOR; /* Obliquity of ecliptic in radians */
+        oblqec = (23.439 - 0.0000004 * time) * state.dataGlobal->DegToRadians; /* Obliquity of ecliptic in radians */
         num = cos(oblqec) * sin(eclong);
         den = cos(eclong);
         ra = atan(num / den); /* Right ascension in radians */
         if (den < 0.0)
-            ra = ra + DataGlobals::Pi;
+            ra = ra + state.dataGlobal->Pi;
         else if (num < 0.0)
-            ra = ra + 2.0 * DataGlobals::Pi;
+            ra = ra + 2.0 * state.dataGlobal->Pi;
 
         dec = asin(sin(oblqec) * sin(eclong)); /* Declination in radians */
 
@@ -916,52 +918,52 @@ namespace PVWatts {
         lmst = gmst + lng / 15.0;
         lmst = fmod((double)lmst, 24.0);
         if (lmst < 0.0) lmst = lmst + 24.0;
-        lmst = lmst * 15.0 * DTOR; /* Local mean sidereal time in radians */
+        lmst = lmst * 15.0 * state.dataGlobal->DegToRadians; /* Local mean sidereal time in radians */
 
         ha = lmst - ra;
-        if (ha < -DataGlobals::Pi)
-            ha = ha + 2 * DataGlobals::Pi;
-        else if (ha > DataGlobals::Pi)
-            ha = ha - 2 * DataGlobals::Pi; /* Hour angle in radians between -pi and pi */
+        if (ha < -state.dataGlobal->Pi)
+            ha = ha + 2 * state.dataGlobal->Pi;
+        else if (ha > state.dataGlobal->Pi)
+            ha = ha - 2 * state.dataGlobal->Pi; /* Hour angle in radians between -pi and pi */
 
-        lat = lat * DTOR; /* Change latitude to radians */
+        lat = lat * state.dataGlobal->DegToRadians; /* Change latitude to radians */
 
         arg = sin(dec) * sin(lat) + cos(dec) * cos(lat) * cos(ha); /* For elevation in radians */
         if (arg > 1.0)
-            elv = DataGlobals::Pi / 2.0;
+            elv = state.dataGlobal->Pi / 2.0;
         else if (arg < -1.0)
-            elv = -DataGlobals::Pi / 2.0;
+            elv = -state.dataGlobal->Pi / 2.0;
         else
             elv = asin(arg);
 
         if (cos(elv) == 0.0) {
-            azm = DataGlobals::Pi;                                            /* Assign azimuth = 180 deg if elv = 90 or -90 */
+            azm = state.dataGlobal->Pi;                                            /* Assign azimuth = 180 deg if elv = 90 or -90 */
         } else {                                                              /* For solar azimuth in radians per Iqbal */
             arg = ((sin(elv) * sin(lat) - sin(dec)) / (cos(elv) * cos(lat))); /* for azimuth */
             if (arg > 1.0)
                 azm = 0.0; /* Azimuth(radians)*/
             else if (arg < -1.0)
-                azm = DataGlobals::Pi;
+                azm = state.dataGlobal->Pi;
             else
                 azm = acos(arg);
 
-            if ((ha <= 0.0 && ha >= -DataGlobals::Pi) || ha >= DataGlobals::Pi)
-                azm = DataGlobals::Pi - azm;
+            if ((ha <= 0.0 && ha >= -state.dataGlobal->Pi) || ha >= state.dataGlobal->Pi)
+                azm = state.dataGlobal->Pi - azm;
             else
-                azm = DataGlobals::Pi + azm;
+                azm = state.dataGlobal->Pi + azm;
         }
 
-        elv = elv / DTOR; /* Change to degrees for atmospheric correction */
+        elv = elv / state.dataGlobal->DegToRadians; /* Change to degrees for atmospheric correction */
         if (elv > -0.56)
             refrac = 3.51561 * (0.1594 + 0.0196 * elv + 0.00002 * elv * elv) / (1.0 + 0.505 * elv + 0.0845 * elv * elv);
         else
             refrac = 0.56;
         if (elv + refrac > 90.0)
-            elv = 90.0 * DTOR;
+            elv = 90.0 * state.dataGlobal->DegToRadians;
         else
-            elv = (elv + refrac) * DTOR; /* Atmospheric corrected elevation(radians) */
+            elv = (elv + refrac) * state.dataGlobal->DegToRadians; /* Atmospheric corrected elevation(radians) */
 
-        E = (mnlong - ra / DTOR) / 15.0; /* Equation of time in hours */
+        E = (mnlong - ra / state.dataGlobal->DegToRadians) / 15.0; /* Equation of time in hours */
         if (E < -0.33)                   /* Adjust for error occuring if mnlong and ra are in quadrants I and IV */
             E = E + 24.0;
         else if (E > 0.33)
@@ -971,13 +973,13 @@ namespace PVWatts {
         if (arg >= 1.0)
             ws = 0.0; /* No sunrise, continuous nights */
         else if (arg <= -1.0)
-            ws = DataGlobals::Pi; /* No sunset, continuous days */
+            ws = state.dataGlobal->Pi; /* No sunset, continuous days */
         else
             ws = acos(arg); /* Sunrise hour angle in radians */
 
         /* Sunrise and sunset in local standard time */
-        sunrise = 12.0 - (ws / DTOR) / 15.0 - (lng / 15.0 - tz) - E;
-        sunset = 12.0 + (ws / DTOR) / 15.0 - (lng / 15.0 - tz) - E;
+        sunrise = 12.0 - (ws / state.dataGlobal->DegToRadians) / 15.0 - (lng / 15.0 - tz) - E;
+        sunset = 12.0 + (ws / state.dataGlobal->DegToRadians) / 15.0 - (lng / 15.0 - tz) - E;
 
         Eo = 1.00014 - 0.01671 * cos(mnanom) - 0.00014 * cos(2.0 * mnanom); /* Earth-sun distance (AU) */
         Eo = 1.0 / (Eo * Eo);                                               /* Eccentricity correction factor */
@@ -985,10 +987,10 @@ namespace PVWatts {
         tst = hour + minute / 60.0 + (lng / 15.0 - tz) + E; /* True solar time (hr) */
 
         /* 25aug2011 apd: addition of calculation of horizontal extraterrestrial irradiance */
-        zen = 0.5 * DataGlobals::Pi - elv;
+        zen = 0.5 * state.dataGlobal->Pi - elv;
         Gon = 1367 *
-              (1 + 0.033 * cos(360.0 / 365.0 * day_of_year(month, day) * DataGlobals::Pi / 180)); /* D&B eq 1.4.1a, using solar constant=1367 W/m2 */
-        if (zen > 0 && zen < DataGlobals::Pi / 2)                                                 /* if sun is up */
+              (1 + 0.033 * cos(360.0 / 365.0 * day_of_year(month, day) * state.dataGlobal->Pi / 180)); /* D&B eq 1.4.1a, using solar constant=1367 W/m2 */
+        if (zen > 0 && zen < state.dataGlobal->Pi / 2)                                                 /* if sun is up */
             hextra = Gon * cos(zen); /* elevation is incidence angle (zen=90-elv) with horizontal */
         else if (zen == 0)
             hextra = Gon;
@@ -1006,7 +1008,7 @@ namespace PVWatts {
         sunn[8] = hextra;
     }
 
-    void incidence(int mode, double tilt, double sazm, double rlim, double zen, double azm, bool en_backtrack, double gcr, double angle[5])
+    void incidence(EnergyPlusData &state, int mode, double tilt, double sazm, double rlim, double zen, double azm, bool en_backtrack, double gcr, double angle[5])
     {
         /* This function calculates the incident angle of direct beam radiation to a
          surface for a given sun position, latitude, and surface orientation. The
@@ -1042,58 +1044,58 @@ namespace PVWatts {
         switch (mode) {
         case 0:                                     /* Fixed-Tilt, */
         case 3:                                     /* or Azimuth Axis*/
-            tilt = tilt * DTOR;                     /* Change tilt and surface azimuth to radians */
-            sazm = (mode == 0) ? sazm * DTOR : azm; /* either fixed surface azimuth or solar azimuth */
+            tilt = tilt * state.dataGlobal->DegToRadians;                     /* Change tilt and surface azimuth to radians */
+            sazm = (mode == 0) ? sazm * state.dataGlobal->DegToRadians : azm; /* either fixed surface azimuth or solar azimuth */
             arg = sin(zen) * cos(azm - sazm) * sin(tilt) + cos(zen) * cos(tilt);
             rot = 0;
             if (arg < -1.0)
-                inc = DataGlobals::Pi;
+                inc = state.dataGlobal->Pi;
             else if (arg > 1.0)
                 inc = 0.0;
             else
                 inc = acos(arg);
             break;
         case 1:                  /* One-Axis Tracking */
-            xtilt = tilt * DTOR; /* Change axis tilt, surface azimuth, and rotation limit to radians */
-            xsazm = sazm * DTOR;
-            rlim = rlim * DTOR;
+            xtilt = tilt * state.dataGlobal->DegToRadians; /* Change axis tilt, surface azimuth, and rotation limit to radians */
+            xsazm = sazm * state.dataGlobal->DegToRadians;
+            rlim = rlim * state.dataGlobal->DegToRadians;
             /* Find rotation angle of axis for peak tracking */
             if (fabs(cos(xtilt)) < 0.001745) /* 89.9 to 90.1 degrees */
             {                                /* For vertical axis only */
-                if (xsazm <= DataGlobals::Pi) {
-                    if (azm <= xsazm + DataGlobals::Pi)
+                if (xsazm <= state.dataGlobal->Pi) {
+                    if (azm <= xsazm + state.dataGlobal->Pi)
                         rot = azm - xsazm;
                     else
-                        rot = azm - xsazm - 2.0 * DataGlobals::Pi;
+                        rot = azm - xsazm - 2.0 * state.dataGlobal->Pi;
                 } else /* For xsazm > pi */
                 {
-                    if (azm >= xsazm - DataGlobals::Pi)
+                    if (azm >= xsazm - state.dataGlobal->Pi)
                         rot = azm - xsazm;
                     else
-                        rot = azm - xsazm + 2.0 * DataGlobals::Pi;
+                        rot = azm - xsazm + 2.0 * state.dataGlobal->Pi;
                 }
             } else /* For other than vertical axis */
             {
                 arg = sin(zen) * sin(azm - xsazm) / (sin(zen) * cos(azm - xsazm) * sin(xtilt) + cos(zen) * cos(xtilt));
                 if (arg < -99999.9)
-                    rot = -DataGlobals::Pi / 2.0;
+                    rot = -state.dataGlobal->Pi / 2.0;
                 else if (arg > 99999.9)
-                    rot = DataGlobals::Pi / 2.0;
+                    rot = state.dataGlobal->Pi / 2.0;
                 else
                     rot = atan(arg);
                 /* Put rot in II or III quadrant if needed */
-                if (xsazm <= DataGlobals::Pi) {
-                    if (azm > xsazm && azm <= xsazm + DataGlobals::Pi) { /* Ensure positive rotation */
-                        if (rot < 0.0) rot = DataGlobals::Pi + rot;      /* Put in II quadrant: 90 to 180 deg */
+                if (xsazm <= state.dataGlobal->Pi) {
+                    if (azm > xsazm && azm <= xsazm + state.dataGlobal->Pi) { /* Ensure positive rotation */
+                        if (rot < 0.0) rot = state.dataGlobal->Pi + rot;      /* Put in II quadrant: 90 to 180 deg */
                     } else {                                             /* Ensure negative rotation  */
-                        if (rot > 0.0) rot = rot - DataGlobals::Pi;      /* Put in III quadrant: -90 to -180 deg */
+                        if (rot > 0.0) rot = rot - state.dataGlobal->Pi;      /* Put in III quadrant: -90 to -180 deg */
                     }
                 } else /* For xsazm > pi */
                 {
-                    if (azm < xsazm && azm >= xsazm - DataGlobals::Pi) { /* Ensure negative rotation  */
-                        if (rot > 0.0) rot = rot - DataGlobals::Pi;      /* Put in III quadrant: -90 to -180 deg */
+                    if (azm < xsazm && azm >= xsazm - state.dataGlobal->Pi) { /* Ensure negative rotation  */
+                        if (rot > 0.0) rot = rot - state.dataGlobal->Pi;      /* Put in III quadrant: -90 to -180 deg */
                     } else {                                             /* Ensure positive rotation */
-                        if (rot < 0.0) rot = DataGlobals::Pi + rot;      /* Put in II quadrant: 90 to 180 deg */
+                        if (rot < 0.0) rot = state.dataGlobal->Pi + rot;      /* Put in II quadrant: 90 to 180 deg */
                     }
                 }
             }
@@ -1108,52 +1110,52 @@ namespace PVWatts {
             // coded originally by intern M.Kasberg summer 2011
             if (en_backtrack) {
                 // find backtracking rotation angle
-                double backrot = backtrack(azm * 180 / DataGlobals::Pi,
-                                           zen * 180 / DataGlobals::Pi, // solar azimuth, zenith (deg)
+                double backrot = backtrack(azm * 180 / state.dataGlobal->Pi,
+                                           zen * 180 / state.dataGlobal->Pi, // solar azimuth, zenith (deg)
                                            tilt,
                                            sazm, // axis tilt, axis azimuth (deg)
-                                           rlim * 180 / DataGlobals::Pi,
+                                           rlim * 180 / state.dataGlobal->Pi,
                                            gcr,                          // rotation limit, GCR
-                                           rot * 180 / DataGlobals::Pi); // ideal rotation angle
+                                           rot * 180 / state.dataGlobal->Pi); // ideal rotation angle
 
-                btdiff = backrot - rot * 180 / DataGlobals::Pi; // log the difference (degrees)
-                btdiff *= DataGlobals::Pi / 180;                // convert output to radians
-                rot = backrot * DataGlobals::Pi / 180;          // convert backtracked rotation angle to radians
+                btdiff = backrot - rot * 180 / state.dataGlobal->Pi; // log the difference (degrees)
+                btdiff *= state.dataGlobal->Pi / 180;                // convert output to radians
+                rot = backrot * state.dataGlobal->Pi / 180;          // convert backtracked rotation angle to radians
             }
 
             /* Find tilt angle for the tracking surface */
             arg = cos(xtilt) * cos(rot);
             if (arg < -1.0)
-                tilt = DataGlobals::Pi;
+                tilt = state.dataGlobal->Pi;
             else if (arg > 1.0)
                 tilt = 0.0;
             else
                 tilt = acos(arg);
             /* Find surface azimuth for the tracking surface */
             if (tilt == 0.0)
-                sazm = DataGlobals::Pi; /* Assign any value if tilt is zero */
+                sazm = state.dataGlobal->Pi; /* Assign any value if tilt is zero */
             else {
                 arg = sin(rot) / sin(tilt);
                 if (arg < -1.0)
-                    sazm = 1.5 * DataGlobals::Pi + xsazm;
+                    sazm = 1.5 * state.dataGlobal->Pi + xsazm;
                 else if (arg > 1.0)
-                    sazm = 0.5 * DataGlobals::Pi + xsazm;
-                else if (rot < -0.5 * DataGlobals::Pi)
-                    sazm = xsazm - DataGlobals::Pi - asin(arg);
-                else if (rot > 0.5 * DataGlobals::Pi)
-                    sazm = xsazm + DataGlobals::Pi - asin(arg);
+                    sazm = 0.5 * state.dataGlobal->Pi + xsazm;
+                else if (rot < -0.5 * state.dataGlobal->Pi)
+                    sazm = xsazm - state.dataGlobal->Pi - asin(arg);
+                else if (rot > 0.5 * state.dataGlobal->Pi)
+                    sazm = xsazm + state.dataGlobal->Pi - asin(arg);
                 else
                     sazm = asin(arg) + xsazm;
-                if (sazm > 2.0 * DataGlobals::Pi) /* Keep between 0 and 2pi */
-                    sazm = sazm - 2.0 * DataGlobals::Pi;
+                if (sazm > 2.0 * state.dataGlobal->Pi) /* Keep between 0 and 2pi */
+                    sazm = sazm - 2.0 * state.dataGlobal->Pi;
                 else if (sazm < 0.0)
-                    sazm = sazm + 2.0 * DataGlobals::Pi;
+                    sazm = sazm + 2.0 * state.dataGlobal->Pi;
             }
             /* printf("zen=%6.1f azm-sazm=%6.1f tilt=%6.1f arg=%7.4f\n",zen/DTOR,(azm-sazm)/DTOR,tilt/DTOR,arg); */
             /* Find incident angle */
             arg = sin(zen) * cos(azm - sazm) * sin(tilt) + cos(zen) * cos(tilt);
             if (arg < -1.0)
-                inc = DataGlobals::Pi;
+                inc = state.dataGlobal->Pi;
             else if (arg > 1.0)
                 inc = 0.0;
             else
@@ -1219,7 +1221,7 @@ namespace PVWatts {
         }
     }
 
-    void perez(double, double dn, double df, double alb, double inc, double tilt, double zen, double poa[3], double diffc[3])
+    void perez(EnergyPlusData &state, double, double dn, double df, double alb, double inc, double tilt, double zen, double poa[3], double diffc[3])
     {
         /* Modified aug2011 by aron dobos to split out beam, diffuse, ground for output.
          Total POA is poa[0]+poa[1]+poa[2]
@@ -1315,7 +1317,7 @@ namespace PVWatts {
                 }
             } else /* Diffuse is greater than zero */
             {
-                ZENITH = zen / DTOR;
+                ZENITH = zen / state.dataGlobal->DegToRadians;
                 AIRMASS = 1.0 / (CZ + 0.15 * pow(93.9 - ZENITH, -1.253));
                 DELTA = D * AIRMASS / 1367.0;
                 T = pow(ZENITH, 3.0);
@@ -1412,7 +1414,7 @@ namespace PVWatts {
     }
 
     void
-    poaDecomp(double, double angle[], double sun[], double alb, poaDecompReq *pA, double &dn, double &df, double &gh, double poa[3], double diffc[3])
+    poaDecomp(EnergyPlusData &state, double, double angle[], double sun[], double alb, poaDecompReq *pA, double &dn, double &df, double &gh, double poa[3], double diffc[3])
     {
         /* added by Severin Ryberg. Decomposes POA into direct normal and diffuse irradiances
 
@@ -1444,7 +1446,7 @@ namespace PVWatts {
          diffc[1] = circumsolar
          diffc[2] = horizon brightening
          */
-        double r90(DataGlobals::Pi / 2), r80(80.0 / 180 * DataGlobals::Pi), r65(65.0 / 180 * DataGlobals::Pi);
+        double r90(state.dataGlobal->Pi / 2), r80(80.0 / 180 * state.dataGlobal->Pi), r65(65.0 / 180 * state.dataGlobal->Pi);
         /*
          if ( (angle[0] != pA->inc[pA->i]) || (wfPOA != pA->POA[ pA->i ])) {
          std::cout << "Error wih POA decomp" << std::endl;
@@ -1456,7 +1458,7 @@ namespace PVWatts {
             double gti[] = {pA->POA[pA->i - 1], pA->POA[pA->i], pA->POA[pA->i + 1]};
             double inc[] = {pA->inc[pA->i - 1], pA->inc[pA->i], pA->inc[pA->i + 1]};
 
-            GTI_DIRINT(gti, inc, sun[1], angle[1], sun[8], alb, pA->doy, pA->tDew, pA->elev, dn, df, gh, poa);
+            GTI_DIRINT(state, gti, inc, sun[1], angle[1], sun[8], alb, pA->doy, pA->tDew, pA->elev, dn, df, gh, poa);
 
         } else {
 
@@ -1489,14 +1491,14 @@ namespace PVWatts {
 
                     double dnTmp, dfTmp, ghTmp, poaTmp[3];
                     avgKtp +=
-                        GTI_DIRINT(gti, inc, pA->zen[j], pA->tilt[j], pA->exTer[j], alb, pA->doy, pA->tDew, pA->elev, dnTmp, dfTmp, ghTmp, poaTmp);
+                        GTI_DIRINT(state, gti, inc, pA->zen[j], pA->tilt[j], pA->exTer[j], alb, pA->doy, pA->tDew, pA->elev, dnTmp, dfTmp, ghTmp, poaTmp);
                 }
             }
 
             avgKtp /= count;
 
             // Calculate Kt
-            double am = Min(15.25, 1.0 / (cos(sun[1]) + 0.15 * (pow(93.9 - sun[1] * 180 / DataGlobals::Pi, -1.253)))); // air mass
+            double am = Min(15.25, 1.0 / (cos(sun[1]) + 0.15 * (pow(93.9 - sun[1] * 180 / state.dataGlobal->Pi, -1.253)))); // air mass
             double ktpam = am * exp(-0.0001184 * pA->elev);
             double Kt = avgKtp * (1.031 * exp(-1.4 / (0.9 + 9.4 / ktpam)) + 0.1);
 
@@ -1519,11 +1521,11 @@ namespace PVWatts {
             if (gh < 0) gh = 0;
 
             // Get component poa from Perez
-            perez(sun[8], dn, df, alb, angle[0], angle[1], sun[1], poa, diffc);
+            perez(state, sun[8], dn, df, alb, angle[0], angle[1], sun[1], poa, diffc);
         }
     }
 
-    double iam_nonorm(double theta, bool ar_glass)
+    double iam_nonorm(EnergyPlusData &state, double theta, bool ar_glass)
     {
         double n_air = 1.0;
 
@@ -1540,11 +1542,11 @@ namespace PVWatts {
 
         if (ar_glass) {
             double theta2 = 1;
-            double tau_coating = transmittance(theta, n_arc, n_air, k_arc, l_arc, &theta2);
-            double tau_glass = transmittance(theta2, n_g, n_arc, k_g, l_g);
+            double tau_coating = transmittance(state, theta, n_arc, n_air, k_arc, l_arc, &theta2);
+            double tau_glass = transmittance(state, theta2, n_g, n_arc, k_g, l_g);
             return tau_coating * tau_glass;
         } else {
-            return transmittance(theta, n_g, n_air, k_g, l_g);
+            return transmittance(state, theta, n_g, n_air, k_g, l_g);
         }
     }
 
@@ -2071,7 +2073,8 @@ namespace PVWatts {
         return rotation;
     }
 
-    double GTI_DIRINT(const double poa[3],
+    double GTI_DIRINT(EnergyPlusData &state,
+                      const double poa[3],
                       const double inc[3],
                       double zen,
                       double tilt,
@@ -2118,7 +2121,7 @@ namespace PVWatts {
             if (df_tmp < 0) df_tmp = 0;
 
             // Model POA using Perez model and find diff from GTI (Model - GTI)
-            perez(ext, dn_tmp, df_tmp, alb, inc[1], tilt, zen, poa_tmp, diffc_tmp);
+            perez(state, ext, dn_tmp, df_tmp, alb, inc[1], tilt, zen, poa_tmp, diffc_tmp);
 
             // Compare modeled POA to measured POA
             diff = (poa_tmp[0] + poa_tmp[1] + poa_tmp[2]) - poa[1];
@@ -2177,7 +2180,8 @@ namespace PVWatts {
     }
 
     double
-    transmittance(double theta1_deg, /* incidence angle of incoming radiation (deg) */
+    transmittance(EnergyPlusData &state,
+                  double theta1_deg, /* incidence angle of incoming radiation (deg) */
                   double n_cover,    /* refractive index of cover material, n_glass = 1.586 */
                   double n_incoming, /* refractive index of incoming material, typically n_air = 1.0 */
                   double k, /* proportionality constant assumed to be 4 (1/m) for derivation of Bouguer's law (set to zero to skip bougeur's law */
@@ -2186,13 +2190,13 @@ namespace PVWatts {
     {
         // reference: duffie & beckman, Ch 5.3
 
-        double theta1 = theta1_deg * DataGlobals::Pi / 180.0;
+        double theta1 = theta1_deg * state.dataGlobal->Pi / 180.0;
         double theta2 = asin(n_incoming / n_cover * sin(theta1)); // snell's law, assuming n_air = 1.0
         // fresnel's equation for non-reflected unpolarized radiation as an average of perpendicular and parallel components
         double tr =
             1 - 0.5 * (pow(sin(theta2 - theta1), 2) / pow(sin(theta2 + theta1), 2) + pow(tan(theta2 - theta1), 2) / pow(tan(theta2 + theta1), 2));
 
-        if (_theta2_deg) *_theta2_deg = theta2 * 180 / DataGlobals::Pi;
+        if (_theta2_deg) *_theta2_deg = theta2 * 180 / state.dataGlobal->Pi;
 
         return tr * exp(-k * l_thick / cos(theta2));
     }

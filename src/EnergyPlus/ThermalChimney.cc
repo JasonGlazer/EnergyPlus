@@ -957,7 +957,7 @@ namespace ThermalChimney {
         Real64 CpAir;
         Real64 TSMult;
 
-        TSMult = TimeStepSys * SecInHour;
+        TSMult = TimeStepSys * state.dataGlobal->SecInHour;
 
         for (ZoneLoop = 1; ZoneLoop <= NumOfZones; ++ZoneLoop) { // Start of zone loads report variable update loop ...
 

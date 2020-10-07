@@ -220,7 +220,8 @@ namespace DaylightingManager {
         //		Optional< Real64 > MapWindowSolidAngAtRefPt = _, //Inactive
         Optional<Real64> MapWindowSolidAngAtRefPtWtd = _);
 
-    void InitializeCFSDaylighting(int const ZoneNum,               // Current zone number
+    void InitializeCFSDaylighting(EnergyPlusData &state,
+                                  int const ZoneNum,               // Current zone number
                                   int const IWin,                  // Complex fenestration number
                                   int const NWX,                   // Number of horizontal divisions
                                   int const NWY,                   // Number of vertical divisions
@@ -230,7 +231,8 @@ namespace DaylightingManager {
                                   int const CalledFrom,
                                   Optional_int_const MapNum = _);
 
-    void InitializeCFSStateData(BSDFRefPoints &StateRefPoint,
+    void InitializeCFSStateData(EnergyPlusData &state,
+                                BSDFRefPoints &StateRefPoint,
                                 BSDFRefPointsGeomDescr &DaylghtGeomDescr,
                                 int const ZoneNum, // Current zone number
                                 int const iWin,
@@ -266,10 +268,16 @@ namespace DaylightingManager {
                                int const curWinEl,
                                Real64 const WinElArea);
 
-    void CFSRefPointPosFactor(
-        Vector3<Real64> const &RefPoint, BSDFRefPoints &RefPointMap, int const iWin, int const CurFenState, int const NTrnBasis, Real64 const AZVIEW);
+    void CFSRefPointPosFactor(EnergyPlusData &state,
+                              Vector3<Real64> const &RefPoint,
+                              BSDFRefPoints &RefPointMap,
+                              int const iWin,
+                              int const CurFenState,
+                              int const NTrnBasis,
+                              Real64 const AZVIEW);
 
-    Real64 CalcObstrMultiplier(Vector3<Real64> const &GroundHitPt, // Coordinates of point that ray hits ground (m)
+    Real64 CalcObstrMultiplier(EnergyPlusData &state,
+                               Vector3<Real64> const &GroundHitPt, // Coordinates of point that ray hits ground (m)
                                int const AltSteps,                 // Number of steps in altitude angle for solar reflection calc
                                int const AzimSteps                 // Number of steps in azimuth angle of solar reflection calc
     );
@@ -314,7 +322,8 @@ namespace DaylightingManager {
         Optional_int_const MapNum = _,
         Optional<Real64 const> MapWindowSolidAngAtRefPtWtd = _);
 
-    void FigureRefPointDayltgFactorsToAddIllums(int const ZoneNum,
+    void FigureRefPointDayltgFactorsToAddIllums(EnergyPlusData &state,
+                                                int const ZoneNum,
                                                 int const iRefPoint,
                                                 int const iHour,
                                                 int &ISunPos,
@@ -325,7 +334,8 @@ namespace DaylightingManager {
                                                 int const ICtrl // Window control counter
     );
 
-    void FigureMapPointDayltgFactorsToAddIllums(int const ZoneNum,
+    void FigureMapPointDayltgFactorsToAddIllums(EnergyPlusData &state,
+                                                int const ZoneNum,
                                                 int const MapNum,
                                                 int const iMapPoint,
                                                 int const iHour,
@@ -362,11 +372,13 @@ namespace DaylightingManager {
                      int &ZoneNum    // Zone number
     );
 
-    void DayltgGlareWithIntWins(Array1D<Real64> &GLINDX, // Glare index
+    void DayltgGlareWithIntWins(EnergyPlusData &state,
+                                Array1D<Real64> &GLINDX, // Glare index
                                 int const ZoneNum        // Zone number
     );
 
-    void DayltgExtHorizIllum(Array1A<Real64> HISK, // Horizontal illuminance from sky for different sky types
+    void DayltgExtHorizIllum(EnergyPlusData &state,
+                             Array1A<Real64> HISK, // Horizontal illuminance from sky for different sky types
                              Real64 &HISU          // Horizontal illuminance from sun for unit beam normal
     );
 
@@ -407,7 +419,8 @@ namespace DaylightingManager {
                                    int const IWin     // Window index
     );
 
-    void ComplexFenestrationLuminances(int const IWin,
+    void ComplexFenestrationLuminances(EnergyPlusData &state,
+                                       int const IWin,
                                        int const WinEl,
                                        int const NBasis,
                                        int const IHR,
@@ -447,11 +460,13 @@ namespace DaylightingManager {
                                                 Optional_int_const MapNum = _,
                                                 Optional<Real64 const> MapWindowSolidAngAtRefPtWtd = _);
 
-    Real64 DayltgSkyLuminance(int const ISky,     // Sky type: 1=clear, 2=clear turbid, 3=intermediate, 4=overcast
+    Real64 DayltgSkyLuminance(EnergyPlusData &state,
+                              int const ISky,     // Sky type: 1=clear, 2=clear turbid, 3=intermediate, 4=overcast
                               Real64 const THSKY, // Azimuth and altitude of sky element (radians)
                               Real64 const PHSKY);
 
-    void ProfileAngle(int const SurfNum,                // Surface number
+    void ProfileAngle(EnergyPlusData &state,
+                      int const SurfNum,                // Surface number
                       Vector3<Real64> const &CosDirSun, // Solar direction cosines
                       int const HorOrVert,              // If HORIZONTAL, calculates ProfileAngHor
                       Real64 &ProfileAng                // Solar profile angle (radians).
@@ -487,7 +502,7 @@ namespace DaylightingManager {
 
     void DayltgInterReflIllFrIntWins(EnergyPlusData &state, int &ZoneNum); // Zone number
 
-    void CalcMinIntWinSolidAngs();
+    void CalcMinIntWinSolidAngs(EnergyPlusData &state);
 
     void CheckForGeometricTransform(EnergyPlusData &state, bool &doTransform, Real64 &OldAspectRatio, Real64 &NewAspectRatio);
 

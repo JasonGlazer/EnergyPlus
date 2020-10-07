@@ -750,7 +750,7 @@ namespace SystemAvailabilityManager {
                 NCycSysAvailMgrData(SysAvailNum).Name = cAlphaArgs(1);
                 NCycSysAvailMgrData(SysAvailNum).MgrType = SysAvailMgr_NightCycle;
                 NCycSysAvailMgrData(SysAvailNum).TempTolRange = rNumericArgs(1);
-                CyclingTimeSteps = nint((rNumericArgs(2) / SecInHour) * double(NumOfTimeStepInHour));
+                CyclingTimeSteps = nint((rNumericArgs(2) / state.dataGlobal->SecInHour) * double(NumOfTimeStepInHour));
                 CyclingTimeSteps = max(1, CyclingTimeSteps);
                 NCycSysAvailMgrData(SysAvailNum).CyclingTimeSteps = CyclingTimeSteps;
                 NCycSysAvailMgrData(SysAvailNum).SchedPtr = GetScheduleIndex(state, cAlphaArgs(2));
@@ -3157,7 +3157,7 @@ namespace SystemAvailabilityManager {
                         if (WarmupFlag) {
                             AdaTempGradHeat = OptStartMgr.InitTGradHeat;
                             AdaTempGradCool = OptStartMgr.InitTGradCool;
-                        } else if (DayOfSim == BeginDay && BeginDayFlag) {
+                        } else if (DayOfSim == state.dataGlobal->BeginDay && BeginDayFlag) {
                             OptStart_AdaTempGradTrdHeat = OptStartMgr.InitTGradHeat;
                             AdaTempGradHeat = OptStartMgr.InitTGradHeat;
                             OptStart_AdaTempGradTrdCool = OptStartMgr.InitTGradCool;
@@ -3429,7 +3429,7 @@ namespace SystemAvailabilityManager {
                         if (WarmupFlag) {
                             AdaTempGradHeat = OptStartMgr.InitTGradHeat;
                             AdaTempGradCool = OptStartMgr.InitTGradCool;
-                        } else if (DayOfSim == BeginDay && BeginDayFlag) {
+                        } else if (DayOfSim == state.dataGlobal->BeginDay && BeginDayFlag) {
                             OptStart_AdaTempGradTrdHeat = OptStartMgr.InitTGradHeat;
                             AdaTempGradHeat = OptStartMgr.InitTGradHeat;
                             OptStart_AdaTempGradTrdCool = OptStartMgr.InitTGradCool;

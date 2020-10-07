@@ -144,8 +144,8 @@ namespace WindowManager {
             }
             SurfInsideTemp = aTemp - KelvinConv;
             if (SurfWinShadingFlag(SurfNum) == IntShadeOn || SurfWinShadingFlag(SurfNum) == IntBlindOn) {
-                auto EffShBlEmiss = InterpSlatAng(SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), window.EffShBlindEmiss);
-                auto EffGlEmiss = InterpSlatAng(SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), window.EffGlassEmiss);
+                auto EffShBlEmiss = InterpSlatAng(state, SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), window.EffShBlindEmiss);
+                auto EffGlEmiss = InterpSlatAng(state, SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), window.EffGlassEmiss);
                 SurfWinEffInsSurfTemp(SurfNum) =
                     (EffShBlEmiss * SurfInsideTemp + EffGlEmiss * (state.dataWindowManager->thetas(2 * totSolidLayers - 2) - state.dataWindowManager->TKelvin)) / (EffShBlEmiss + EffGlEmiss);
             }
@@ -388,10 +388,10 @@ namespace WindowManager {
             Aleft = blind.BlindLeftOpeningMult;
             Aright = blind.BlindRightOpeningMult;
             Afront = SurfWinBlindAirFlowPermeability(m_SurfNum);
-            emissFront = InterpSlatAng(SurfWinSlatAngThisTS(m_SurfNum), SurfWinMovableSlats(m_SurfNum), blind.IRFrontEmiss);
-            emissBack = InterpSlatAng(SurfWinSlatAngThisTS(m_SurfNum), SurfWinMovableSlats(m_SurfNum), blind.IRBackEmiss);
-            transThermalFront = InterpSlatAng(SurfWinSlatAngThisTS(m_SurfNum), SurfWinMovableSlats(m_SurfNum), blind.IRFrontTrans);
-            transThermalBack = InterpSlatAng(SurfWinSlatAngThisTS(m_SurfNum), SurfWinMovableSlats(m_SurfNum), blind.IRBackTrans);
+            emissFront = InterpSlatAng(state, SurfWinSlatAngThisTS(m_SurfNum), SurfWinMovableSlats(m_SurfNum), blind.IRFrontEmiss);
+            emissBack = InterpSlatAng(state, SurfWinSlatAngThisTS(m_SurfNum), SurfWinMovableSlats(m_SurfNum), blind.IRBackEmiss);
+            transThermalFront = InterpSlatAng(state, SurfWinSlatAngThisTS(m_SurfNum), SurfWinMovableSlats(m_SurfNum), blind.IRFrontTrans);
+            transThermalBack = InterpSlatAng(state, SurfWinSlatAngThisTS(m_SurfNum), SurfWinMovableSlats(m_SurfNum), blind.IRBackTrans);
             if (t_Index == 1) {
                 m_ExteriorShade = true;
             }

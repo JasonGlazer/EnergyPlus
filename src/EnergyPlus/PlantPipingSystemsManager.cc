@@ -217,7 +217,7 @@ namespace EnergyPlus {
                 if (thisDomain.HasAPipeCircuit) continue;
 
                 if (thisDomain.DomainNeedsToBeMeshed) {
-                    thisDomain.developMesh();
+                    thisDomain.developMesh(state);
                 }
 
                 thisDomain.DomainNeedsToBeMeshed = false;
@@ -225,10 +225,10 @@ namespace EnergyPlus {
                 // The time init should be done here before we DoOneTimeInits because the DoOneTimeInits
                 // includes a ground temperature initialization, which is based on the Cur%CurSimTimeSeconds variable
                 // which would be carried over from the previous environment
-                thisDomain.Cur.CurSimTimeStepSize = DataGlobals::TimeStepZone * DataGlobals::SecInHour;
+                thisDomain.Cur.CurSimTimeStepSize = DataGlobals::TimeStepZone * state.dataGlobal->SecInHour;
                 thisDomain.Cur.CurSimTimeSeconds = ((DataGlobals::DayOfSim - 1) * 24 + (DataGlobals::HourOfDay - 1) +
                                                     (DataGlobals::TimeStep - 1) * DataGlobals::TimeStepZone +
-                                                    DataHVACGlobals::SysTimeElapsed) * DataGlobals::SecInHour;
+                                                    DataHVACGlobals::SysTimeElapsed) * state.dataGlobal->SecInHour;
 
                 // There are also some inits that are "close to one time" inits...( one-time in standalone, each envrn in E+ )
                 if ((DataGlobals::BeginSimFlag && thisDomain.BeginSimInit) ||
@@ -2166,7 +2166,7 @@ namespace EnergyPlus {
 
             if (this->DomainNeedsToBeMeshed) {
 
-                this->developMesh();
+                this->developMesh(state);
 
                 // would be OK to do some post-mesh error handling here I think
                 for (auto &thisDomainCircuit : this->circuits) {
@@ -2186,7 +2186,7 @@ namespace EnergyPlus {
             // The time init should be done here before we DoOneTimeInits because the DoOneTimeInits
             // includes a ground temperature initialization, which is based on the Cur%CurSimTimeSeconds variable
             // which would be carried over from the previous environment
-            this->Cur.CurSimTimeStepSize = DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+            this->Cur.CurSimTimeStepSize = DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
             this->Cur.CurSimTimeSeconds = (DataGlobals::DayOfSim - 1) * 24 + (DataGlobals::HourOfDay - 1) +
                                           (DataGlobals::TimeStep - 1) * DataGlobals::TimeStepZone +
                                           DataHVACGlobals::SysTimeElapsed;
@@ -2348,6 +2348,18 @@ namespace EnergyPlus {
             this->PipeCellCoordinates.X = x;
             this->PipeCellCoordinates.Y = y;
             this->PipeCellCoordinatesSet = true;
+        }
+
+        // Member Constructor
+        FluidCellInformation::FluidCellInformation(EnergyPlusData &state,
+                                                   Real64 const m_PipeInnerRadius,
+                                                   Real64 const m_CellDepth) {
+            this->Volume = state.dataGlobal->Pi * pow_2(m_PipeInnerRadius) * m_CellDepth;
+        }
+
+        Real64 RadialCellInformation::XY_CrossSectArea(EnergyPlusData &state) {
+            // Get the XY cross sectional area of the radial cell
+            return state.dataGlobal->Pi * (pow_2(this->OuterRadius) - pow_2(this->InnerRadius));
         }
 
         void Circuit::initInOutCells(CartesianCell const &in, CartesianCell const &out) {
@@ -2556,13 +2568,15 @@ namespace EnergyPlus {
             return 0;
         }
 
-        CartesianPipeCellInformation::CartesianPipeCellInformation(Real64 const GridCellWidth,
-                                                RadialSizing const &PipeSizes,
-                                                int const NumRadialNodes,
-                                                Real64 const CellDepth,
-                                                Real64 const InsulationThickness,
-                                                Real64 const RadialGridExtent,
-                                                bool const SimHasInsulation) {
+        CartesianPipeCellInformation::CartesianPipeCellInformation(
+            EnergyPlusData &state,
+            Real64 const GridCellWidth,
+            RadialSizing const &PipeSizes,
+            int const NumRadialNodes,
+            Real64 const CellDepth,
+            Real64 const InsulationThickness,
+            Real64 const RadialGridExtent,
+            bool const SimHasInsulation) {
 
             // SUBROUTINE INFORMATION:
             //       AUTHOR         Edwin Lee
@@ -2582,7 +2596,7 @@ namespace EnergyPlus {
 
             //'--we will work from inside out, calculating dimensions and instantiating variables--
             //'first instantiate the water cell
-            this->Fluid = FluidCellInformation(PipeInnerRadius, CellDepth);
+            this->Fluid = FluidCellInformation(state, PipeInnerRadius, CellDepth);
 
             //'then the pipe cell
             this->Pipe = RadialCellInformation((PipeOuterRadius + PipeInnerRadius) / 2.0, PipeInnerRadius, PipeOuterRadius);
@@ -2618,10 +2632,10 @@ namespace EnergyPlus {
             }
 
             //'also assign the interface cell surrounding the radial system
-            this->InterfaceVolume = (1.0 - (DataGlobals::Pi / 4.0)) * pow_2(GridCellWidth) * CellDepth;
+            this->InterfaceVolume = (1.0 - (state.dataGlobal->Pi / 4.0)) * pow_2(GridCellWidth) * CellDepth;
         }
 
-        void Domain::developMesh() {
+        void Domain::developMesh(EnergyPlusData &state) {
 
             // SUBROUTINE INFORMATION:
             //       AUTHOR         Edwin Lee
@@ -2755,7 +2769,7 @@ namespace EnergyPlus {
                                                                      RegionType::ZDirection);
 
             //'****** DEVELOP CELL ARRAY *****'
-            this->createCellArray(XBoundaryPoints, YBoundaryPoints, ZBoundaryPoints);
+            this->createCellArray(state, XBoundaryPoints, YBoundaryPoints, ZBoundaryPoints);
 
             //'***** SETUP CELL NEIGHBORS ****'
             this->setupCellNeighbors();
@@ -3363,7 +3377,8 @@ namespace EnergyPlus {
             return RetVal;
         }
 
-        void Domain::createCellArray(std::vector<Real64> const &XBoundaryPoints,
+        void Domain::createCellArray(EnergyPlusData &state,
+                                     std::vector<Real64> const &XBoundaryPoints,
                                      std::vector<Real64> const &YBoundaryPoints,
                                      std::vector<Real64> const &ZBoundaryPoints) {
 
@@ -3656,7 +3671,7 @@ namespace EnergyPlus {
                         cell.cellType = cellType;
 
                         if (pipeCell) {
-                            cell.PipeCellData = CartesianPipeCellInformation(cell.X_max - cell.X_min,
+                            cell.PipeCellData = CartesianPipeCellInformation(state, cell.X_max - cell.X_min,
                                                                PipeSizing,
                                                                NumRadialCells,
                                                                cell.depth(),
@@ -4171,7 +4186,7 @@ namespace EnergyPlus {
 
             // Prepare the pipe circuit for calculations, but we'll actually do calcs at the iteration level
             if (this->HasAPipeCircuit) {
-                this->PreparePipeCircuitSimulation(thisCircuit);
+                this->PreparePipeCircuitSimulation(state, thisCircuit);
             }
 
             // Begin iterating for this time step
@@ -4180,7 +4195,7 @@ namespace EnergyPlus {
                 this->ShiftTemperaturesForNewIteration();
 
                 if (this->HasAPipeCircuit) {
-                    this->PerformPipeCircuitSimulation(thisCircuit);
+                    this->PerformPipeCircuitSimulation(state, thisCircuit);
                 }
 
                 if (this->DomainNeedsSimulation) this->PerformTemperatureFieldUpdate(state);
@@ -4451,26 +4466,26 @@ namespace EnergyPlus {
             }
 
             // Latitude, converted to radians...positive for northern hemisphere, [radians]
-            Latitude_Radians = DataGlobals::Pi / 180.0 * Latitude_Degrees;
+            Latitude_Radians = state.dataGlobal->Pi / 180.0 * Latitude_Degrees;
 
             // The day of year at this point in the simulation
-            DayOfYear = int(this->Cur.CurSimTimeSeconds / DataGlobals::SecsInDay);
+            DayOfYear = int(this->Cur.CurSimTimeSeconds / state.dataGlobal->SecsInDay);
 
             // The number of seconds into the current day
-            CurSecondsIntoToday = int(mod(this->Cur.CurSimTimeSeconds, DataGlobals::SecsInDay));
+            CurSecondsIntoToday = int(mod(this->Cur.CurSimTimeSeconds, state.dataGlobal->SecsInDay));
 
             // The number of hours into today
-            HourOfDay = int(CurSecondsIntoToday / DataGlobals::SecInHour);
+            HourOfDay = int(CurSecondsIntoToday / state.dataGlobal->SecInHour);
 
             // For convenience convert to Kelvin once
             CurAirTempK = this->Cur.CurAirTemp + 273.15;
 
             // Calculate some angles
-            dr = 1.0 + 0.033 * std::cos(2.0 * DataGlobals::Pi * DayOfYear / 365.0);
-            Declination = 0.409 * std::sin(2.0 * DataGlobals::Pi / 365.0 * DayOfYear - 1.39);
-            b_SC = 2.0 * DataGlobals::Pi * (DayOfYear - 81.0) / 364.0;
+            dr = 1.0 + 0.033 * std::cos(2.0 * state.dataGlobal->Pi * DayOfYear / 365.0);
+            Declination = 0.409 * std::sin(2.0 * state.dataGlobal->Pi / 365.0 * DayOfYear - 1.39);
+            b_SC = 2.0 * state.dataGlobal->Pi * (DayOfYear - 81.0) / 364.0;
             Sc = 0.1645 * std::sin(2.0 * b_SC) - 0.1255 * std::cos(b_SC) - 0.025 * std::sin(b_SC);
-            Hour_Angle = DataGlobals::Pi / 12.0 *
+            Hour_Angle = state.dataGlobal->Pi / 12.0 *
                          (((HourOfDay - 0.5) + 0.06667 * (StMeridian_Degrees - Longitude_Degrees) + Sc) - 12.0);
 
             // Calculate sunset something, and constrain to a minimum of 0.000001
@@ -4478,12 +4493,12 @@ namespace EnergyPlus {
             X_sunset = max(X_sunset, 0.000001);
 
             // Find sunset angle
-            Sunset_Angle = DataGlobals::Pi / 2.0 -
+            Sunset_Angle = state.dataGlobal->Pi / 2.0 -
                            std::atan(-std::tan(Latitude_Radians) * std::tan(Declination) / std::sqrt(X_sunset));
 
             // Find solar angles
-            Solar_Angle_1 = Hour_Angle - DataGlobals::Pi / 24.0;
-            Solar_Angle_2 = Hour_Angle + DataGlobals::Pi / 24.0;
+            Solar_Angle_1 = Hour_Angle - state.dataGlobal->Pi / 24.0;
+            Solar_Angle_2 = Hour_Angle + state.dataGlobal->Pi / 24.0;
 
             // Constrain solar angles
             if (Solar_Angle_1 < -Sunset_Angle) Solar_Angle_1 = -Sunset_Angle;
@@ -4496,7 +4511,7 @@ namespace EnergyPlus {
             IncidentSolar_MJhrmin = this->Cur.CurIncidentSolar * Convert_Wm2_To_MJhrmin;
 
             // Calculate another Q term...
-            QRAD_A = 12.0 * 60.0 / DataGlobals::Pi * MeanSolarConstant * dr *
+            QRAD_A = 12.0 * 60.0 / state.dataGlobal->Pi * MeanSolarConstant * dr *
                      ((Solar_Angle_2 - Solar_Angle_1) * std::sin(Latitude_Radians) * std::sin(Declination) +
                       std::cos(Latitude_Radians) * std::cos(Declination) *
                       (std::sin(Solar_Angle_2) - std::sin(Solar_Angle_1)));
@@ -4996,7 +5011,7 @@ namespace EnergyPlus {
             return this->groundTempModel->getGroundTempAtTimeInSeconds(state, z, CurTime);
         }
 
-        void Domain::PreparePipeCircuitSimulation(Circuit * thisCircuit) {
+        void Domain::PreparePipeCircuitSimulation(EnergyPlusData &state, Circuit * thisCircuit) {
 
             // SUBROUTINE INFORMATION:
             //       AUTHOR         Edwin Lee
@@ -5019,7 +5034,7 @@ namespace EnergyPlus {
             Real64 const Prandtl = thisCircuit->CurFluidPropertySet.Prandtl;
 
             // Flow calculations
-            Real64 const Area_c = (DataGlobals::Pi / 4.0) * pow_2(thisCircuit->PipeSize.InnerDia);
+            Real64 const Area_c = (state.dataGlobal->Pi / 4.0) * pow_2(thisCircuit->PipeSize.InnerDia);
             Real64 const Velocity = thisCircuit->CurCircuitFlowRate / (Density * Area_c);
 
             // Determine convection coefficient based on flow conditions
@@ -5043,7 +5058,7 @@ namespace EnergyPlus {
             thisCircuit->CurCircuitConvectionCoefficient = ConvCoefficient;
         }
 
-        void Domain::PerformPipeCircuitSimulation(Circuit * thisCircuit) {
+        void Domain::PerformPipeCircuitSimulation(EnergyPlusData &state, Circuit * thisCircuit) {
 
             // SUBROUTINE INFORMATION:
             //       AUTHOR         Edwin Lee
@@ -5102,13 +5117,13 @@ namespace EnergyPlus {
 
                     if (SegmentCellCtr == 1) {
                         //'we have the very first cell, need to pass in circuiting entering temperature
-                        this->PerformPipeCellSimulation(thisCircuit, cells(PipeX, PipeY, Zindex), FlowRate,
+                        this->PerformPipeCellSimulation(state, thisCircuit, cells(PipeX, PipeY, Zindex), FlowRate,
                                                         EnteringTemp);
                     } else {
                         //'we don't have the first cell so just normal simulation
                         if (Zindex == EndingZ) {
                             // simulate current cell using upstream as entering conditions
-                            this->PerformPipeCellSimulation(thisCircuit,
+                            this->PerformPipeCellSimulation(state, thisCircuit,
                                                             cells(PipeX, PipeY, Zindex),
                                                             FlowRate,
                                                             cells(PipeX, PipeY,
@@ -5117,11 +5132,11 @@ namespace EnergyPlus {
                             CircuitCrossTemp = cells(PipeX, PipeY, Zindex).PipeCellData.Fluid.Temperature;
                         } else if (Zindex == StartingZ) {
                             // we are starting another segment, use the previous cross temperature
-                            this->PerformPipeCellSimulation(thisCircuit, cells(PipeX, PipeY, Zindex), FlowRate,
+                            this->PerformPipeCellSimulation(state, thisCircuit, cells(PipeX, PipeY, Zindex), FlowRate,
                                                             CircuitCrossTemp);
                         } else {
                             // we are in an interior node, so just get the upstream cell and use the main simulation
-                            this->PerformPipeCellSimulation(thisCircuit,
+                            this->PerformPipeCellSimulation(state, thisCircuit,
                                                             cells(PipeX, PipeY, Zindex),
                                                             FlowRate,
                                                             cells(PipeX, PipeY,
@@ -5156,7 +5171,8 @@ namespace EnergyPlus {
         }
 
         void
-        Domain::PerformPipeCellSimulation(Circuit * thisCircuit, CartesianCell &ThisCell, Real64 const FlowRate,
+        Domain::PerformPipeCellSimulation(EnergyPlusData &state,
+                                          Circuit * thisCircuit, CartesianCell &ThisCell, Real64 const FlowRate,
                                           Real64 const EnteringTemp) {
 
             // SUBROUTINE INFORMATION:
@@ -5171,37 +5187,37 @@ namespace EnergyPlus {
                 ShiftPipeTemperaturesForNewIteration(ThisCell);
 
                 //'simulate the funny interface soil cell between the radial and cartesian systems
-                this->SimulateRadialToCartesianInterface(ThisCell);
+                this->SimulateRadialToCartesianInterface(state, ThisCell);
 
                 //'simulate the outermost radial slice
-                SimulateOuterMostRadialSoilSlice(thisCircuit, ThisCell);
+                SimulateOuterMostRadialSoilSlice(state, thisCircuit, ThisCell);
 
                 //'we only need to simulate these if they actually exist!
                 if (!ThisCell.PipeCellData.Soil.empty()) {
 
                     //'simulate all interior radial slices
-                    SimulateAllInteriorRadialSoilSlices(ThisCell);
+                    SimulateAllInteriorRadialSoilSlices(state, ThisCell);
 
                     //'simulate the innermost radial soil slice
-                    SimulateInnerMostRadialSoilSlice(thisCircuit, ThisCell);
+                    SimulateInnerMostRadialSoilSlice(state, thisCircuit, ThisCell);
                 }
 
                 if (thisCircuit->HasInsulation) {
-                    SimulateRadialInsulationCell(ThisCell);
+                    SimulateRadialInsulationCell(state, ThisCell);
                 }
 
                 //'simulate the pipe cell
-                SimulateRadialPipeCell(thisCircuit, ThisCell);
+                SimulateRadialPipeCell(state, thisCircuit, ThisCell);
 
                 //'simulate the water cell
-                SimulateFluidCell(thisCircuit, ThisCell, FlowRate, EnteringTemp);
+                SimulateFluidCell(state, thisCircuit, ThisCell, FlowRate, EnteringTemp);
 
                 //'check convergence
                 if (IsConverged_PipeCurrentToPrevIteration(thisCircuit, ThisCell)) break; // potential diff source
             }
         }
 
-        void Domain::SimulateRadialToCartesianInterface(CartesianCell &cell) {
+        void Domain::SimulateRadialToCartesianInterface(EnergyPlusData &state, CartesianCell &cell) {
 
             // SUBROUTINE INFORMATION:
             //       AUTHOR         Edwin Lee
@@ -5227,7 +5243,7 @@ namespace EnergyPlus {
             Real64 OutermostRadialCellRadialCentroid = outerRadialCell.RadialCentroid;
             Real64 OutermostRadialCellTemperature = outerRadialCell.Temperature;
             Real64 Resistance = std::log(OutermostRadialCellOuterRadius / OutermostRadialCellRadialCentroid) /
-                                (2.0 * DataGlobals::Pi * cell.depth() * cell.Properties.Conductivity);
+                                (2.0 * state.dataGlobal->Pi * cell.depth() * cell.Properties.Conductivity);
             Numerator += (cell.Beta / Resistance) * OutermostRadialCellTemperature;
             Denominator += (cell.Beta / Resistance);
 
@@ -5245,7 +5261,7 @@ namespace EnergyPlus {
             cell.Temperature = Numerator / Denominator;
         }
 
-        void SimulateOuterMostRadialSoilSlice(Circuit * thisCircuit, CartesianCell &cell) {
+        void SimulateOuterMostRadialSoilSlice(EnergyPlusData &state, Circuit * thisCircuit, CartesianCell &cell) {
 
             // SUBROUTINE INFORMATION:
             //       AUTHOR         Edwin Lee
@@ -5299,15 +5315,15 @@ namespace EnergyPlus {
 
             //'add effects from interface cell
             Real64 Resistance = std::log(ThisRadialCellOuterRadius / ThisRadialCellRadialCentroid) /
-                                (2 * DataGlobals::Pi * cell.depth() * ThisRadialCellConductivity);
+                                (2 * state.dataGlobal->Pi * cell.depth() * ThisRadialCellConductivity);
             Numerator += (Beta / Resistance) * cell.Temperature;
             Denominator += (Beta / Resistance);
 
             //'add effects from inner radial cell
             Resistance = (std::log(ThisRadialCellRadialCentroid / ThisRadialCellInnerRadius) /
-                          (2 * DataGlobals::Pi * cell.depth() * ThisRadialCellConductivity)) +
+                          (2 * state.dataGlobal->Pi * cell.depth() * ThisRadialCellConductivity)) +
                          (std::log(NextOuterRadialCellOuterRadius / NextOuterRadialCellRadialCentroid) /
-                          (2 * DataGlobals::Pi * cell.depth() * NextOuterRadialCellConductivity));
+                          (2 * state.dataGlobal->Pi * cell.depth() * NextOuterRadialCellConductivity));
             Numerator += (Beta / Resistance) * NextOuterRadialCellTemperature;
             Denominator += (Beta / Resistance);
 
@@ -5315,7 +5331,7 @@ namespace EnergyPlus {
             outerMostSoilCell.Temperature = Numerator / Denominator;
         }
 
-        void SimulateAllInteriorRadialSoilSlices(CartesianCell &cell) {
+        void SimulateAllInteriorRadialSoilSlices(EnergyPlusData &state, CartesianCell &cell) {
 
             // SUBROUTINE INFORMATION:
             //       AUTHOR         Edwin Lee
@@ -5355,18 +5371,18 @@ namespace EnergyPlus {
                 //'add effects from outer cell
                 Real64 Resistance =
                         (std::log(OuterRadialCellRadialCentroid / OuterRadialCellInnerRadius) /
-                         (2 * DataGlobals::Pi * cell.depth() * OuterRadialCellConductivity)) +
+                         (2 * state.dataGlobal->Pi * cell.depth() * OuterRadialCellConductivity)) +
                         (std::log(ThisRadialCellOuterRadius / ThisRadialCellRadialCentroid) /
-                         (2 * DataGlobals::Pi * cell.depth() * ThisRadialCellConductivity));
+                         (2 * state.dataGlobal->Pi * cell.depth() * ThisRadialCellConductivity));
                 Numerator += (thisSoilCell.Beta / Resistance) * OuterRadialCellTemperature;
                 Denominator += (thisSoilCell.Beta / Resistance);
 
                 //'add effects from inner cell
                 Resistance =
                         (std::log(ThisRadialCellRadialCentroid / ThisRadialCellInnerRadius) /
-                         (2 * DataGlobals::Pi * cell.depth() * ThisRadialCellConductivity)) +
+                         (2 * state.dataGlobal->Pi * cell.depth() * ThisRadialCellConductivity)) +
                         (std::log(InnerRadialCellOuterRadius / InnerRadialCellRadialCentroid) /
-                         (2 * DataGlobals::Pi * cell.depth() * InnerRadialCellConductivity));
+                         (2 * state.dataGlobal->Pi * cell.depth() * InnerRadialCellConductivity));
                 Numerator += (thisSoilCell.Beta / Resistance) * InnerRadialCellTemperature;
                 Denominator += (thisSoilCell.Beta / Resistance);
 
@@ -5375,7 +5391,7 @@ namespace EnergyPlus {
             }
         }
 
-        void SimulateInnerMostRadialSoilSlice(Circuit * thisCircuit, CartesianCell &cell) {
+        void SimulateInnerMostRadialSoilSlice(EnergyPlusData &state, Circuit * thisCircuit, CartesianCell &cell) {
 
             // SUBROUTINE INFORMATION:
             //       AUTHOR         Edwin Lee
@@ -5425,17 +5441,17 @@ namespace EnergyPlus {
 
             //'add effects from outer radial cell
             Resistance = (std::log(OuterNeighborRadialCellRadialCentroid / OuterNeighborRadialCellInnerRadius) /
-                          (2 * DataGlobals::Pi * cell.depth() * OuterNeighborRadialCellConductivity)) +
+                          (2 * state.dataGlobal->Pi * cell.depth() * OuterNeighborRadialCellConductivity)) +
                          (std::log(ThisRadialCellOuterRadius / ThisRadialCellRadialCentroid) /
-                          (2 * DataGlobals::Pi * cell.depth() * ThisRadialCellConductivity));
+                          (2 * state.dataGlobal->Pi * cell.depth() * ThisRadialCellConductivity));
             Numerator += (soilZero.Beta / Resistance) * OuterNeighborRadialCellTemperature;
             Denominator += (soilZero.Beta / Resistance);
 
             //'add effects from pipe cell
             Resistance = (std::log(ThisRadialCellRadialCentroid / ThisRadialCellInnerRadius) /
-                          (2 * DataGlobals::Pi * cell.depth() * ThisRadialCellConductivity)) +
+                          (2 * state.dataGlobal->Pi * cell.depth() * ThisRadialCellConductivity)) +
                          (std::log(InnerNeighborRadialCellOuterRadius / InnerNeighborRadialCellRadialCentroid) /
-                          (2 * DataGlobals::Pi * cell.depth() * InnerNeighborRadialCellConductivity));
+                          (2 * state.dataGlobal->Pi * cell.depth() * InnerNeighborRadialCellConductivity));
             Numerator += (soilZero.Beta / Resistance) * InnerNeighborRadialCellTemperature;
             Denominator += (soilZero.Beta / Resistance);
 
@@ -5443,7 +5459,7 @@ namespace EnergyPlus {
             soilZero.Temperature = Numerator / Denominator;
         }
 
-        void SimulateRadialInsulationCell(CartesianCell &cell) {
+        void SimulateRadialInsulationCell(EnergyPlusData &state, CartesianCell &cell) {
 
             // SUBROUTINE INFORMATION:
             //       AUTHOR         Edwin Lee
@@ -5466,17 +5482,17 @@ namespace EnergyPlus {
 
             //'add effects from outer radial cell
             Real64 Resistance = (std::log(NextInnerRadialCell.RadialCentroid / NextInnerRadialCell.InnerRadius) /
-                                 (2 * DataGlobals::Pi * cell.depth() * NextInnerRadialCell.Properties.Conductivity)) +
+                                 (2 * state.dataGlobal->Pi * cell.depth() * NextInnerRadialCell.Properties.Conductivity)) +
                                 (std::log(ThisInsulationCell.OuterRadius / ThisInsulationCell.RadialCentroid) /
-                                 (2 * DataGlobals::Pi * cell.depth() * ThisInsulationCell.Properties.Conductivity));
+                                 (2 * state.dataGlobal->Pi * cell.depth() * ThisInsulationCell.Properties.Conductivity));
             Numerator += (ThisInsulationCell.Beta / Resistance) * NextInnerRadialCell.Temperature;
             Denominator += (ThisInsulationCell.Beta / Resistance);
 
             //'add effects from pipe cell
             Resistance = (std::log(ThisInsulationCell.RadialCentroid / ThisInsulationCell.InnerRadius) /
-                          (2 * DataGlobals::Pi * cell.depth() * ThisInsulationCell.Properties.Conductivity)) +
+                          (2 * state.dataGlobal->Pi * cell.depth() * ThisInsulationCell.Properties.Conductivity)) +
                          (std::log(PipeCell.OuterRadius / PipeCell.RadialCentroid) /
-                          (2 * DataGlobals::Pi * cell.depth() * PipeCell.Properties.Conductivity));
+                          (2 * state.dataGlobal->Pi * cell.depth() * PipeCell.Properties.Conductivity));
             Numerator += (ThisInsulationCell.Beta / Resistance) * PipeCell.Temperature;
             Denominator += (ThisInsulationCell.Beta / Resistance);
 
@@ -5484,7 +5500,7 @@ namespace EnergyPlus {
             cell.PipeCellData.Insulation.Temperature = Numerator / Denominator;
         }
 
-        void SimulateRadialPipeCell(Circuit * thisCircuit, CartesianCell &cell) {
+        void SimulateRadialPipeCell(EnergyPlusData &state, Circuit * thisCircuit, CartesianCell &cell) {
 
             // SUBROUTINE INFORMATION:
             //       AUTHOR         Edwin Lee
@@ -5529,18 +5545,18 @@ namespace EnergyPlus {
 
             //'add effects from outer radial cell
             Real64 Resistance = (std::log(OuterNeighborRadialCellRadialCentroid / OuterNeighborRadialCellInnerRadius) /
-                                 (2 * DataGlobals::Pi * cell.depth() * OuterNeighborRadialCellConductivity)) +
+                                 (2 * state.dataGlobal->Pi * cell.depth() * OuterNeighborRadialCellConductivity)) +
                                 (std::log(ThisPipeCellOuterRadius / ThisPipeCellRadialCentroid) /
-                                 (2 * DataGlobals::Pi * cell.depth() * ThisPipeCellConductivity));
+                                 (2 * state.dataGlobal->Pi * cell.depth() * ThisPipeCellConductivity));
             Numerator += (cell.PipeCellData.Pipe.Beta / Resistance) * OuterNeighborRadialCellTemperature;
             Denominator += (cell.PipeCellData.Pipe.Beta / Resistance);
 
             //'add effects from water cell
             Real64 PipeConductionResistance =
                     std::log(ThisPipeCellRadialCentroid / ThisPipeCellInnerRadius) /
-                    (2 * DataGlobals::Pi * cell.depth() * ThisPipeCellConductivity);
+                    (2 * state.dataGlobal->Pi * cell.depth() * ThisPipeCellConductivity);
             Real64 ConvectiveResistance =
-                    1.0 / (thisCircuit->CurCircuitConvectionCoefficient * 2 * DataGlobals::Pi * ThisPipeCellInnerRadius * cell.depth());
+                    1.0 / (thisCircuit->CurCircuitConvectionCoefficient * 2 * state.dataGlobal->Pi * ThisPipeCellInnerRadius * cell.depth());
             Resistance = PipeConductionResistance + ConvectiveResistance;
             Numerator += (cell.PipeCellData.Pipe.Beta / Resistance) * FluidCellTemperature;
             Denominator += (cell.PipeCellData.Pipe.Beta / Resistance);
@@ -5549,7 +5565,7 @@ namespace EnergyPlus {
             cell.PipeCellData.Pipe.Temperature = Numerator / Denominator;
         }
 
-        void SimulateFluidCell(Circuit * thisCircuit, CartesianCell &cell, Real64 const FlowRate,
+        void SimulateFluidCell(EnergyPlusData &state, Circuit * thisCircuit, CartesianCell &cell, Real64 const FlowRate,
                                Real64 const EnteringFluidTemp) {
 
             // SUBROUTINE INFORMATION:
@@ -5577,9 +5593,9 @@ namespace EnergyPlus {
 
             //'add effects from outer pipe cell
             Real64 PipeConductionResistance = std::log(PipeCellRadialCentroid / PipeCellInnerRadius) /
-                                              (2 * DataGlobals::Pi * cell.depth() * PipeCellConductivity);
+                                              (2 * state.dataGlobal->Pi * cell.depth() * PipeCellConductivity);
             Real64 ConvectiveResistance =
-                    1.0 / (thisCircuit->CurCircuitConvectionCoefficient * 2 * DataGlobals::Pi * PipeCellInnerRadius * cell.depth());
+                    1.0 / (thisCircuit->CurCircuitConvectionCoefficient * 2 * state.dataGlobal->Pi * PipeCellInnerRadius * cell.depth());
             Real64 TotalPipeResistance = PipeConductionResistance + ConvectiveResistance;
             Numerator += (cell.PipeCellData.Fluid.Beta / TotalPipeResistance) * PipeCellTemperature;
             Denominator += (cell.PipeCellData.Fluid.Beta / TotalPipeResistance);
@@ -5856,7 +5872,7 @@ namespace EnergyPlus {
                             //'set the radial soil cells
                             for (auto &soilCell : cell.PipeCellData.Soil) {
                                 soilCell.Beta = this->Cur.CurSimTimeStepSize /
-                                                (soilCell.Properties.Density * soilCell.XY_CrossSectArea() *
+                                                (soilCell.Properties.Density * soilCell.XY_CrossSectArea(state) *
                                                  cell.depth() * soilCell.Properties.SpecificHeat);
                             }
 
@@ -5864,14 +5880,14 @@ namespace EnergyPlus {
                             if (thisCircuit->HasInsulation) {
                                 cell.PipeCellData.Insulation.Beta = this->Cur.CurSimTimeStepSize /
                                                                     (cell.PipeCellData.Insulation.Properties.Density *
-                                                                     cell.PipeCellData.Insulation.XY_CrossSectArea() *
+                                                                     cell.PipeCellData.Insulation.XY_CrossSectArea(state) *
                                                                      cell.depth() * cell.PipeCellData.Insulation.Properties.SpecificHeat);
                             }
 
                             //'set the pipe cell
                             cell.PipeCellData.Pipe.Beta = this->Cur.CurSimTimeStepSize /
                                                           (cell.PipeCellData.Pipe.Properties.Density *
-                                                           cell.PipeCellData.Pipe.XY_CrossSectArea() * cell.depth() *
+                                                           cell.PipeCellData.Pipe.XY_CrossSectArea(state) * cell.depth() *
                                                            cell.PipeCellData.Pipe.Properties.SpecificHeat);
 
                             // now the fluid cell also

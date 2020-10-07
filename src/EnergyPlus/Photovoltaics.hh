@@ -98,15 +98,17 @@ namespace Photovoltaics {
 
     // **************************************
 
-    void CalcSimplePV(int const thisPV,
+    void CalcSimplePV(EnergyPlusData &state,
+                      int const thisPV,
                       bool const RunFlag // unused1208
     );
 
-    void ReportPV(int const PVnum);
+    void ReportPV(EnergyPlusData &state, int const PVnum);
 
     // *************
 
-    void CalcSandiaPV(int const PVnum,   // ptr to current PV system
+    void CalcSandiaPV(EnergyPlusData &state,
+                      int const PVnum,   // ptr to current PV system
                       bool const RunFlag // controls if generator is scheduled *ON*
     );
 
@@ -198,7 +200,8 @@ namespace Photovoltaics {
 
     // -------------------------------------------------------------------------------
 
-    Real64 AbsoluteAirMass(Real64 const SolZen,  // solar zenith angle (deg)
+    Real64 AbsoluteAirMass(EnergyPlusData &state,
+                           Real64 const SolZen,  // solar zenith angle (deg)
                            Real64 const Altitude // site altitude (m)
     );
 

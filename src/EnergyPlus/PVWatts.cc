@@ -374,14 +374,13 @@ namespace PVWatts {
     void PVWattsGenerator::calc(EnergyPlusData& state)
     {
         using DataGlobals::HourOfDay;
-        using DataGlobals::SecInHour;
         using DataGlobals::TimeStep;
         using DataGlobals::TimeStepZone;
         using DataHVACGlobals::TimeStepSys;
 
         // We only run this once for each zone time step.
         if (!DataGlobals::BeginTimeStepFlag) {
-            m_outputDCEnergy = m_outputDCPower * TimeStepSys * SecInHour;
+            m_outputDCEnergy = m_outputDCPower * TimeStepSys * state.dataGlobal->SecInHour;
             return;
         }
 
@@ -397,7 +396,8 @@ namespace PVWatts {
         }
 
         // process_irradiance
-        IrradianceOutput irr_st = processIrradiance(DataEnvironment::Year,
+        IrradianceOutput irr_st = processIrradiance(state,
+                                                    DataEnvironment::Year,
                                                     DataEnvironment::Month,
                                                     DataEnvironment::DayOfMonth,
                                                     HourOfDay - 1,
@@ -416,13 +416,13 @@ namespace PVWatts {
             shad_beam = DataHeatBalance::SunlitFrac(TimeStep, HourOfDay, m_surfaceNum);
         }
         DCPowerOutput pwr_st =
-            powerout(shad_beam, 1.0, DataEnvironment::BeamSolarRad, albedo, DataEnvironment::WindSpeed, DataEnvironment::OutDryBulbTemp, irr_st);
+            powerout(state, shad_beam, 1.0, DataEnvironment::BeamSolarRad, albedo, DataEnvironment::WindSpeed, DataEnvironment::OutDryBulbTemp, irr_st);
 
         // Report out
         m_cellTemperature = pwr_st.pvt;
         m_planeOfArrayIrradiance = pwr_st.poa;
         m_outputDCPower = pwr_st.dc;
-        m_outputDCEnergy = m_outputDCPower * TimeStepSys * SecInHour;
+        m_outputDCEnergy = m_outputDCPower * TimeStepSys * state.dataGlobal->SecInHour;
     }
 
     void PVWattsGenerator::getResults(Real64 &GeneratorPower, Real64 &GeneratorEnergy, Real64 &ThermalPower, Real64 &ThermalEnergy)
@@ -434,7 +434,7 @@ namespace PVWatts {
     }
 
     IrradianceOutput PVWattsGenerator::processIrradiance(
-        int year, int month, int day, int hour, Real64 minute, Real64 ts_hour, Real64 lat, Real64 lon, Real64 tz, Real64 dn, Real64 df, Real64 alb)
+        EnergyPlusData &state, int year, int month, int day, int hour, Real64 minute, Real64 ts_hour, Real64 lat, Real64 lon, Real64 tz, Real64 dn, Real64 df, Real64 alb)
     {
         IrradianceOutput out;
 
@@ -448,25 +448,23 @@ namespace PVWatts {
         irr.set_beam_diffuse(dn, df);
         irr.set_surface(m_trackMode, m_tilt, m_azimuth, 45.0, m_shadeMode1x == 1, m_groundCoverageRatio);
 
-        int irrRetCode = irr.calc();
+        int irrRetCode = irr.calc(state);
 
         if (irrRetCode != 0) {
             ShowFatalError("PVWatts: Failed to calculate plane of array irradiance with given input parameters.");
         }
 
-        irr.get_sun(&out.solazi, &out.solzen, &out.solalt, 0, 0, 0, &out.sunup, 0, 0, 0);
-        irr.get_angles(&out.aoi, &out.stilt, &out.sazi, &out.rot, &out.btd);
+        irr.get_sun(state, &out.solazi, &out.solzen, &out.solalt, 0, 0, 0, &out.sunup, 0, 0, 0);
+        irr.get_angles(state, &out.aoi, &out.stilt, &out.sazi, &out.rot, &out.btd);
         irr.get_poa(&out.ibeam, &out.iskydiff, &out.ignddiff, 0, 0, 0);
 
         return out;
     }
 
     DCPowerOutput
-    PVWattsGenerator::powerout(Real64 &shad_beam, Real64 shad_diff, Real64 dni, Real64 alb, Real64 wspd, Real64 tdry, IrradianceOutput &irr_st)
+    PVWattsGenerator::powerout(EnergyPlusData &state, Real64 &shad_beam, Real64 shad_diff, Real64 dni, Real64 alb, Real64 wspd, Real64 tdry, IrradianceOutput &irr_st)
     {
 
-        using DataGlobals::DegToRadians;
-        using DataGlobals::RadToDeg;
         using General::RoundSigDigits;
 
         const Real64 &gcr = m_groundCoverageRatio;
@@ -485,8 +483,8 @@ namespace PVWatts {
                     Real64 Fgnddiff = 1.0;
 
                     // worst-case mask angle using calculated surface tilt
-                    Real64 phi0 = RadToDeg * std::atan2(std::sin(irr_st.stilt * DegToRadians),
-                                                        1.0 / m_groundCoverageRatio - std::cos(irr_st.stilt * DegToRadians));
+                    Real64 phi0 = state.dataGlobal->RadToDeg * std::atan2(std::sin(irr_st.stilt * state.dataGlobal->DegToRadians),
+                                                        1.0 / m_groundCoverageRatio - std::cos(irr_st.stilt * state.dataGlobal->DegToRadians));
 
                     // calculate sky and gnd diffuse derate factors
                     // based on view factor reductions from self-shading
@@ -532,7 +530,7 @@ namespace PVWatts {
             // module cover
             tpoa = poa;
             if (irr_st.aoi > 0.5 && irr_st.aoi < 89.5) {
-                double mod = iam(irr_st.aoi, m_useARGlass);
+                double mod = iam(state, irr_st.aoi, m_useARGlass);
                 tpoa = poa - (1.0 - mod) * dni * cosd(irr_st.aoi);
                 if (tpoa < 0.0) tpoa = 0.0;
                 if (tpoa > poa) tpoa = poa;

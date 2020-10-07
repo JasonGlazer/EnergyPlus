@@ -236,7 +236,6 @@ namespace ExternalInterface {
 
         // Using/Aliasing
         using DataGlobals::KindOfSim;
-        using DataGlobals::ksRunPeriodWeather;
         using DataGlobals::WarmupFlag;
 
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
@@ -253,7 +252,7 @@ namespace ExternalInterface {
             // Exchange data only after sizing and after warm-up.
             // Note that checking for ZoneSizingCalc SysSizingCalc does not work here, hence we
             // use the KindOfSim flag
-            if (!WarmupFlag && (KindOfSim == ksRunPeriodWeather)) {
+            if (!WarmupFlag && (KindOfSim == state.dataGlobal->ksRunPeriodWeather)) {
                 CalcExternalInterface(state);
             }
         }
@@ -737,7 +736,6 @@ namespace ExternalInterface {
         // Using/Aliasing
         using DataGlobals::emsCallFromExternalInterface;
         using DataGlobals::KindOfSim;
-        using DataGlobals::ksRunPeriodWeather;
         using DataGlobals::WarmupFlag;
         using EMSManager::ManageEMS;
         using General::TrimSigDigits;
@@ -1991,7 +1989,6 @@ namespace ExternalInterface {
         using DataEnvironment::TotDesDays;
         using DataGlobals::emsCallFromExternalInterface;
         using DataGlobals::KindOfSim;
-        using DataGlobals::ksRunPeriodWeather;
         using DataGlobals::TimeStepZone;
         using DataGlobals::WarmupFlag;
         using DataSystemVariables::UpdateDataDuringWarmupExternalInterface;
@@ -2012,13 +2009,13 @@ namespace ExternalInterface {
         Array1D_int keyIndexes(1);     // Array index for
         Array1D_string NamesOfKeys(1); // Specific key name
 
-        if (WarmupFlag && (KindOfSim != ksRunPeriodWeather)) { // No data exchange during design days
+        if (WarmupFlag && (KindOfSim != state.dataGlobal->ksRunPeriodWeather)) { // No data exchange during design days
             if (FirstCallDesignDays) {
                 ShowWarningError("ExternalInterface/CalcExternalInterfaceFMUImport: ExternalInterface does not exchange data during design days.");
             }
             FirstCallDesignDays = false;
         }
-        if (WarmupFlag && (KindOfSim == ksRunPeriodWeather)) { // Data exchange after design days
+        if (WarmupFlag && (KindOfSim == state.dataGlobal->ksRunPeriodWeather)) { // Data exchange after design days
             if (FirstCallWUp) {
                 // set the report during warmup to true so that variables are also updated during the warmup
                 UpdateDataDuringWarmupExternalInterface = true;
@@ -2142,7 +2139,7 @@ namespace ExternalInterface {
             }
         }
         // BeginSimulation
-        if (!WarmupFlag && (KindOfSim == ksRunPeriodWeather)) {
+        if (!WarmupFlag && (KindOfSim == state.dataGlobal->ksRunPeriodWeather)) {
 
             if (FirstCallTStep) {
                 // reset the UpdateDataDuringWarmupExternalInterface to be false.

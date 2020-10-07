@@ -266,6 +266,7 @@ public: // methods
 
 private:                            // methods
     void simulateSimpleBucketModel( // request charge discharge and
+        EnergyPlusData &state,
         Real64 &powerCharge,
         Real64 &powerDischarge,
         bool &charging,
@@ -390,11 +391,11 @@ public: // methods
     // Constructor
     ElectricTransformer(EnergyPlusData &state, std::string const &objectName);
 
-    Real64 getLossRateForOutputPower(Real64 const powerOutOfTransformer);
+    Real64 getLossRateForOutputPower(EnergyPlusData &state, Real64 const powerOutOfTransformer);
 
-    Real64 getLossRateForInputPower(Real64 const powerIntoTransformer);
+    Real64 getLossRateForInputPower(EnergyPlusData &state, Real64 const powerIntoTransformer);
 
-    void manageTransformers(Real64 const surplusPowerOutFromLoadCenters);
+    void manageTransformers(EnergyPlusData &state, Real64 const surplusPowerOutFromLoadCenters);
 
     void setupMeterIndices();
 
@@ -556,7 +557,7 @@ public: // Methods
 
     std::string const &generatorListName() const;
 
-    void updateLoadCenterGeneratorRecords();
+    void updateLoadCenterGeneratorRecords(EnergyPlusData &state);
 
 private: // Methods
     void dispatchGenerators(EnergyPlusData &state, bool const firstHVACIteration, Real64 &remainingPowerDemand);
@@ -706,7 +707,7 @@ private: // Methods
 
     void reinitAtBeginEnvironment();
 
-    void updateWholeBuildingRecords();
+    void updateWholeBuildingRecords(EnergyPlusData &state);
 
     void reportPVandWindCapacity();
 

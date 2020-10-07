@@ -140,7 +140,7 @@ namespace FluidCoolers {
             this->calcTwoSpeed(state);
         }
         this->update();
-        this->report(RunFlag);
+        this->report(state, RunFlag);
     }
 
     void FluidCoolerspecs::onInitLoopEquip(EnergyPlusData &state, const PlantLocation &EP_UNUSED(calledFromLocation))
@@ -1826,7 +1826,7 @@ namespace FluidCoolers {
         }
     }
 
-    void FluidCoolerspecs::report(bool const RunFlag)
+    void FluidCoolerspecs::report(EnergyPlusData &state, bool const RunFlag)
     {
 
         // SUBROUTINE INFORMATION:
@@ -1838,7 +1838,7 @@ namespace FluidCoolers {
         // PURPOSE OF THIS SUBROUTINE:
         // This subroutine updates the report variables for the fluid cooler.
 
-        Real64 ReportingConstant = DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+        Real64 ReportingConstant = DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
         auto &waterInletNode = this->WaterInletNodeNum;
         if (!RunFlag) {
             this->InletWaterTemp = DataLoopNode::Node(waterInletNode).Temp;

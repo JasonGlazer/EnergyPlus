@@ -2110,7 +2110,6 @@ namespace PackagedThermalStorageCoil {
         using DataEnvironment::StdRhoAir;
         using namespace OutputReportPredefined;
         using CurveManager::CurveValue;
-        using DataGlobals::SecInHour;
         using FluidProperties::GetDensityGlycol;
         using FluidProperties::GetSpecificHeatGlycol;
 
@@ -2335,11 +2334,11 @@ namespace PackagedThermalStorageCoil {
                 state, TESCoil(TESCoilNum).StorageFluidName, DataGlobals::CWInitConvTemp, TESCoil(TESCoilNum).StorageFluidIndex, calcTESWaterStorageTank);
             if (TESCoil(TESCoilNum).DischargeOnlyRatedDischargeCap > 0.0 && TESCoil(TESCoilNum).DischargeOnlyModeAvailable) {
                 TESCoil(TESCoilNum).FluidStorageVolume =
-                    (TESCoil(TESCoilNum).DischargeOnlyRatedDischargeCap * TESCoil(TESCoilNum).StorageCapacitySizingFactor * SecInHour) /
+                    (TESCoil(TESCoilNum).DischargeOnlyRatedDischargeCap * TESCoil(TESCoilNum).StorageCapacitySizingFactor * state.dataGlobal->SecInHour) /
                     (rho * Cp * deltaT);
             } else {
                 TESCoil(TESCoilNum).FluidStorageVolume =
-                    (TESCoil(TESCoilNum).CoolingOnlyRatedTotCap * TESCoil(TESCoilNum).StorageCapacitySizingFactor * SecInHour) / (rho * Cp * deltaT);
+                    (TESCoil(TESCoilNum).CoolingOnlyRatedTotCap * TESCoil(TESCoilNum).StorageCapacitySizingFactor * state.dataGlobal->SecInHour) / (rho * Cp * deltaT);
             }
             BaseSizer::reportSizerOutput("Coil:Cooling:DX:SingleSpeed:ThermalStorage",
                                          TESCoil(TESCoilNum).Name,
@@ -2350,10 +2349,10 @@ namespace PackagedThermalStorageCoil {
 
             if (TESCoil(TESCoilNum).DischargeOnlyRatedDischargeCap > 0.0 && TESCoil(TESCoilNum).DischargeOnlyModeAvailable) {
                 TESCoil(TESCoilNum).IceStorageCapacity =
-                    TESCoil(TESCoilNum).DischargeOnlyRatedDischargeCap * TESCoil(TESCoilNum).StorageCapacitySizingFactor * SecInHour;
+                    TESCoil(TESCoilNum).DischargeOnlyRatedDischargeCap * TESCoil(TESCoilNum).StorageCapacitySizingFactor * state.dataGlobal->SecInHour;
             } else {
                 TESCoil(TESCoilNum).IceStorageCapacity =
-                    TESCoil(TESCoilNum).CoolingOnlyRatedTotCap * TESCoil(TESCoilNum).StorageCapacitySizingFactor * SecInHour;
+                    TESCoil(TESCoilNum).CoolingOnlyRatedTotCap * TESCoil(TESCoilNum).StorageCapacitySizingFactor * state.dataGlobal->SecInHour;
             }
             BaseSizer::reportSizerOutput("Coil:Cooling:DX:SingleSpeed:ThermalStorage",
                                          TESCoil(TESCoilNum).Name,
@@ -2426,7 +2425,7 @@ namespace PackagedThermalStorageCoil {
         }
 
         TESCoil(TESCoilNum).ElecCoolingPower = StandbyAncillaryPower;
-        TESCoil(TESCoilNum).ElecCoolingEnergy = StandbyAncillaryPower * TimeStepSys * SecInHour;
+        TESCoil(TESCoilNum).ElecCoolingEnergy = StandbyAncillaryPower * TimeStepSys * state.dataGlobal->SecInHour;
 
         Node(TESCoil(TESCoilNum).EvapAirOutletNodeNum).Temp = Node(TESCoil(TESCoilNum).EvapAirInletNodeNum).Temp;
         Node(TESCoil(TESCoilNum).EvapAirOutletNodeNum).HumRat = Node(TESCoil(TESCoilNum).EvapAirInletNodeNum).HumRat;
@@ -2457,10 +2456,10 @@ namespace PackagedThermalStorageCoil {
 
         TESCoil(TESCoilNum).CondInletTemp = Node(TESCoil(TESCoilNum).CondAirInletNodeNum).Temp;
 
-        UpdateColdWeatherProtection(TESCoilNum);
+        UpdateColdWeatherProtection(state, TESCoilNum);
 
         if (TESCoil(TESCoilNum).CondenserType == EvapCooled) {
-            UpdateEvaporativeCondenserBasinHeater(TESCoilNum);
+            UpdateEvaporativeCondenserBasinHeater(state, TESCoilNum);
         }
     }
 
@@ -2712,25 +2711,25 @@ namespace PackagedThermalStorageCoil {
             Node(TESCoil(TESCoilNum).CondAirOutletNodeNum).Enthalpy = CondOutletEnthalpy;
 
             TESCoil(TESCoilNum).ElecCoolingPower = ElecCoolingPower + TESCoil(TESCoilNum).AncillaryControlsPower;
-            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * state.dataGlobal->SecInHour;
 
             TESCoil(TESCoilNum).RuntimeFraction = RuntimeFraction;
             TESCoil(TESCoilNum).CondenserRuntimeFraction = RuntimeFraction;
             TESCoil(TESCoilNum).EvapTotCoolingRate = TotCap * RuntimeFraction; // double check this
-            TESCoil(TESCoilNum).EvapTotCoolingEnergy = TotCap * RuntimeFraction * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).EvapTotCoolingEnergy = TotCap * RuntimeFraction * TimeStepSys * state.dataGlobal->SecInHour;
             MinAirHumRat = min(Node(TESCoil(TESCoilNum).EvapAirOutletNodeNum).HumRat, Node(TESCoil(TESCoilNum).EvapAirInletNodeNum).HumRat);
             TESCoil(TESCoilNum).EvapSensCoolingRate =
                 EvapAirMassFlow * (PsyHFnTdbW(EvapInletDryBulb, MinAirHumRat) - PsyHFnTdbW(EvapOutletAirTemp, MinAirHumRat));
             if (TESCoil(TESCoilNum).EvapSensCoolingRate > TESCoil(TESCoilNum).EvapTotCoolingRate) {
                 TESCoil(TESCoilNum).EvapSensCoolingRate = TESCoil(TESCoilNum).EvapTotCoolingRate;
             }
-            TESCoil(TESCoilNum).EvapSensCoolingEnergy = TESCoil(TESCoilNum).EvapSensCoolingRate * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).EvapSensCoolingEnergy = TESCoil(TESCoilNum).EvapSensCoolingRate * TimeStepSys * state.dataGlobal->SecInHour;
             TESCoil(TESCoilNum).EvapLatCoolingRate = TESCoil(TESCoilNum).EvapTotCoolingRate - TESCoil(TESCoilNum).EvapSensCoolingRate;
-            TESCoil(TESCoilNum).EvapLatCoolingEnergy = TESCoil(TESCoilNum).EvapLatCoolingRate * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).EvapLatCoolingEnergy = TESCoil(TESCoilNum).EvapLatCoolingRate * TimeStepSys * state.dataGlobal->SecInHour;
 
         } else { // coil is off; just pass through conditions
             TESCoil(TESCoilNum).ElecCoolingPower = TESCoil(TESCoilNum).AncillaryControlsPower;
-            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * state.dataGlobal->SecInHour;
             TESCoil(TESCoilNum).RuntimeFraction = 0.0;
             TESCoil(TESCoilNum).CondenserRuntimeFraction = 0.0;
             Node(TESCoil(TESCoilNum).EvapAirOutletNodeNum).Temp = Node(TESCoil(TESCoilNum).EvapAirInletNodeNum).Temp;
@@ -2762,11 +2761,11 @@ namespace PackagedThermalStorageCoil {
 
         TESCoil(TESCoilNum).CondInletTemp = CondInletTemp;
 
-        UpdateColdWeatherProtection(TESCoilNum);
+        UpdateColdWeatherProtection(state, TESCoilNum);
 
         if (TESCoil(TESCoilNum).CondenserType == EvapCooled) {
-            UpdateEvaporativeCondenserBasinHeater(TESCoilNum);
-            UpdateEvaporativeCondenserWaterUse(TESCoilNum, CondInletHumRat, TESCoil(TESCoilNum).CondAirInletNodeNum);
+            UpdateEvaporativeCondenserBasinHeater(state, TESCoilNum);
+            UpdateEvaporativeCondenserWaterUse(state, TESCoilNum, CondInletHumRat, TESCoil(TESCoilNum).CondAirInletNodeNum);
         }
     }
 
@@ -2922,7 +2921,7 @@ namespace PackagedThermalStorageCoil {
                 TankMass = rho * TESCoil(TESCoilNum).FluidStorageVolume;
                 CpTank = GetSpecificHeatGlycol(state, TESCoil(TESCoilNum).StorageFluidName, sTES, TESCoil(TESCoilNum).StorageFluidIndex, RoutineName);
                 // simple linear approximation of DT/Dt term in McpDT/Dt
-                QdotChargeLimit = TankMass * CpTank * (sTES - TESCoil(TESCoilNum).MinimumFluidTankTempLimit) / (TimeStepSys * SecInHour);
+                QdotChargeLimit = TankMass * CpTank * (sTES - TESCoil(TESCoilNum).MinimumFluidTankTempLimit) / (TimeStepSys * state.dataGlobal->SecInHour);
             } else {
                 TESCanBeCharged = false;
             }
@@ -2931,7 +2930,7 @@ namespace PackagedThermalStorageCoil {
             if (sTES < 1.0) {
                 TESCanBeCharged = true;
                 // find charge limit to reach limit
-                QdotChargeLimit = (1.0 - sTES) * TESCoil(TESCoilNum).IceStorageCapacity / (TimeStepSys * SecInHour);
+                QdotChargeLimit = (1.0 - sTES) * TESCoil(TESCoilNum).IceStorageCapacity / (TimeStepSys * state.dataGlobal->SecInHour);
             } else {
                 TESCanBeCharged = false;
             }
@@ -3093,7 +3092,7 @@ namespace PackagedThermalStorageCoil {
             Node(TESCoil(TESCoilNum).CondAirOutletNodeNum).Enthalpy = CondOutletEnthalpy;
 
             TESCoil(TESCoilNum).ElecCoolingPower = EvapElecCoolingPower + ChargeElectricCoolingPower + TESCoil(TESCoilNum).AncillaryControlsPower;
-            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * state.dataGlobal->SecInHour;
 
             TESCoil(TESCoilNum).RuntimeFraction = EvapRuntimeFraction;
             if (ChargeRuntimeFraction > 0.0) {
@@ -3103,16 +3102,16 @@ namespace PackagedThermalStorageCoil {
             }
 
             TESCoil(TESCoilNum).EvapTotCoolingRate = EvapTotCap * EvapRuntimeFraction; // double check this
-            TESCoil(TESCoilNum).EvapTotCoolingEnergy = EvapTotCap * EvapRuntimeFraction * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).EvapTotCoolingEnergy = EvapTotCap * EvapRuntimeFraction * TimeStepSys * state.dataGlobal->SecInHour;
             MinAirHumRat = min(Node(TESCoil(TESCoilNum).EvapAirOutletNodeNum).HumRat, Node(TESCoil(TESCoilNum).EvapAirInletNodeNum).HumRat);
             TESCoil(TESCoilNum).EvapSensCoolingRate =
                 EvapAirMassFlow * (PsyHFnTdbW(EvapInletDryBulb, MinAirHumRat) - PsyHFnTdbW(EvapOutletAirTemp, MinAirHumRat));
             if (TESCoil(TESCoilNum).EvapSensCoolingRate > TESCoil(TESCoilNum).EvapTotCoolingRate) {
                 TESCoil(TESCoilNum).EvapSensCoolingRate = TESCoil(TESCoilNum).EvapTotCoolingRate;
             }
-            TESCoil(TESCoilNum).EvapSensCoolingEnergy = TESCoil(TESCoilNum).EvapSensCoolingRate * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).EvapSensCoolingEnergy = TESCoil(TESCoilNum).EvapSensCoolingRate * TimeStepSys * state.dataGlobal->SecInHour;
             TESCoil(TESCoilNum).EvapLatCoolingRate = TESCoil(TESCoilNum).EvapTotCoolingRate - TESCoil(TESCoilNum).EvapSensCoolingRate;
-            TESCoil(TESCoilNum).EvapLatCoolingEnergy = TESCoil(TESCoilNum).EvapLatCoolingRate * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).EvapLatCoolingEnergy = TESCoil(TESCoilNum).EvapLatCoolingRate * TimeStepSys * state.dataGlobal->SecInHour;
 
         } else {                   // Evap off, but may still charge
             if (TESCanBeCharged) { // coil is running to charge but not to cool at evaporator
@@ -3145,7 +3144,7 @@ namespace PackagedThermalStorageCoil {
             }
 
             TESCoil(TESCoilNum).ElecCoolingPower = ChargeElectricCoolingPower + TESCoil(TESCoilNum).AncillaryControlsPower;
-            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * state.dataGlobal->SecInHour;
 
             TESCoil(TESCoilNum).RuntimeFraction = 0.0;
             Node(TESCoil(TESCoilNum).EvapAirOutletNodeNum).Temp = Node(TESCoil(TESCoilNum).EvapAirInletNodeNum).Temp;
@@ -3187,17 +3186,17 @@ namespace PackagedThermalStorageCoil {
         }
 
         TESCoil(TESCoilNum).QdotTES = -TotChargeCap;
-        TESCoil(TESCoilNum).Q_TES = TESCoil(TESCoilNum).QdotTES * TimeStepSys * SecInHour;
+        TESCoil(TESCoilNum).Q_TES = TESCoil(TESCoilNum).QdotTES * TimeStepSys * state.dataGlobal->SecInHour;
 
         UpdateTEStorage(state, TESCoilNum);
 
         TESCoil(TESCoilNum).CondInletTemp = CondInletTemp;
 
-        UpdateColdWeatherProtection(TESCoilNum);
+        UpdateColdWeatherProtection(state, TESCoilNum);
 
         if (TESCoil(TESCoilNum).CondenserType == EvapCooled) {
-            UpdateEvaporativeCondenserBasinHeater(TESCoilNum);
-            UpdateEvaporativeCondenserWaterUse(TESCoilNum, CondInletHumRat, TESCoil(TESCoilNum).CondAirInletNodeNum);
+            UpdateEvaporativeCondenserBasinHeater(state, TESCoilNum);
+            UpdateEvaporativeCondenserWaterUse(state, TESCoilNum, CondInletHumRat, TESCoil(TESCoilNum).CondAirInletNodeNum);
         }
     }
 
@@ -3354,7 +3353,7 @@ namespace PackagedThermalStorageCoil {
                 TankMass = rho * TESCoil(TESCoilNum).FluidStorageVolume;
                 CpTank = GetSpecificHeatGlycol(state, TESCoil(TESCoilNum).StorageFluidName, sTES, TESCoil(TESCoilNum).StorageFluidIndex, RoutineName);
                 // simple linear approximation of DT/Dt term in McpDT/Dt
-                QdotDischargeLimit = TankMass * CpTank * (TESCoil(TESCoilNum).MaximumFluidTankTempLimit - sTES) / (TimeStepSys * SecInHour);
+                QdotDischargeLimit = TankMass * CpTank * (TESCoil(TESCoilNum).MaximumFluidTankTempLimit - sTES) / (TimeStepSys * state.dataGlobal->SecInHour);
             } else {
                 TESHasSomeCharge = false;
             }
@@ -3363,7 +3362,7 @@ namespace PackagedThermalStorageCoil {
             if (sTES > 0.0) {
                 TESHasSomeCharge = true;
                 // discharge limit
-                QdotDischargeLimit = (sTES)*TESCoil(TESCoilNum).IceStorageCapacity / (TimeStepSys * SecInHour);
+                QdotDischargeLimit = (sTES)*TESCoil(TESCoilNum).IceStorageCapacity / (TimeStepSys * state.dataGlobal->SecInHour);
             } else {
                 TESHasSomeCharge = false;
             }
@@ -3531,27 +3530,27 @@ namespace PackagedThermalStorageCoil {
             Node(TESCoil(TESCoilNum).CondAirOutletNodeNum).Enthalpy = CondOutletEnthalpy;
 
             TESCoil(TESCoilNum).ElecCoolingPower = EvapElecCoolingPower + DischargeElectricCoolingPower + TESCoil(TESCoilNum).AncillaryControlsPower;
-            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * state.dataGlobal->SecInHour;
             TESCoil(TESCoilNum).RuntimeFraction =
                 (EvapTotCap * EvapRuntimeFraction + TotDischargeCap * DischargeRuntimeFraction) / (EvapTotCap + TotDischargeCap);
 
             TESCoil(TESCoilNum).EvapTotCoolingRate = EvapTotCap * EvapRuntimeFraction + TotDischargeCap * DischargeRuntimeFraction;
-            TESCoil(TESCoilNum).EvapTotCoolingEnergy = TESCoil(TESCoilNum).EvapTotCoolingRate * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).EvapTotCoolingEnergy = TESCoil(TESCoilNum).EvapTotCoolingRate * TimeStepSys * state.dataGlobal->SecInHour;
             MinAirHumRat = min(Node(TESCoil(TESCoilNum).EvapAirOutletNodeNum).HumRat, Node(TESCoil(TESCoilNum).EvapAirInletNodeNum).HumRat);
             TESCoil(TESCoilNum).EvapSensCoolingRate =
                 EvapAirMassFlow * (PsyHFnTdbW(EvapInletDryBulb, MinAirHumRat) - PsyHFnTdbW(EvapOutletAirTemp, MinAirHumRat));
             if (TESCoil(TESCoilNum).EvapSensCoolingRate > TESCoil(TESCoilNum).EvapTotCoolingRate) {
                 TESCoil(TESCoilNum).EvapSensCoolingRate = TESCoil(TESCoilNum).EvapTotCoolingRate;
             }
-            TESCoil(TESCoilNum).EvapSensCoolingEnergy = TESCoil(TESCoilNum).EvapSensCoolingRate * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).EvapSensCoolingEnergy = TESCoil(TESCoilNum).EvapSensCoolingRate * TimeStepSys * state.dataGlobal->SecInHour;
             TESCoil(TESCoilNum).EvapLatCoolingRate = TESCoil(TESCoilNum).EvapTotCoolingRate - TESCoil(TESCoilNum).EvapSensCoolingRate;
-            TESCoil(TESCoilNum).EvapLatCoolingEnergy = TESCoil(TESCoilNum).EvapLatCoolingRate * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).EvapLatCoolingEnergy = TESCoil(TESCoilNum).EvapLatCoolingRate * TimeStepSys * state.dataGlobal->SecInHour;
 
         } else { // coil is off; just pass through conditions
             TESCoil(TESCoilNum).QdotTES = 0.0;
 
             TESCoil(TESCoilNum).ElecCoolingPower = TESCoil(TESCoilNum).AncillaryControlsPower;
-            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * state.dataGlobal->SecInHour;
             TESCoil(TESCoilNum).RuntimeFraction = 0.0;
 
             TESCoil(TESCoilNum).RuntimeFraction = 0.0;
@@ -3578,14 +3577,14 @@ namespace PackagedThermalStorageCoil {
                 PsyHFnTdbW(Node(TESCoil(TESCoilNum).CondAirOutletNodeNum).Temp, Node(TESCoil(TESCoilNum).CondAirOutletNodeNum).HumRat);
             TESCoil(TESCoilNum).CondInletTemp = Node(TESCoil(TESCoilNum).CondAirInletNodeNum).Temp;
         }
-        TESCoil(TESCoilNum).Q_TES = TESCoil(TESCoilNum).QdotTES * TimeStepSys * SecInHour;
+        TESCoil(TESCoilNum).Q_TES = TESCoil(TESCoilNum).QdotTES * TimeStepSys * state.dataGlobal->SecInHour;
         UpdateTEStorage(state, TESCoilNum);
 
-        UpdateColdWeatherProtection(TESCoilNum);
+        UpdateColdWeatherProtection(state, TESCoilNum);
 
         if (TESCoil(TESCoilNum).CondenserType == EvapCooled) {
-            UpdateEvaporativeCondenserBasinHeater(TESCoilNum);
-            UpdateEvaporativeCondenserWaterUse(TESCoilNum, CondInletHumRat, TESCoil(TESCoilNum).CondAirInletNodeNum);
+            UpdateEvaporativeCondenserBasinHeater(state, TESCoilNum);
+            UpdateEvaporativeCondenserWaterUse(state, TESCoilNum, CondInletHumRat, TESCoil(TESCoilNum).CondAirInletNodeNum);
         }
     }
 
@@ -3698,7 +3697,7 @@ namespace PackagedThermalStorageCoil {
                 TankMass = rho * TESCoil(TESCoilNum).FluidStorageVolume;
                 CpTank = GetSpecificHeatGlycol(state, TESCoil(TESCoilNum).StorageFluidName, sTES, TESCoil(TESCoilNum).StorageFluidIndex, RoutineName);
                 // simple linear approximation of DT/Dt term in McpDT/Dt
-                QdotChargeLimit = TankMass * CpTank * (sTES - TESCoil(TESCoilNum).MinimumFluidTankTempLimit) / (TimeStepSys * SecInHour);
+                QdotChargeLimit = TankMass * CpTank * (sTES - TESCoil(TESCoilNum).MinimumFluidTankTempLimit) / (TimeStepSys * state.dataGlobal->SecInHour);
             } else {
                 TESCanBeCharged = false;
             }
@@ -3707,7 +3706,7 @@ namespace PackagedThermalStorageCoil {
             if (sTES < 1.0) {
                 TESCanBeCharged = true;
                 // find charge limit to reach limit
-                QdotChargeLimit = (1.0 - sTES) * TESCoil(TESCoilNum).IceStorageCapacity / (TimeStepSys * SecInHour);
+                QdotChargeLimit = (1.0 - sTES) * TESCoil(TESCoilNum).IceStorageCapacity / (TimeStepSys * state.dataGlobal->SecInHour);
             } else {
                 TESCanBeCharged = false;
             }
@@ -3739,13 +3738,13 @@ namespace PackagedThermalStorageCoil {
             Node(TESCoil(TESCoilNum).CondAirOutletNodeNum).Enthalpy = CondOutletEnthalpy;
 
             TESCoil(TESCoilNum).ElecCoolingPower = ElecCoolingPower + TESCoil(TESCoilNum).AncillaryControlsPower;
-            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * state.dataGlobal->SecInHour;
 
             TESCoil(TESCoilNum).QdotTES = -TotCap; // negative for cooling
 
         } else { // not running
             TESCoil(TESCoilNum).ElecCoolingPower = TESCoil(TESCoilNum).AncillaryControlsPower;
-            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * state.dataGlobal->SecInHour;
             TESCoil(TESCoilNum).RuntimeFraction = 0.0;
             TESCoil(TESCoilNum).QdotTES = 0.0;
             Node(TESCoil(TESCoilNum).CondAirOutletNodeNum).Temp = Node(TESCoil(TESCoilNum).CondAirInletNodeNum).Temp;
@@ -3755,7 +3754,7 @@ namespace PackagedThermalStorageCoil {
             Node(TESCoil(TESCoilNum).CondAirOutletNodeNum).Enthalpy =
                 PsyHFnTdbW(Node(TESCoil(TESCoilNum).CondAirOutletNodeNum).Temp, Node(TESCoil(TESCoilNum).CondAirOutletNodeNum).HumRat);
         }
-        TESCoil(TESCoilNum).Q_TES = TESCoil(TESCoilNum).QdotTES * TimeStepSys * SecInHour;
+        TESCoil(TESCoilNum).Q_TES = TESCoil(TESCoilNum).QdotTES * TimeStepSys * state.dataGlobal->SecInHour;
 
         TESCoil(TESCoilNum).EvapTotCoolingRate = 0.0;
         TESCoil(TESCoilNum).EvapTotCoolingEnergy = 0.0;
@@ -3766,11 +3765,11 @@ namespace PackagedThermalStorageCoil {
 
         UpdateTEStorage(state, TESCoilNum);
 
-        UpdateColdWeatherProtection(TESCoilNum);
+        UpdateColdWeatherProtection(state, TESCoilNum);
 
         if (TESCoil(TESCoilNum).CondenserType == EvapCooled) {
-            UpdateEvaporativeCondenserBasinHeater(TESCoilNum);
-            UpdateEvaporativeCondenserWaterUse(TESCoilNum, CondInletHumRat, TESCoil(TESCoilNum).CondAirInletNodeNum);
+            UpdateEvaporativeCondenserBasinHeater(state, TESCoilNum);
+            UpdateEvaporativeCondenserWaterUse(state, TESCoilNum, CondInletHumRat, TESCoil(TESCoilNum).CondAirInletNodeNum);
         }
     }
 
@@ -3881,7 +3880,7 @@ namespace PackagedThermalStorageCoil {
                 TankMass = rho * TESCoil(TESCoilNum).FluidStorageVolume;
                 CpTank = GetSpecificHeatGlycol(state, TESCoil(TESCoilNum).StorageFluidName, sTES, TESCoil(TESCoilNum).StorageFluidIndex, StorageTankName);
                 // simple linear approximation of DT/Dt term in McpDT/Dt
-                QdotDischargeLimit = TankMass * CpTank * (TESCoil(TESCoilNum).MaximumFluidTankTempLimit - sTES) / (TimeStepSys * SecInHour);
+                QdotDischargeLimit = TankMass * CpTank * (TESCoil(TESCoilNum).MaximumFluidTankTempLimit - sTES) / (TimeStepSys * state.dataGlobal->SecInHour);
             } else {
                 TESHasSomeCharge = false;
             }
@@ -3890,7 +3889,7 @@ namespace PackagedThermalStorageCoil {
             if (sTES > 0.0) {
                 TESHasSomeCharge = true;
                 // discharge limit
-                QdotDischargeLimit = (sTES)*TESCoil(TESCoilNum).IceStorageCapacity / (TimeStepSys * SecInHour);
+                QdotDischargeLimit = (sTES)*TESCoil(TESCoilNum).IceStorageCapacity / (TimeStepSys * state.dataGlobal->SecInHour);
             } else {
                 TESHasSomeCharge = false;
             }
@@ -4020,19 +4019,19 @@ namespace PackagedThermalStorageCoil {
             Node(TESCoil(TESCoilNum).EvapAirOutletNodeNum).MassFlowRateMinAvail = Node(TESCoil(TESCoilNum).EvapAirInletNodeNum).MassFlowRateMinAvail;
             Node(TESCoil(TESCoilNum).EvapAirOutletNodeNum).MassFlowRateMaxAvail = Node(TESCoil(TESCoilNum).EvapAirInletNodeNum).MassFlowRateMaxAvail;
             TESCoil(TESCoilNum).ElecCoolingPower = ElecCoolingPower + TESCoil(TESCoilNum).AncillaryControlsPower;
-            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * state.dataGlobal->SecInHour;
             TESCoil(TESCoilNum).RuntimeFraction = RuntimeFraction;
             TESCoil(TESCoilNum).EvapTotCoolingRate = TotCap * RuntimeFraction; // double check this
-            TESCoil(TESCoilNum).EvapTotCoolingEnergy = TotCap * RuntimeFraction * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).EvapTotCoolingEnergy = TotCap * RuntimeFraction * TimeStepSys * state.dataGlobal->SecInHour;
             MinAirHumRat = min(Node(TESCoil(TESCoilNum).EvapAirOutletNodeNum).HumRat, Node(TESCoil(TESCoilNum).EvapAirInletNodeNum).HumRat);
             TESCoil(TESCoilNum).EvapSensCoolingRate =
                 EvapAirMassFlow * (PsyHFnTdbW(EvapInletDryBulb, MinAirHumRat) - PsyHFnTdbW(EvapOutletAirTemp, MinAirHumRat));
             if (TESCoil(TESCoilNum).EvapSensCoolingRate > TESCoil(TESCoilNum).EvapTotCoolingRate) {
                 TESCoil(TESCoilNum).EvapSensCoolingRate = TESCoil(TESCoilNum).EvapTotCoolingRate;
             }
-            TESCoil(TESCoilNum).EvapSensCoolingEnergy = TESCoil(TESCoilNum).EvapSensCoolingRate * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).EvapSensCoolingEnergy = TESCoil(TESCoilNum).EvapSensCoolingRate * TimeStepSys * state.dataGlobal->SecInHour;
             TESCoil(TESCoilNum).EvapLatCoolingRate = TESCoil(TESCoilNum).EvapTotCoolingRate - TESCoil(TESCoilNum).EvapSensCoolingRate;
-            TESCoil(TESCoilNum).EvapLatCoolingEnergy = TESCoil(TESCoilNum).EvapLatCoolingRate * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).EvapLatCoolingEnergy = TESCoil(TESCoilNum).EvapLatCoolingRate * TimeStepSys * state.dataGlobal->SecInHour;
 
             TESCoil(TESCoilNum).QdotTES = TotCap * RuntimeFraction + ElecCoolingPower; // all heat rejection into storage
 
@@ -4040,7 +4039,7 @@ namespace PackagedThermalStorageCoil {
             TESCoil(TESCoilNum).QdotTES = 0.0;
 
             TESCoil(TESCoilNum).ElecCoolingPower = TESCoil(TESCoilNum).AncillaryControlsPower;
-            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).ElecCoolingEnergy = TESCoil(TESCoilNum).ElecCoolingPower * TimeStepSys * state.dataGlobal->SecInHour;
             TESCoil(TESCoilNum).RuntimeFraction = 0.0;
 
             TESCoil(TESCoilNum).RuntimeFraction = 0.0;
@@ -4068,14 +4067,14 @@ namespace PackagedThermalStorageCoil {
         Node(TESCoil(TESCoilNum).CondAirOutletNodeNum).Enthalpy =
             PsyHFnTdbW(Node(TESCoil(TESCoilNum).CondAirOutletNodeNum).Temp, Node(TESCoil(TESCoilNum).CondAirOutletNodeNum).HumRat);
         TESCoil(TESCoilNum).CondInletTemp = Node(TESCoil(TESCoilNum).CondAirInletNodeNum).Temp;
-        TESCoil(TESCoilNum).Q_TES = TESCoil(TESCoilNum).QdotTES * TimeStepSys * SecInHour;
+        TESCoil(TESCoilNum).Q_TES = TESCoil(TESCoilNum).QdotTES * TimeStepSys * state.dataGlobal->SecInHour;
         UpdateTEStorage(state, TESCoilNum);
 
-        UpdateColdWeatherProtection(TESCoilNum);
+        UpdateColdWeatherProtection(state, TESCoilNum);
 
         if (TESCoil(TESCoilNum).CondenserType == EvapCooled) {
-            UpdateEvaporativeCondenserBasinHeater(TESCoilNum);
-            UpdateEvaporativeCondenserWaterUse(
+            UpdateEvaporativeCondenserBasinHeater(state, TESCoilNum);
+            UpdateEvaporativeCondenserWaterUse(state,
                 TESCoilNum, Node(TESCoil(TESCoilNum).CondAirInletNodeNum).HumRat, TESCoil(TESCoilNum).CondAirInletNodeNum);
         }
     }
@@ -4581,7 +4580,7 @@ namespace PackagedThermalStorageCoil {
         Real64 QdotTES;            // heat exchange directly into tank from charging system [W]
         Real64 NewOutletTemp;      // calculated new tankoutlet temp (C)
 
-        SecInTimeStep = TimeStepSys * SecInHour;
+        SecInTimeStep = TimeStepSys * state.dataGlobal->SecInHour;
         TimeRemaining = SecInTimeStep;
 
         TimeElapsed = HourOfDay + TimeStep * TimeStepZone + SysTimeElapsed;
@@ -4630,7 +4629,7 @@ namespace PackagedThermalStorageCoil {
 
             TESCoil(TESCoilNum).QdotPlant = Node(TESCoil(TESCoilNum).TESPlantInletNodeNum).MassFlowRate * CpPlantConnection *
                                             TESCoil(TESCoilNum).TESPlantEffectiveness * (UseInletTemp - NewTankTemp);
-            TESCoil(TESCoilNum).Q_Plant = TESCoil(TESCoilNum).QdotPlant * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).Q_Plant = TESCoil(TESCoilNum).QdotPlant * TimeStepSys * state.dataGlobal->SecInHour;
             // now get correct outlet temp with actual massflow (not modified by effectiveness)
             if (Node(TESCoil(TESCoilNum).TESPlantInletNodeNum).MassFlowRate > MassFlowTolerance) {
                 NewOutletTemp =
@@ -4654,7 +4653,7 @@ namespace PackagedThermalStorageCoil {
                                                            QdotTES,
                                                            TimeRemaining);
         TESCoil(TESCoilNum).QdotAmbient = (LossCoeff * (AmbientTemp * TimeRemaining - deltaTsum)) / SecInTimeStep;
-        TESCoil(TESCoilNum).Q_Ambient = TESCoil(TESCoilNum).QdotAmbient * TimeStepSys * SecInHour;
+        TESCoil(TESCoilNum).Q_Ambient = TESCoil(TESCoilNum).QdotAmbient * TimeStepSys * state.dataGlobal->SecInHour;
     }
 
     void CalcTESIceStorageTank(EnergyPlusData &state, int const TESCoilNum)
@@ -4721,7 +4720,7 @@ namespace PackagedThermalStorageCoil {
             TESCoil(TESCoilNum).QdotPlant = Node(TESCoil(TESCoilNum).TESPlantInletNodeNum).MassFlowRate * Cp *
                                             TESCoil(TESCoilNum).TESPlantEffectiveness *
                                             (Node(TESCoil(TESCoilNum).TESPlantInletNodeNum).Temp - FreezingTemp);
-            TESCoil(TESCoilNum).Q_Plant = TESCoil(TESCoilNum).QdotPlant * TimeStepSys * SecInHour;
+            TESCoil(TESCoilNum).Q_Plant = TESCoil(TESCoilNum).QdotPlant * TimeStepSys * state.dataGlobal->SecInHour;
             // now get correct outlet temp with actual massflow (not modified by effectiveness)
             if (Node(TESCoil(TESCoilNum).TESPlantInletNodeNum).MassFlowRate > MassFlowTolerance) {
                 NewOutletTemp = Node(TESCoil(TESCoilNum).TESPlantInletNodeNum).Temp +
@@ -4738,22 +4737,22 @@ namespace PackagedThermalStorageCoil {
         // update ambient heat transfer
 
         TESCoil(TESCoilNum).QdotAmbient = TESCoil(TESCoilNum).StorageUA * (Node(TESCoil(TESCoilNum).StorageAmbientNodeNum).Temp - FreezingTemp);
-        TESCoil(TESCoilNum).Q_Ambient = TESCoil(TESCoilNum).QdotAmbient * TimeStepSys * SecInHour;
+        TESCoil(TESCoilNum).Q_Ambient = TESCoil(TESCoilNum).QdotAmbient * TimeStepSys * state.dataGlobal->SecInHour;
 
         QdotIce = TESCoil(TESCoilNum).QdotPlant + TESCoil(TESCoilNum).QdotAmbient + TESCoil(TESCoilNum).QdotTES;
 
         if (QdotIce < 0.0) { // charging ice level
             TESCoil(TESCoilNum).IceFracRemain = TESCoil(TESCoilNum).IceFracRemainLastTimestep +
-                                                std::abs(QdotIce) / (TESCoil(TESCoilNum).IceStorageCapacity / (TimeStepSys * SecInHour));
+                                                std::abs(QdotIce) / (TESCoil(TESCoilNum).IceStorageCapacity / (TimeStepSys * state.dataGlobal->SecInHour));
             if (TESCoil(TESCoilNum).IceFracRemain > 1.0) TESCoil(TESCoilNum).IceFracRemain = 1.0;
         } else { // not charging,but discharging
             TESCoil(TESCoilNum).IceFracRemain =
-                TESCoil(TESCoilNum).IceFracRemainLastTimestep - QdotIce / (TESCoil(TESCoilNum).IceStorageCapacity / (TimeStepSys * SecInHour));
+                TESCoil(TESCoilNum).IceFracRemainLastTimestep - QdotIce / (TESCoil(TESCoilNum).IceStorageCapacity / (TimeStepSys * state.dataGlobal->SecInHour));
             if (TESCoil(TESCoilNum).IceFracRemain < 0.0) TESCoil(TESCoilNum).IceFracRemain = 0.0;
         }
     }
 
-    void UpdateColdWeatherProtection(int const TESCoilNum)
+    void UpdateColdWeatherProtection(EnergyPlusData &state, int const TESCoilNum)
     {
 
         // SUBROUTINE INFORMATION:
@@ -4796,10 +4795,10 @@ namespace PackagedThermalStorageCoil {
         } else {
             TESCoil(TESCoilNum).ElectColdWeatherPower = 0.0;
         }
-        TESCoil(TESCoilNum).ElectColdWeatherEnergy = TESCoil(TESCoilNum).ElectColdWeatherPower * TimeStepSys * SecInHour;
+        TESCoil(TESCoilNum).ElectColdWeatherEnergy = TESCoil(TESCoilNum).ElectColdWeatherPower * TimeStepSys * state.dataGlobal->SecInHour;
     }
 
-    void UpdateEvaporativeCondenserBasinHeater(int const TESCoilNum)
+    void UpdateEvaporativeCondenserBasinHeater(EnergyPlusData &state, int const TESCoilNum)
     {
 
         // SUBROUTINE INFORMATION:
@@ -4839,10 +4838,10 @@ namespace PackagedThermalStorageCoil {
                              TESCoil(TESCoilNum).BasinHeaterSetpointTemp,
                              TESCoil(TESCoilNum).ElectEvapCondBasinHeaterPower);
 
-        TESCoil(TESCoilNum).ElectEvapCondBasinHeaterEnergy = TESCoil(TESCoilNum).ElectEvapCondBasinHeaterPower * TimeStepSys * SecInHour;
+        TESCoil(TESCoilNum).ElectEvapCondBasinHeaterEnergy = TESCoil(TESCoilNum).ElectEvapCondBasinHeaterPower * TimeStepSys * state.dataGlobal->SecInHour;
     }
 
-    void UpdateEvaporativeCondenserWaterUse(int const TESCoilNum, Real64 const HumRatAfterEvap, int const InletNodeNum)
+    void UpdateEvaporativeCondenserWaterUse(EnergyPlusData &state, int const TESCoilNum, Real64 const HumRatAfterEvap, int const InletNodeNum)
     {
 
         // SUBROUTINE INFORMATION:
@@ -4900,10 +4899,10 @@ namespace PackagedThermalStorageCoil {
             }
         }
 
-        TESCoil(TESCoilNum).EvapWaterConsump = TESCoil(TESCoilNum).EvapWaterConsumpRate * TimeStepSys * SecInHour;
-        TESCoil(TESCoilNum).EvapWaterStarvMakup = TESCoil(TESCoilNum).EvapWaterStarvMakupRate * TimeStepSys * SecInHour;
+        TESCoil(TESCoilNum).EvapWaterConsump = TESCoil(TESCoilNum).EvapWaterConsumpRate * TimeStepSys * state.dataGlobal->SecInHour;
+        TESCoil(TESCoilNum).EvapWaterStarvMakup = TESCoil(TESCoilNum).EvapWaterStarvMakupRate * TimeStepSys * state.dataGlobal->SecInHour;
         TESCoil(TESCoilNum).EvapCondPumpElecPower = TESCoil(TESCoilNum).EvapCondPumpElecNomPower * TESCoil(TESCoilNum).CondenserRuntimeFraction;
-        TESCoil(TESCoilNum).EvapCondPumpElecConsumption = TESCoil(TESCoilNum).EvapCondPumpElecPower * TimeStepSys * SecInHour;
+        TESCoil(TESCoilNum).EvapCondPumpElecConsumption = TESCoil(TESCoilNum).EvapCondPumpElecPower * TimeStepSys * state.dataGlobal->SecInHour;
     }
 
     void

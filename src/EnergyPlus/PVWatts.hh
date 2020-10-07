@@ -201,7 +201,8 @@ namespace PVWatts {
 
         void getResults(Real64 &GeneratorPower, Real64 &GeneratorEnergy, Real64 &ThermalPower, Real64 &ThermalEnergy);
 
-        IrradianceOutput processIrradiance(int year,
+        IrradianceOutput processIrradiance(EnergyPlusData &state,
+                                           int year,
                                            int month,
                                            int day,
                                            int hour,
@@ -214,7 +215,7 @@ namespace PVWatts {
                                            Real64 df,
                                            Real64 alb);
 
-        DCPowerOutput powerout(Real64 &shad_beam, Real64 shad_diff, Real64 dni, Real64 alb, Real64 wspd, Real64 tdry, IrradianceOutput &irr_st);
+        DCPowerOutput powerout(EnergyPlusData &state, Real64 &shad_beam, Real64 shad_diff, Real64 dni, Real64 alb, Real64 wspd, Real64 tdry, IrradianceOutput &irr_st);
     };
 
     extern std::map<int, PVWattsGenerator> PVWattsGenerators;

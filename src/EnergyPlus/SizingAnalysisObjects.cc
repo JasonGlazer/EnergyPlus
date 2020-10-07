@@ -304,8 +304,6 @@ void SizingLog::SetupNewEnvironment(int const seedEnvrnNum, int const newEnvrnNu
 
 int SizingLoggerFramework::SetupVariableSizingLog(EnergyPlusData& state, Real64 &rVariable, int stepsInAverage)
 {
-    using DataGlobals::ksDesignDay;
-    using DataGlobals::ksRunPeriodDesign;
     using DataGlobals::NumOfTimeStepInHour;
     int VectorLength(0);
     int const HoursPerDay(24);
@@ -318,7 +316,7 @@ int SizingLoggerFramework::SetupVariableSizingLog(EnergyPlusData& state, Real64 
     // search environment structure for sizing periods
     // this is coded to occur before the additions to Environment structure that will occur to run them as HVAC Sizing sims
     for (int i = 1; i <= state.dataWeatherManager->NumOfEnvrn; ++i) {
-        if (state.dataWeatherManager->Environment(i).KindOfEnvrn == ksDesignDay) {
+        if (state.dataWeatherManager->Environment(i).KindOfEnvrn == state.dataGlobal->ksDesignDay) {
             ++tmpLog.NumOfEnvironmentsInLogSet;
             ++tmpLog.NumOfDesignDaysInLogSet;
         }
@@ -331,10 +329,10 @@ int SizingLoggerFramework::SetupVariableSizingLog(EnergyPlusData& state, Real64 
     // next fill in the count of steps into map
     for (int i = 1; i <= state.dataWeatherManager->NumOfEnvrn; ++i) {
 
-        if (state.dataWeatherManager->Environment(i).KindOfEnvrn == ksDesignDay) {
+        if (state.dataWeatherManager->Environment(i).KindOfEnvrn == state.dataGlobal->ksDesignDay) {
             tmpLog.ztStepCountByEnvrnMap[i] = HoursPerDay * NumOfTimeStepInHour;
         }
-        if (state.dataWeatherManager->Environment(i).KindOfEnvrn == ksRunPeriodDesign) {
+        if (state.dataWeatherManager->Environment(i).KindOfEnvrn == state.dataGlobal->ksRunPeriodDesign) {
             tmpLog.ztStepCountByEnvrnMap[i] = HoursPerDay * NumOfTimeStepInHour * state.dataWeatherManager->Environment(i).TotalDays;
         }
     }

@@ -568,7 +568,8 @@ namespace FuelCellElectricGenerator {
 
         void FigurePowerConditioningLosses(EnergyPlusData &state, Real64 Pdemand, Real64 &PpcuLosses);
 
-        void FigureTransientConstraints(Real64 &Pel,       // DC power control setting for power module
+        void FigureTransientConstraints(EnergyPlusData &state,
+                                        Real64 &Pel,       // DC power control setting for power module
                                         bool &Constrained, // true if transient constraints kick in (TODO: never used anywhere)
                                         Real64 &PelDiff    // if constrained then this is the difference, positive
         );
@@ -589,7 +590,8 @@ namespace FuelCellElectricGenerator {
 
         void CalcUpdateHeatRecovery(bool FirstHVACIteration);
 
-        void ManageElectStorInteractions(Real64 Pdemand,
+        void ManageElectStorInteractions(EnergyPlusData &state,
+                                         Real64 Pdemand,
                                          Real64 PpcuLosses,
                                          bool &Constrained, // TODO: This one is never used anywhere in the code
                                          Real64 &Pstorage,
@@ -601,7 +603,7 @@ namespace FuelCellElectricGenerator {
                                   Real64 MyLoad, // demand on electric generator
                                   bool FirstHVACIteration);
 
-        void UpdateFuelCellGeneratorRecords();
+        void UpdateFuelCellGeneratorRecords(EnergyPlusData &state);
     };
 
     void clear_state();

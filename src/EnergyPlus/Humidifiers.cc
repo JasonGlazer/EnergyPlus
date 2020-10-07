@@ -106,7 +106,6 @@ namespace Humidifiers {
     using DataGlobals::BeginEnvrnFlag;
     using DataGlobals::DisplayExtraWarnings;
     using DataGlobals::ScheduleAlwaysOn;
-    using DataGlobals::SecInHour;
     using DataGlobals::SysSizingCalc;
     using namespace DataLoopNode;
     using DataEnvironment::OutBaroPress;
@@ -235,11 +234,11 @@ namespace Humidifiers {
             }
         }
 
-        thisHum.UpdateReportWaterSystem();
+        thisHum.UpdateReportWaterSystem(state);
 
         thisHum.UpdateHumidifier();
 
-        thisHum.ReportHumidifier();
+        thisHum.ReportHumidifier(state);
     }
 
     void GetHumidifierInput(EnergyPlusData &state)
@@ -1287,7 +1286,7 @@ namespace Humidifiers {
         AirOutMassFlowRate = AirInMassFlowRate;
     }
 
-    void HumidifierData::UpdateReportWaterSystem() // number of the current humidifier being simulated
+    void HumidifierData::UpdateReportWaterSystem(EnergyPlusData &state) // number of the current humidifier being simulated
     {
 
         // SUBROUTINE INFORMATION:
@@ -1307,7 +1306,6 @@ namespace Humidifiers {
 
         // Using/Aliasing
         using DataGlobals::BeginTimeStepFlag;
-        using DataGlobals::SecInHour;
         using DataHVACGlobals::TimeStepSys;
         using DataWater::WaterStorage;
 
@@ -1341,9 +1339,9 @@ namespace Humidifiers {
                 TankSupplyVdot = AvailTankVdot;
             }
 
-            TankSupplyVol = TankSupplyVdot * (TimeStepSys * SecInHour);
+            TankSupplyVol = TankSupplyVdot * (TimeStepSys * state.dataGlobal->SecInHour);
             StarvedSupplyVdot = StarvedVdot;
-            StarvedSupplyVol = StarvedVdot * (TimeStepSys * SecInHour);
+            StarvedSupplyVol = StarvedVdot * (TimeStepSys * state.dataGlobal->SecInHour);
         }
     }
 
@@ -1404,7 +1402,7 @@ namespace Humidifiers {
         }
     }
 
-    void HumidifierData::ReportHumidifier() // number of the current humidifier being simulated
+    void HumidifierData::ReportHumidifier(EnergyPlusData &state) // number of the current humidifier being simulated
     {
 
         // SUBROUTINE INFORMATION:
@@ -1440,10 +1438,10 @@ namespace Humidifiers {
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
         // na
 
-        ElecUseEnergy = ElecUseRate * TimeStepSys * SecInHour;
-        WaterCons = WaterConsRate * TimeStepSys * SecInHour;
-        GasUseEnergy = GasUseRate * TimeStepSys * SecInHour;
-        AuxElecUseEnergy = AuxElecUseRate * TimeStepSys * SecInHour;
+        ElecUseEnergy = ElecUseRate * TimeStepSys * state.dataGlobal->SecInHour;
+        WaterCons = WaterConsRate * TimeStepSys * state.dataGlobal->SecInHour;
+        GasUseEnergy = GasUseRate * TimeStepSys * state.dataGlobal->SecInHour;
+        AuxElecUseEnergy = AuxElecUseRate * TimeStepSys * state.dataGlobal->SecInHour;
     }
 
     int GetAirInletNodeNum(EnergyPlusData &state,

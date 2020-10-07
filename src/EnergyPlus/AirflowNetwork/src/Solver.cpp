@@ -100,9 +100,7 @@ namespace AirflowNetwork {
     using DataEnvironment::OutDryBulbTemp;
     using DataEnvironment::OutHumRat;
     using DataEnvironment::StdBaroPress;
-    using DataGlobals::DegToRadians;
     using DataGlobals::KelvinConv;
-    using DataGlobals::Pi;
     using DataGlobals::rTinyValue;
     using DataSurfaces::Surface;
 
@@ -552,7 +550,7 @@ namespace AirflowNetwork {
         }
 
         // Calculate pressure field in a large opening
-        PStack();
+        PStack(state);
         solver.solvzp(state, ITER);
 
         // Report element flows and zone pressures.
@@ -1167,7 +1165,8 @@ namespace AirflowNetwork {
         return 1;
     }
 
-    int GenericDuct(Real64 const Length,        // Duct length
+    int GenericDuct(EnergyPlusData &state,
+                    Real64 const Length,        // Duct length
                     Real64 const Diameter,      // Duct diameter
                     bool const LFLAG,           // Initialization flag.If = 1, use laminar relationship
                     Real64 const PDROP,         // Total pressure drop across a component (P1 - P2) [Pa]
@@ -1214,7 +1213,7 @@ namespace AirflowNetwork {
         // FLOW:
         // Get component properties
         Real64 ed = Rough / Diameter;
-        Real64 area = Diameter * Diameter * Pi / 4.0;
+        Real64 area = Diameter * Diameter * state.dataGlobal->Pi / 4.0;
         Real64 ld = Length / Diameter;
         Real64 g = 1.14 - 0.868589 * std::log(ed);
         Real64 AA1 = g;
@@ -1946,7 +1945,7 @@ namespace AirflowNetwork {
         }
     }
 
-    void PStack()
+    void PStack(EnergyPlusData &state)
     {
 
         // SUBROUTINE INFORMATION:
@@ -1958,28 +1957,12 @@ namespace AirflowNetwork {
         // PURPOSE OF THIS SUBROUTINE:
         // This subroutine calculates the stack pressures for a link between two zones
 
-        // METHODOLOGY EMPLOYED:
-        // na
-
         // REFERENCES:
         // Helmut E. Feustel and Alison Rayner-Hooson, "COMIS Fundamentals," LBL-28560,
         // Lawrence Berkeley National Laboratory, Berkeley, CA, May 1990
 
-        // USE STATEMENTS:
-        using DataGlobals::Pi;
-
-        // Locals
-        // SUBROUTINE ARGUMENT DEFINITIONS:
-        // na
-
         // SUBROUTINE PARAMETER DEFINITIONS:
         Real64 const PSea(101325.0);
-
-        // INTERFACE BLOCK SPECIFICATIONS
-        // na
-
-        // DERIVED TYPE DEFINITIONS
-        // na
 
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
         //      REAL(r64) RhoOut ! air density outside [kg/m3]
@@ -2039,7 +2022,7 @@ namespace AirflowNetwork {
         // FLOW:
         RhoREF = AIRDENSITY(PSea, OutDryBulbTemp, OutHumRat);
 
-        CONV = Latitude * 2.0 * Pi / 360.0;
+        CONV = Latitude * 2.0 * state.dataGlobal->Pi / 360.0;
         G = 9.780373 * (1.0 + 0.0052891 * pow_2(std::sin(CONV)) - 0.0000059 * pow_2(std::sin(2.0 * CONV)));
 
         Hfl = 1.0;

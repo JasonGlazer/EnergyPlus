@@ -126,10 +126,8 @@ namespace WindowEquivalentLayer {
     using DataEnvironment::DayOfMonth;
     using DataEnvironment::Month;
     using DataGlobals::CurrentTime;
-    using DataGlobals::GravityConstant;
     using DataGlobals::HourOfDay;
     using DataGlobals::KelvinConv;
-    using DataGlobals::PiOvr2;
     using DataGlobals::StefanBoltzmann;
     using DataGlobals::TimeStep;
     using DataGlobals::UniversalGasConst;
@@ -1163,8 +1161,6 @@ namespace WindowEquivalentLayer {
         // PURPOSE OF THIS SUBROUTINE:
         // Calculates the roller blind off-normal properties using semi-empirical relations
 
-        using DataGlobals::DegToRadians;
-
         // SUBROUTINE ARGUMENT DEFINITIONS:
         //   TAU_BT0 = TAU_BB0 + TAU_BD0
         //   (openness)
@@ -1311,8 +1307,6 @@ namespace WindowEquivalentLayer {
         // PURPOSE OF THIS SUBROUTINE:
         // Calculates insect screen off-normal solar optical properties
         // using semi-empirical relations.
-
-        using DataGlobals::DegToRadians;
 
         // SUBROUTINE ARGUMENT DEFINITIONS:
         //   TAU_BTO = TAU_BB0 + TAU_BD0
@@ -1499,8 +1493,6 @@ namespace WindowEquivalentLayer {
         // Calculates the solar optical properties of a fabric for beam radiation incident
         // on the forward facingsurface using optical properties at normal incidence and
         // semi-empirical relations.
-
-        using DataGlobals::DegToRadians;
 
         // SUBROUTINE ARGUMENT DEFINITIONS:
         //   TAU_BTO = TAU_BB0 + TAU_BD0
@@ -1781,8 +1773,6 @@ namespace WindowEquivalentLayer {
         //  calculates the effective front-side solar optical properties of a drapery layer.
         // METHODOLOGY EMPLOYED:
         // Pleated drape flat-fabric model with rectangular enclosure
-
-        using DataGlobals::DegToRadians;
 
         Real64 DE; // length of directly illuminated surface on side of pleat that
         //   is open on front (same units as S and W)
@@ -3799,8 +3789,6 @@ namespace WindowEquivalentLayer {
         // Four and six surface curve-slat model with slat transmittance. For back side
         // reflectance call this routine a second time with the same input data - except
         // negative the slat angle, PHI_DEG.
-
-        using DataGlobals::DegToRadians;
 
         // SUBROUTINE ARGUMENT DEFINITIONS:
         //    must be > 0
@@ -5958,7 +5946,7 @@ namespace WindowEquivalentLayer {
         CP = ACP + BCP * TM + BCP * TM * TM;
         VISC = AVISC + BVISC * TM + BVISC * TM * TM;
 
-        FRA = (GravityConstant * RHOGAS * RHOGAS * DT * T * T * T * CP) / (VISC * K * TM * Z * Z);
+        FRA = (state.dataGlobal->GravityConstant * RHOGAS * RHOGAS * DT * T * T * T * CP) / (VISC * K * TM * Z * Z);
 
         return FRA;
     }
@@ -6838,8 +6826,6 @@ namespace WindowEquivalentLayer {
         //  Uses a reference glass property.
         // returns TRUE if RAT_TAU < 1 or RAT_1MR < 1 (and thus Specular_Adjust s/b called)
         //    else FALSE
-        using DataGlobals::DegToRadians;
-
         // Return value
         bool Specular_OffNormal;
 
@@ -7373,8 +7359,6 @@ namespace WindowEquivalentLayer {
         // Return venetian blind longwave properties from slat properties and geometry.
         // If not VB layer returns False.
 
-        using DataGlobals::DegToRadians;
-
         // Return value
         bool VB_LWP;
 
@@ -7417,8 +7401,6 @@ namespace WindowEquivalentLayer {
         // PURPOSE OF THIS FUNCTION:
         // Returns venetian blind off-normal short wave properties. If not VB layer
         // returns False.
-        using DataGlobals::DegToRadians;
-
         // Return value
         bool VB_SWP;
 
@@ -8178,9 +8160,9 @@ namespace WindowEquivalentLayer {
             for (Lay = 1; Lay <= CFS(EQLNum).NL; ++Lay) {
                 if (IsVBLayer(CFS(EQLNum).L(Lay))) {
                     if (CFS(EQLNum).L(Lay).LTYPE == ltyVBHOR) {
-                        ProfileAngle(SurfNum, SOLCOS, Horizontal, ProfAngVer);
+                        ProfileAngle(state, SurfNum, SOLCOS, Horizontal, ProfAngVer);
                     } else if (CFS(EQLNum).L(Lay).LTYPE == ltyVBVER) {
-                        ProfileAngle(SurfNum, SOLCOS, Vertical, ProfAngHor);
+                        ProfileAngle(state, SurfNum, SOLCOS, Vertical, ProfAngHor);
                     }
                 }
             }
@@ -8194,9 +8176,9 @@ namespace WindowEquivalentLayer {
                 for (Lay = 1; Lay <= CFS(EQLNum).NL; ++Lay) {
                     if (IsVBLayer(CFS(EQLNum).L(Lay))) {
                         if (CFS(EQLNum).L(Lay).LTYPE == ltyVBHOR) {
-                            ProfileAngle(SurfNum, SOLCOS, Horizontal, ProfAngVer);
+                            ProfileAngle(state, SurfNum, SOLCOS, Horizontal, ProfAngVer);
                         } else if (CFS(EQLNum).L(Lay).LTYPE == ltyVBVER) {
-                            ProfileAngle(SurfNum, SOLCOS, Vertical, ProfAngHor);
+                            ProfileAngle(state, SurfNum, SOLCOS, Vertical, ProfAngHor);
                         }
                     }
                 }
@@ -8315,7 +8297,6 @@ namespace WindowEquivalentLayer {
         // Uses ISO Standard 15099 method to calculate the inside surface
         // convection coefficient for fenestration ratings.
 
-        using DataGlobals::DegToRadians;
         using Psychrometrics::PsyRhoAirFnPbTdbW;
 
         // Return value
@@ -8349,7 +8330,7 @@ namespace WindowEquivalentLayer {
         Cp = 1002.737 + 1.2324E-2 * TmeanFilmKelvin;   // Table B.3 in ISO 15099
 
         RaH =
-            (pow_2(rho) * pow_3(Height) * GravityConstant * Cp * std::abs(TSurfIn - TAirIn)) / (TmeanFilmKelvin * mu * lambda); // eq 132 in ISO 15099
+            (pow_2(rho) * pow_3(Height) * state.dataGlobal->GravityConstant * Cp * std::abs(TSurfIn - TAirIn)) / (TmeanFilmKelvin * mu * lambda); // eq 132 in ISO 15099
 
         // eq. 135 in ISO 15099 (only need this one because tilt is 90 deg)
         Nuint = 0.56 * root_4(RaH * sineTilt);

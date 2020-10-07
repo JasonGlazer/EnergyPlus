@@ -198,7 +198,7 @@ namespace CoolingPanelSimple {
 
             UpdateCoolingPanel(state, CoolingPanelNum);
 
-            state.dataChilledCeilingPanelSimple->CoolingPanel(CoolingPanelNum).ReportCoolingPanel();
+            state.dataChilledCeilingPanelSimple->CoolingPanel(CoolingPanelNum).ReportCoolingPanel(state);
 
         } else {
             ShowFatalError("SimCoolingPanelSimple: Unit not found=" + EquipName);
@@ -1659,7 +1659,7 @@ namespace CoolingPanelSimple {
         }
     }
 
-    void CoolingPanelParams::ReportCoolingPanel()
+    void CoolingPanelParams::ReportCoolingPanel(EnergyPlusData &state)
     {
 
         // SUBROUTINE INFORMATION:
@@ -1681,10 +1681,10 @@ namespace CoolingPanelSimple {
         this->ConvPower = -this->ConvPower;
         this->RadPower = -this->RadPower;
 
-        this->TotEnergy = this->TotPower * TimeStepSys * SecInHour;
-        this->Energy = this->Power * TimeStepSys * SecInHour;
-        this->ConvEnergy = this->ConvPower * TimeStepSys * SecInHour;
-        this->RadEnergy = this->RadPower * TimeStepSys * SecInHour;
+        this->TotEnergy = this->TotPower * TimeStepSys * state.dataGlobal->SecInHour;
+        this->Energy = this->Power * TimeStepSys * state.dataGlobal->SecInHour;
+        this->ConvEnergy = this->ConvPower * TimeStepSys * state.dataGlobal->SecInHour;
+        this->RadEnergy = this->RadPower * TimeStepSys * state.dataGlobal->SecInHour;
     }
 
     Real64 SumHATsurf(int const ZoneNum) // Zone number

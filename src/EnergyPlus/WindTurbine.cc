@@ -95,10 +95,7 @@ namespace WindTurbine {
   //  using namespace DataPrecisionGlobals;
   //  using namespace DataGenerators;
     using DataGlobals::BeginEnvrnFlag;
-    using DataGlobals::DegToRadians;
-    using DataGlobals::Pi;
     using DataGlobals::ScheduleAlwaysOn;
-    using DataGlobals::SecInHour;
 
     static std::string const BlankString;
 
@@ -982,7 +979,7 @@ namespace WindTurbine {
 
         using DataHVACGlobals::TimeStepSys;
 
-        state.dataWindTurbine->WindTurbineSys(WindTurbineNum).Energy = state.dataWindTurbine->WindTurbineSys(WindTurbineNum).Power * TimeStepSys * SecInHour;
+        state.dataWindTurbine->WindTurbineSys(WindTurbineNum).Energy = state.dataWindTurbine->WindTurbineSys(WindTurbineNum).Power * TimeStepSys * state.dataGlobal->SecInHour;
     }
 
     //*****************************************************************************************

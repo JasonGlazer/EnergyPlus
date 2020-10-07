@@ -437,7 +437,7 @@ namespace HVACControllers {
                 {
                     auto const SELECT_CASE_var1(ControllerType);
                     if (SELECT_CASE_var1 == ControllerSimple_Type) { // 'Controller:WaterCoil'
-                        CalcSimpleController(ControlNum, FirstHVACIteration, IsConvergedFlag, IsUpToDateFlag, ControllerName);
+                        CalcSimpleController(state, ControlNum, FirstHVACIteration, IsConvergedFlag, IsUpToDateFlag, ControllerName);
                     } else {
                         ShowFatalError("Invalid controller type in ManageControllers=" + ControllerProps(ControlNum).ControllerType);
                     }
@@ -459,7 +459,7 @@ namespace HVACControllers {
                 {
                     auto const SELECT_CASE_var1(ControllerType);
                     if (SELECT_CASE_var1 == ControllerSimple_Type) { // 'Controller:WaterCoil'
-                        CheckSimpleController(ControlNum, IsConvergedFlag);
+                        CheckSimpleController(state, ControlNum, IsConvergedFlag);
                         SaveSimpleController(ControlNum, FirstHVACIteration, IsConvergedFlag);
                     } else {
                         ShowFatalError("Invalid controller type in ManageControllers=" + ControllerProps(ControlNum).ControllerType);
@@ -475,7 +475,7 @@ namespace HVACControllers {
         // To enable generating an individual, detailed trace file for each controller on each air loop,
         // define the environment variable TRACE_CONTROLLER=YES or TRACE_CONTROLLER=Y
         if (TraceHVACControllerEnvFlag) {
-            TraceIndividualController(ControlNum, FirstHVACIteration, state.dataAirLoop->AirLoopControlInfo(AirLoopNum).AirLoopPass, Operation, IsConvergedFlag);
+            TraceIndividualController(state, ControlNum, FirstHVACIteration, state.dataAirLoop->AirLoopControlInfo(AirLoopNum).AirLoopPass, Operation, IsConvergedFlag);
         }
     }
 
@@ -1414,7 +1414,8 @@ namespace HVACControllers {
     // Begin Algorithm Section of the Module
     //******************************************************************************
 
-    void CalcSimpleController(int const ControlNum,
+    void CalcSimpleController(EnergyPlusData &state,
+                              int const ControlNum,
                               bool const FirstHVACIteration,
                               bool &IsConvergedFlag,
                               bool &IsUpToDateFlag,
@@ -1520,7 +1521,7 @@ namespace HVACControllers {
 
                 // Reuse intermediate solution obtained with previous controller for the current HVAC step
                 // and fire root finder to get next root candidate
-                FindRootSimpleController(ControlNum, FirstHVACIteration, IsConvergedFlag, IsUpToDateFlag, ControllerName);
+                FindRootSimpleController(state, ControlNum, FirstHVACIteration, IsConvergedFlag, IsUpToDateFlag, ControllerName);
 
             } else {
                 // Always start with min point by default
@@ -1536,7 +1537,7 @@ namespace HVACControllers {
         } else {
             // Check that the setpoint is defined
             if (!ControllerProps(ControlNum).IsSetPointDefinedFlag) {
-                ShowSevereError("CalcSimpleController: Root finder failed at " + CreateHVACStepFullString());
+                ShowSevereError("CalcSimpleController: Root finder failed at " + CreateHVACStepFullString(state));
                 ShowContinueError(" Controller name=\"" + ControllerName + "\"");
                 ShowContinueError(" Setpoint is not available/defined.");
                 ShowFatalError("Preceding error causes program termination.");
@@ -1545,7 +1546,7 @@ namespace HVACControllers {
             // - min bound
             // - max bound
             if (RootFinders(ControlNum).MinPoint.X != ControllerProps(ControlNum).MinAvailActuated) {
-                ShowSevereError("CalcSimpleController: Root finder failed at " + CreateHVACStepFullString());
+                ShowSevereError("CalcSimpleController: Root finder failed at " + CreateHVACStepFullString(state));
                 ShowContinueError(" Controller name=\"" + ControllerName + "\"");
                 ShowContinueError(" Minimum bound must remain invariant during successive iterations.");
                 ShowContinueError(" Minimum root finder point=" + TrimSigDigits(RootFinders(ControlNum).MinPoint.X, NumSigDigits));
@@ -1553,7 +1554,7 @@ namespace HVACControllers {
                 ShowFatalError("Preceding error causes program termination.");
             }
             if (RootFinders(ControlNum).MaxPoint.X != ControllerProps(ControlNum).MaxAvailActuated) {
-                ShowSevereError("CalcSimpleController: Root finder failed at " + CreateHVACStepFullString());
+                ShowSevereError("CalcSimpleController: Root finder failed at " + CreateHVACStepFullString(state));
                 ShowContinueError(" Controller name=\"" + ControllerName + "\"");
                 ShowContinueError(" Maximum bound must remain invariant during successive iterations.");
                 ShowContinueError(" Maximum root finder point=" + TrimSigDigits(RootFinders(ControlNum).MaxPoint.X, NumSigDigits));
@@ -1562,11 +1563,12 @@ namespace HVACControllers {
             }
 
             // Updates root finder with current iterate and computes next one if needed
-            FindRootSimpleController(ControlNum, FirstHVACIteration, IsConvergedFlag, IsUpToDateFlag, ControllerName);
+            FindRootSimpleController(state, ControlNum, FirstHVACIteration, IsConvergedFlag, IsUpToDateFlag, ControllerName);
         }
     }
 
-    void FindRootSimpleController(int const ControlNum,
+    void FindRootSimpleController(EnergyPlusData &state,
+                                  int const ControlNum,
                                   bool const FirstHVACIteration,
                                   bool &IsConvergedFlag,
                                   bool &IsUpToDateFlag,
@@ -1697,7 +1699,7 @@ namespace HVACControllers {
 
                 // Abnormal case: should never happen
             } else if (SELECT_CASE_var == iStatusErrorRange) {
-                ShowSevereError("FindRootSimpleController: Root finder failed at " + CreateHVACStepFullString());
+                ShowSevereError("FindRootSimpleController: Root finder failed at " + CreateHVACStepFullString(state));
                 ShowContinueError(" Controller name=\"" + ControllerName + "\"");
                 ShowContinueError(" Root candidate x=" + TrimSigDigits(ControllerProps(ControlNum).ActuatedValue, NumSigDigits) +
                                   " does not lie within the min/max bounds.");
@@ -1707,7 +1709,7 @@ namespace HVACControllers {
 
                 // Abnormal case: should never happen
             } else if (SELECT_CASE_var == iStatusErrorBracket) {
-                ShowSevereError("FindRootSimpleController: Root finder failed at " + CreateHVACStepFullString());
+                ShowSevereError("FindRootSimpleController: Root finder failed at " + CreateHVACStepFullString(state));
                 ShowContinueError(" Controller name=" + ControllerProps(ControlNum).ControllerName);
                 ShowContinueError(" Controller action=" + ActionTypes(ControllerProps(ControlNum).Action));
                 ShowContinueError(" Root candidate x=" + TrimSigDigits(ControllerProps(ControlNum).ActuatedValue, NumSigDigits) +
@@ -1732,7 +1734,7 @@ namespace HVACControllers {
                 //         - If y(xMin) < ySetPoint && y(xMax) > y(xMin), then  x = xMin
                 //         - If y(xMin) > ySetPoint && y(xMax) > y(xMin), then  x = xMax
             } else if (SELECT_CASE_var == iStatusErrorSlope) {
-                // CALL ShowSevereError('FindRootSimpleController: Root finder failed at '//TRIM(CreateHVACStepFullString()))
+                // CALL ShowSevereError('FindRootSimpleController: Root finder failed at '//TRIM(CreateHVACStepFullString(state)))
                 // CALL ShowContinueError( &
                 //   'FindRootSimpleController: Controller name='//TRIM(ControllerProps(ControlNum)%ControllerName) &
                 //  )
@@ -1818,7 +1820,7 @@ namespace HVACControllers {
 
             } else {
                 // Should never happen
-                ShowSevereError("FindRootSimpleController: Root finder failed at " + CreateHVACStepFullString());
+                ShowSevereError("FindRootSimpleController: Root finder failed at " + CreateHVACStepFullString(state));
                 ShowContinueError(" Controller name=" + ControllerName);
                 ShowContinueError(" Unrecognized root finder status flag=" + TrimSigDigits(RootFinders(ControlNum).StatusFlag));
                 ShowFatalError("Preceding error causes program termination.");
@@ -1826,7 +1828,7 @@ namespace HVACControllers {
         }
     }
 
-    void CheckSimpleController(int const ControlNum, bool &IsConvergedFlag)
+    void CheckSimpleController(EnergyPlusData &state, int const ControlNum, bool &IsConvergedFlag)
     {
 
         // SUBROUTINE INFORMATION:
@@ -1900,7 +1902,7 @@ namespace HVACControllers {
 
             } else if (SELECT_CASE_var == iModeMinActive) {
                 // Check for min constrained convergence
-                if (CheckMinActiveController(ControlNum)) {
+                if (CheckMinActiveController(state, ControlNum)) {
                     IsConvergedFlag = true;
                     return;
                 }
@@ -1915,7 +1917,7 @@ namespace HVACControllers {
 
             } else if (SELECT_CASE_var == iModeMaxActive) {
                 // Check for max constrained convergence
-                if (CheckMaxActiveController(ControlNum)) {
+                if (CheckMaxActiveController(state, ControlNum)) {
                     IsConvergedFlag = true;
                     return;
                 }
@@ -1950,12 +1952,12 @@ namespace HVACControllers {
                     return;
                 }
                 // Check for min constrained convergence
-                if (CheckMinActiveController(ControlNum)) {
+                if (CheckMinActiveController(state, ControlNum)) {
                     IsConvergedFlag = true;
                     return;
                 }
                 // Check for max constrained convergence
-                if (CheckMaxActiveController(ControlNum)) {
+                if (CheckMaxActiveController(state, ControlNum)) {
                     IsConvergedFlag = true;
                     return;
                 }
@@ -1968,7 +1970,7 @@ namespace HVACControllers {
         }
     }
 
-    bool CheckMinActiveController(int const ControlNum)
+    bool CheckMinActiveController(EnergyPlusData &state, int const ControlNum)
     {
         // FUNCTION INFORMATION:
         //       AUTHOR         Dimitri Curtil
@@ -2032,7 +2034,7 @@ namespace HVACControllers {
 
             } else {
                 // Should never happen
-                ShowSevereError("CheckMinActiveController: Invalid controller action during " + CreateHVACStepFullString() + '.');
+                ShowSevereError("CheckMinActiveController: Invalid controller action during " + CreateHVACStepFullString(state) + '.');
                 ShowContinueError("CheckMinActiveController: Controller name=" + ControllerProps(ControlNum).ControllerName);
                 ShowContinueError("CheckMinActiveController: Valid choices are \"NORMAL\" or \"REVERSE\"");
                 ShowFatalError("CheckMinActiveController: Preceding error causes program termination.");
@@ -2042,7 +2044,7 @@ namespace HVACControllers {
         return CheckMinActiveController;
     }
 
-    bool CheckMaxActiveController(int const ControlNum)
+    bool CheckMaxActiveController(EnergyPlusData &state, int const ControlNum)
     {
         // FUNCTION INFORMATION:
         //       AUTHOR         Dimitri Curtil
@@ -2106,7 +2108,7 @@ namespace HVACControllers {
 
             } else {
                 // Should never happen
-                ShowSevereError("CheckMaxActiveController: Invalid controller action during " + CreateHVACStepFullString() + '.');
+                ShowSevereError("CheckMaxActiveController: Invalid controller action during " + CreateHVACStepFullString(state) + '.');
                 ShowContinueError("CheckMaxActiveController: Controller name=" + ControllerProps(ControlNum).ControllerName);
                 ShowContinueError("CheckMaxActiveController: Valid choices are \"NORMAL\" or \"REVERSE\"");
                 ShowFatalError("CheckMaxActiveController: Preceding error causes program termination.");
@@ -2753,8 +2755,12 @@ namespace HVACControllers {
         print(TraceFile, "\n");
     }
 
-    void TraceAirLoopControllers(
-        bool const FirstHVACIteration, int const AirLoopNum, int const AirLoopPass, bool const AirLoopConverged, int const AirLoopNumCalls)
+    void TraceAirLoopControllers(EnergyPlusData &state,
+                                 bool const FirstHVACIteration,
+                                 int const AirLoopNum,
+                                 int const AirLoopPass,
+                                 bool const AirLoopConverged,
+                                 int const AirLoopNumCalls)
     {
 
         // SUBROUTINE INFORMATION:
@@ -2811,7 +2817,7 @@ namespace HVACControllers {
         if (!TraceFile.good()) return;
 
         // Write iteration stamp first
-        TraceIterationStamp(TraceFile, FirstHVACIteration, AirLoopPass, AirLoopConverged, AirLoopNumCalls);
+        TraceIterationStamp(state, TraceFile, FirstHVACIteration, AirLoopPass, AirLoopConverged, AirLoopNumCalls);
 
         // Loop over the air sys controllers and write diagnostic to trace file
         for (ControllerNum = 1; ControllerNum <= PrimaryAirSystem(AirLoopNum).NumControllers; ++ControllerNum) {
@@ -2822,8 +2828,12 @@ namespace HVACControllers {
         print(TraceFile, "\n");
     }
 
-    void TraceIterationStamp(
-        InputOutputFile &TraceFile, bool const FirstHVACIteration, int const AirLoopPass, bool const AirLoopConverged, int const AirLoopNumCalls)
+    void TraceIterationStamp(EnergyPlusData &state,
+                             InputOutputFile &TraceFile,
+                             bool const FirstHVACIteration,
+                             int const AirLoopPass,
+                             bool const AirLoopConverged,
+                             int const AirLoopNumCalls)
     {
 
         // SUBROUTINE INFORMATION:
@@ -2877,8 +2887,8 @@ namespace HVACControllers {
               LogicalToInteger(SysSizingCalc),
               CurEnvirNum,
               LogicalToInteger(WarmupFlag),
-              CreateHVACTimeString(),
-              MakeHVACTimeIntervalString(),
+              CreateHVACTimeString(state),
+              MakeHVACTimeIntervalString(state),
               LogicalToInteger(BeginTimeStepFlag),
               LogicalToInteger(FirstTimeStepSysFlag),
               LogicalToInteger(FirstHVACIteration),
@@ -2995,7 +3005,8 @@ namespace HVACControllers {
         print(TraceFile, "\n");
     }
 
-    void TraceIndividualController(int const ControlNum,
+    void TraceIndividualController(EnergyPlusData &state,
+                                   int const ControlNum,
                                    bool const FirstHVACIteration,
                                    int const AirLoopPass,
                                    int const Operation, // Operation to execute
@@ -3070,8 +3081,8 @@ namespace HVACControllers {
               "{},{},{},{},{},{},{},{},",
               CurEnvirNum,
               LogicalToInteger(WarmupFlag),
-              CreateHVACTimeString(),
-              MakeHVACTimeIntervalString(),
+              CreateHVACTimeString(state),
+              MakeHVACTimeIntervalString(state),
               AirLoopPass,
               LogicalToInteger(FirstHVACIteration),
               Operation,
@@ -3166,7 +3177,7 @@ namespace HVACControllers {
         TraceFile.flush();
     }
 
-    std::string CreateHVACTimeString()
+    std::string CreateHVACTimeString(EnergyPlusData &state)
     {
 
         // FUNCTION INFORMATION:
@@ -3207,13 +3218,13 @@ namespace HVACControllers {
         // FUNCTION LOCAL VARIABLE DECLARATIONS:
         std::string Buffer;
 
-        Buffer = CreateTimeString(GetCurrentHVACTime());
+        Buffer = CreateTimeString(GetCurrentHVACTime(state));
         OutputString = CurMnDy + ' ' + stripped(Buffer);
 
         return OutputString;
     }
 
-    std::string CreateHVACStepFullString()
+    std::string CreateHVACStepFullString(EnergyPlusData &state)
     {
 
         // FUNCTION INFORMATION:
@@ -3254,12 +3265,12 @@ namespace HVACControllers {
         // FUNCTION LOCAL VARIABLE DECLARATIONS:
         // na
 
-        OutputString = EnvironmentName + ", " + MakeHVACTimeIntervalString();
+        OutputString = EnvironmentName + ", " + MakeHVACTimeIntervalString(state);
 
         return OutputString;
     }
 
-    std::string MakeHVACTimeIntervalString()
+    std::string MakeHVACTimeIntervalString(EnergyPlusData &state)
     {
 
         // FUNCTION INFORMATION:
@@ -3298,7 +3309,7 @@ namespace HVACControllers {
         // FUNCTION LOCAL VARIABLE DECLARATIONS:
         // na
 
-        OutputString = stripped(CreateHVACTimeIntervalString());
+        OutputString = stripped(CreateHVACTimeIntervalString(state));
 
         return OutputString;
     }

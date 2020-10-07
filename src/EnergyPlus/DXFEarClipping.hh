@@ -76,7 +76,7 @@ namespace DXFEarClipping {
 
     // Functions
 
-    bool InPolygon(Vector const &point, Array1D<Vector> &poly, int const nsides);
+    bool InPolygon(EnergyPlusData &state, Vector const &point, Array1D<Vector> &poly, int const nsides);
 
     Real64 Modulus(Vector const &point);
 
@@ -90,7 +90,8 @@ namespace DXFEarClipping {
                     int const surfclass          // surface class
     );
 
-    Real64 angle_2dvector(Real64 const xa, // vertex coordinate
+    Real64 angle_2dvector(EnergyPlusData &state,
+                          Real64 const xa, // vertex coordinate
                           Real64 const ya, // vertex coordinate
                           Real64 const xb, // vertex coordinate
                           Real64 const yb, // vertex coordinate
@@ -116,7 +117,8 @@ namespace DXFEarClipping {
                        Array1D_int &earvert,    // vertex indicators for first ear
                        Array1D<Real64> &rangles);
 
-    void CalcWallCoordinateTransformation(int const nsides,
+    void CalcWallCoordinateTransformation(EnergyPlusData &state,
+                                          int const nsides,
                                           Array1D<Vector> &polygon,
                                           Real64 const surfazimuth,
                                           Real64 const surftilt, // unused1208
@@ -124,7 +126,8 @@ namespace DXFEarClipping {
                                           Array1D<Real64> &yvt,
                                           Array1D<Real64> &zvt);
 
-    void CalcRfFlrCoordinateTransformation(int const nsides,
+    void CalcRfFlrCoordinateTransformation(EnergyPlusData &state,
+                                           int const nsides,
                                            Array1D<Vector> &polygon,
                                            Real64 const surfazimuth, // unused1208
                                            Real64 const surftilt,

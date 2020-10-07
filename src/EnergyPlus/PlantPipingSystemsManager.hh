@@ -218,10 +218,7 @@ struct EnergyPlusData;
                 OuterRadius = m_MaxRadius;
             }
 
-            // Get the XY cross sectional area of the radial cell
-            Real64 inline XY_CrossSectArea() const {
-                return DataGlobals::Pi * (pow_2(this->OuterRadius) - pow_2(this->InnerRadius));
-            }
+            Real64 XY_CrossSectArea(EnergyPlusData &state);
         };
 
         struct FluidCellInformation : BaseCell {
@@ -233,9 +230,9 @@ struct EnergyPlusData;
             FluidCellInformation() = default;
 
             // Member Constructor
-            FluidCellInformation(Real64 const m_PipeInnerRadius, Real64 const m_CellDepth) {
-                this->Volume = DataGlobals::Pi * pow_2(m_PipeInnerRadius) * m_CellDepth;
-            }
+            FluidCellInformation(EnergyPlusData &state,
+                                 Real64 const m_PipeInnerRadius,
+                                 Real64 const m_CellDepth);
         };
 
         struct CartesianPipeCellInformation // Specialized cell information only used by cells which contain pipes
@@ -251,13 +248,15 @@ struct EnergyPlusData;
             // Default Constructor
             CartesianPipeCellInformation() = default;
 
-            CartesianPipeCellInformation(Real64 GridCellWidth,
-                             RadialSizing const &PipeSizes,
-                             int NumRadialNodes,
-                             Real64 CellDepth,
-                             Real64 InsulationThickness,
-                             Real64 RadialGridExtent,
-                             bool SimHasInsulation);
+            CartesianPipeCellInformation(
+                EnergyPlusData &state,
+                Real64 GridCellWidth,
+                RadialSizing const &PipeSizes,
+                int NumRadialNodes,
+                Real64 CellDepth,
+                Real64 InsulationThickness,
+                Real64 RadialGridExtent,
+                bool SimHasInsulation);
         };
 
         struct Point {
@@ -801,7 +800,7 @@ struct EnergyPlusData;
                 NeighborBoundaryCells.resize(6);
             }
 
-            void developMesh();
+            void developMesh(EnergyPlusData &state);
 
             void createPartitionCenterList();
 
@@ -826,7 +825,8 @@ struct EnergyPlusData;
                                   Optional_int ZWallIndex = _,
                                   Optional_int InsulationZIndex = _);
 
-            void createCellArray(std::vector<Real64> const &XBoundaryPoints, std::vector<Real64> const &YBoundaryPoints,
+            void createCellArray(EnergyPlusData &state,
+                                 std::vector<Real64> const &XBoundaryPoints, std::vector<Real64> const &YBoundaryPoints,
                                  std::vector<Real64> const &ZBoundaryPoints);
 
             void setupCellNeighbors();
@@ -887,14 +887,14 @@ struct EnergyPlusData;
 
             Real64 GetFarfieldTemp(EnergyPlusData &state, CartesianCell const &cell);
 
-            void PreparePipeCircuitSimulation(Circuit * thisCircuit);
+            void PreparePipeCircuitSimulation(EnergyPlusData &state, Circuit * thisCircuit);
 
-            void PerformPipeCircuitSimulation(Circuit * thisCircuit);
+            void PerformPipeCircuitSimulation(EnergyPlusData &state, Circuit * thisCircuit);
 
             void
-            PerformPipeCellSimulation(Circuit * thisCircuit, CartesianCell &ThisCell, Real64 FlowRate, Real64 EnteringTemp);
+            PerformPipeCellSimulation(EnergyPlusData &state, Circuit * thisCircuit, CartesianCell &ThisCell, Real64 FlowRate, Real64 EnteringTemp);
 
-            void SimulateRadialToCartesianInterface(CartesianCell &ThisCell);
+            void SimulateRadialToCartesianInterface(EnergyPlusData &state, CartesianCell &ThisCell);
 
             void PerformTemperatureFieldUpdate(EnergyPlusData &state);
 
@@ -997,17 +997,17 @@ struct EnergyPlusData;
         std::vector<Real64>
         CreateBoundaryList(std::vector<GridRegion> const &RegionList, Real64 DirExtentMax, RegionType DirDirection);
 
-        void SimulateOuterMostRadialSoilSlice(Circuit * thisCircuit, CartesianCell &ThisCell);
+        void SimulateOuterMostRadialSoilSlice(EnergyPlusData &state, Circuit * thisCircuit, CartesianCell &ThisCell);
 
-        void SimulateAllInteriorRadialSoilSlices(CartesianCell &ThisCell);
+        void SimulateAllInteriorRadialSoilSlices(EnergyPlusData &state, CartesianCell &ThisCell);
 
-        void SimulateInnerMostRadialSoilSlice(Circuit * thisCircuit, CartesianCell &ThisCell);
+        void SimulateInnerMostRadialSoilSlice(EnergyPlusData &state, Circuit * thisCircuit, CartesianCell &ThisCell);
 
-        void SimulateRadialInsulationCell(CartesianCell &ThisCell);
+        void SimulateRadialInsulationCell(EnergyPlusData &state, CartesianCell &ThisCell);
 
-        void SimulateRadialPipeCell(Circuit * thisCircuit, CartesianCell &ThisCell);
+        void SimulateRadialPipeCell(EnergyPlusData &state, Circuit * thisCircuit, CartesianCell &ThisCell);
 
-        void SimulateFluidCell(Circuit * thisCircuit, CartesianCell &ThisCell, Real64 FlowRate, Real64 EnteringFluidTemp);
+        void SimulateFluidCell(EnergyPlusData &state, Circuit * thisCircuit, CartesianCell &ThisCell, Real64 FlowRate, Real64 EnteringFluidTemp);
 
         bool IsConverged_PipeCurrentToPrevIteration(Circuit * thisCircuit, CartesianCell const &CellToCheck);
 

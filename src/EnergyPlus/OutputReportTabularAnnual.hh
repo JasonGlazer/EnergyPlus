@@ -78,7 +78,7 @@ namespace OutputReportTabularAnnual {
 
     void checkAggregationOrderForAnnual();
 
-    void GatherAnnualResultsForTimeStep(OutputProcessor::TimeStepType kindOfTypeStep);
+    void GatherAnnualResultsForTimeStep(EnergyPlusData &state, OutputProcessor::TimeStepType kindOfTypeStep);
 
     void ResetAnnualGathering();
 
@@ -117,7 +117,7 @@ namespace OutputReportTabularAnnual {
 
         bool invalidAggregationOrder();
 
-        void gatherForTimestep(OutputProcessor::TimeStepType kindOfTypeStep);
+        void gatherForTimestep(EnergyPlusData &state, OutputProcessor::TimeStepType kindOfTypeStep);
 
         void resetGathering();
 
@@ -146,7 +146,7 @@ namespace OutputReportTabularAnnual {
 
         Real64 getElapsedTime(OutputProcessor::TimeStepType kindOfTimeStep);
 
-        Real64 getSecondsInTimeStep(OutputProcessor::TimeStepType kindOfTimeStep);
+        Real64 getSecondsInTimeStep(EnergyPlusData &state, OutputProcessor::TimeStepType kindOfTimeStep);
 
         void computeBinColumns();
 

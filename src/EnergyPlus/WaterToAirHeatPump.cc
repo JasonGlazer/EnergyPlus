@@ -2191,7 +2191,7 @@ namespace WaterToAirHeatPump {
         int WaterOutletNode;
         Real64 ReportingConstant;
 
-        ReportingConstant = TimeStepSys * SecInHour;
+        ReportingConstant = TimeStepSys * state.dataGlobal->SecInHour;
         // state.dataWaterToAirHeatPump->WatertoAirHP(HPNum)%SimFlag=.FALSE.
         if (!state.dataWaterToAirHeatPump->WatertoAirHP(HPNum).SimFlag) {
             // Heatpump is off; just pass through conditions

@@ -2411,10 +2411,10 @@ namespace WindowManager {
                         BlNum = SurfWinBlindNumber(SurfNum);
                         state.dataWindowManager->thick(TotGlassLay + 1) = Blind(BlNum).SlatThickness;
                         state.dataWindowManager->scon(TotGlassLay + 1) = Blind(BlNum).SlatConductivity / Blind(BlNum).SlatThickness;
-                        state.dataWindowManager->emis(state.dataWindowManager->nglface + 1) = InterpSlatAng(SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), Blind(BlNum).IRFrontEmiss);
-                        state.dataWindowManager->emis(state.dataWindowManager->nglface + 2) = InterpSlatAng(SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), Blind(BlNum).IRBackEmiss);
-                        state.dataWindowManager->tir(state.dataWindowManager->nglface + 1) = InterpSlatAng(SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), Blind(BlNum).IRFrontTrans);
-                        state.dataWindowManager->tir(state.dataWindowManager->nglface + 2) = InterpSlatAng(SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), Blind(BlNum).IRBackTrans);
+                        state.dataWindowManager->emis(state.dataWindowManager->nglface + 1) = InterpSlatAng(state, SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), Blind(BlNum).IRFrontEmiss);
+                        state.dataWindowManager->emis(state.dataWindowManager->nglface + 2) = InterpSlatAng(state, SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), Blind(BlNum).IRBackEmiss);
+                        state.dataWindowManager->tir(state.dataWindowManager->nglface + 1) = InterpSlatAng(state, SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), Blind(BlNum).IRFrontTrans);
+                        state.dataWindowManager->tir(state.dataWindowManager->nglface + 2) = InterpSlatAng(state, SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), Blind(BlNum).IRBackTrans);
                     }
                 }
 
@@ -2590,8 +2590,8 @@ namespace WindowManager {
 
             if (ShadeFlag == IntShadeOn || ShadeFlag == IntBlindOn) {
                 SurfInsideTemp = state.dataWindowManager->thetas(2 * state.dataWindowManager->ngllayer + 2) - state.dataWindowManager->TKelvin;
-                EffShBlEmiss = InterpSlatAng(SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), window.EffShBlindEmiss);
-                EffGlEmiss = InterpSlatAng(SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), window.EffGlassEmiss);
+                EffShBlEmiss = InterpSlatAng(state, SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), window.EffShBlindEmiss);
+                EffGlEmiss = InterpSlatAng(state, SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), window.EffGlassEmiss);
                 SurfWinEffInsSurfTemp(SurfNum) = (EffShBlEmiss * SurfInsideTemp + EffGlEmiss * (state.dataWindowManager->thetas(2 * state.dataWindowManager->ngllayer) - state.dataWindowManager->TKelvin)) / (EffShBlEmiss + EffGlEmiss);
             } else {
                 SurfInsideTemp = state.dataWindowManager->thetas(2 * state.dataWindowManager->ngllayer) - state.dataWindowManager->TKelvin;
@@ -3537,7 +3537,7 @@ namespace WindowManager {
                 TransDiff = state.dataConstruction->Construct(ConstrNumSh).TransDiff;
             } else if (ShadeFlag == IntBlindOn || ShadeFlag == ExtBlindOn || ShadeFlag == BGBlindOn) {
                 TransDiff =
-                    InterpSlatAng(SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), state.dataConstruction->Construct(ConstrNumSh).BlTransDiff);
+                    InterpSlatAng(state, SurfWinSlatAngThisTS(SurfNum), SurfWinMovableSlats(SurfNum), state.dataConstruction->Construct(ConstrNumSh).BlTransDiff);
             } else if (ShadeFlag == SwitchableGlazing) {
                 TransDiff = InterpSw(SurfWinSwitchingFactor(SurfNum), state.dataConstruction->Construct(ConstrNum).TransDiff, state.dataConstruction->Construct(ConstrNumSh).TransDiff);
             }
@@ -5665,7 +5665,7 @@ namespace WindowManager {
         // Integrate from -90 to 0 deg
         for (IPhi = 1; IPhi <= 18; ++IPhi) {
             Phi = -PiOvr2 + (IPhi - 0.5) * DPhi;
-            Sum += std::cos(Phi) * DPhi * InterpProfAng(Phi, Property);
+            Sum += std::cos(Phi) * DPhi * InterpProfAng(state, Phi, Property);
             SumDenom += std::cos(Phi) * DPhi;
         }
 
@@ -5712,7 +5712,7 @@ namespace WindowManager {
         // Integrate from 0 to 90 deg
         for (IPhi = 19; IPhi <= 36; ++IPhi) {
             Phi = -PiOvr2 + (IPhi - 0.5) * DPhi;
-            Sum += std::cos(Phi) * DPhi * InterpProfAng(Phi, Property);
+            Sum += std::cos(Phi) * DPhi * InterpProfAng(state, Phi, Property);
             SumDenom += std::cos(Phi) * DPhi;
         }
 
@@ -6238,43 +6238,43 @@ namespace WindowManager {
                 VarSlats = false;
                 if (Blind(BlNum).SlatAngleType == VariableSlats) VarSlats = true;
                 SlatAng = Blind(BlNum).SlatAngle * DegToRadians;
-                TBlBmBm = BlindBeamBeamTrans(0.0, SlatAng, Blind(BlNum).SlatWidth, Blind(BlNum).SlatSeparation, Blind(BlNum).SlatThickness);
+                TBlBmBm = BlindBeamBeamTrans(state, 0.0, SlatAng, Blind(BlNum).SlatWidth, Blind(BlNum).SlatSeparation, Blind(BlNum).SlatThickness);
                 TBmBmBl = TBmBm * TBlBmBm;
                 TBmBmBlVis = TBmBmVis * TBlBmBm;
-                TBlBmDif = InterpProfSlatAng(0.0, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffTrans);
-                TBlBmDifVis = InterpProfSlatAng(0.0, SlatAng, VarSlats, Blind(BlNum).VisFrontBeamDiffTrans);
+                TBlBmDif = InterpProfSlatAng(state, 0.0, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffTrans);
+                TBlBmDifVis = InterpProfSlatAng(state, 0.0, SlatAng, VarSlats, Blind(BlNum).VisFrontBeamDiffTrans);
                 TDif = state.dataConstruction->Construct(ConstrNumBare).TransDiff;
                 TDifVis = state.dataConstruction->Construct(ConstrNumBare).TransDiffVis;
                 if (ShadeFlag == IntBlindOn) {
                     RGlDiffBack = state.dataConstruction->Construct(ConstrNumBare).ReflectSolDiffBack;
                     RGlDiffBackVis = state.dataConstruction->Construct(ConstrNumBare).ReflectVisDiffBack;
-                    RhoBlFront = InterpProfSlatAng(0.0, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffRefl);
-                    RhoBlFrontVis = InterpProfSlatAng(0.0, SlatAng, VarSlats, Blind(BlNum).VisFrontBeamDiffRefl);
-                    AbsBlFront = InterpProfSlatAng(0.0, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamAbs);
-                    RhoBlDiffFront = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffRefl);
-                    RhoBlDiffFrontVis = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).VisFrontDiffDiffRefl);
-                    AbsBlDiffFront = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolFrontDiffAbs);
+                    RhoBlFront = InterpProfSlatAng(state, 0.0, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffRefl);
+                    RhoBlFrontVis = InterpProfSlatAng(state, 0.0, SlatAng, VarSlats, Blind(BlNum).VisFrontBeamDiffRefl);
+                    AbsBlFront = InterpProfSlatAng(state, 0.0, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamAbs);
+                    RhoBlDiffFront = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffRefl);
+                    RhoBlDiffFrontVis = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).VisFrontDiffDiffRefl);
+                    AbsBlDiffFront = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolFrontDiffAbs);
                     AbsBeamShadeNorm = TBmBm * (AbsBlFront + RhoBlFront * RGlDiffBack * AbsBlDiffFront / (1.0 - RhoBlDiffFront * RGlDiffBack));
-                    TBlDifDif = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffTrans);
-                    TBlDifDifVis = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).VisFrontDiffDiffTrans);
+                    TBlDifDif = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffTrans);
+                    TBlDifDifVis = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).VisFrontDiffDiffTrans);
                     TSolNorm = TBmBm * (TBlBmBm + TBlBmDif + TBlDifDif * RhoBlFront * RGlDiffBack / (1.0 - RhoBlDiffFront * RGlDiffBack));
                     //     use of TBlBmBm here is correct, visible and IR transmittance are the same (reference deleted CR6925 on 3/20/2006)
                     TVisNorm = TBmBmVis *
                                (TBlBmBm + TBlBmDifVis + TBlDifDifVis * RhoBlFrontVis * RGlDiffBackVis / (1.0 - RhoBlDiffFrontVis * RGlDiffBackVis));
                 } // (IntBlind)
                 if (ShadeFlag == ExtBlindOn) {
-                    TBlBmBm = BlindBeamBeamTrans(0.0, SlatAng, Blind(BlNum).SlatWidth, Blind(BlNum).SlatSeparation, Blind(BlNum).SlatThickness);
+                    TBlBmBm = BlindBeamBeamTrans(state, 0.0, SlatAng, Blind(BlNum).SlatWidth, Blind(BlNum).SlatSeparation, Blind(BlNum).SlatThickness);
                     RGlFront = POLYF(1.0, state.dataConstruction->Construct(ConstrNumBare).ReflSolBeamFrontCoef);
                     RGlFrontVis = POLYF(1.0, state.dataConstruction->Construct(ConstrNumBare).ReflSolBeamFrontCoef);
-                    AbsBlFront = InterpProfSlatAng(0.0, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamAbs);
-                    AbsBlBack = InterpProfSlatAng(0.0, SlatAng, VarSlats, Blind(BlNum).SolBackBeamAbs);
-                    AbsBlDiffBack = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolBackDiffAbs);
+                    AbsBlFront = InterpProfSlatAng(state, 0.0, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamAbs);
+                    AbsBlBack = InterpProfSlatAng(state, 0.0, SlatAng, VarSlats, Blind(BlNum).SolBackBeamAbs);
+                    AbsBlDiffBack = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolBackDiffAbs);
                     RGlDiffFront = state.dataConstruction->Construct(ConstrNumBare).ReflectSolDiffFront;
                     RGlDiffFrontVis = state.dataConstruction->Construct(ConstrNumBare).ReflectVisDiffFront;
-                    RhoBlDiffBack = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolBackDiffDiffRefl);
-                    RhoBlDiffBackVis = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).VisBackDiffDiffRefl);
-                    RhoBlBack = InterpProfSlatAng(0.0, SlatAng, VarSlats, Blind(BlNum).SolBackBeamDiffRefl);
-                    RhoBlBackVis = InterpProfSlatAng(0.0, SlatAng, VarSlats, Blind(BlNum).SolBackBeamDiffRefl);
+                    RhoBlDiffBack = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolBackDiffDiffRefl);
+                    RhoBlDiffBackVis = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).VisBackDiffDiffRefl);
+                    RhoBlBack = InterpProfSlatAng(state, 0.0, SlatAng, VarSlats, Blind(BlNum).SolBackBeamDiffRefl);
+                    RhoBlBackVis = InterpProfSlatAng(state, 0.0, SlatAng, VarSlats, Blind(BlNum).SolBackBeamDiffRefl);
                     AbsBeamShadeNorm =
                         AbsBlFront + AbsBlBack * RGlFront * TBlBmBm +
                         (AbsBlDiffBack * RGlDiffFront / (1.0 - RhoBlDiffBack * RGlDiffFront)) * (RGlFront * TBlBmBm * RhoBlBack + TBlBmDif);
@@ -7574,7 +7574,7 @@ namespace WindowManager {
                     for (j = N; j >= 1; --j) {
                         for (i = M; i >= 1; --i) {
                             // Integrate transmittance using coordinate transform
-                            CalcScreenTransmittance(0, relativeAltitude(i, j), relativeAzimuth(i, j), ScreenNum);
+                            CalcScreenTransmittance(state, 0, relativeAltitude(i, j), relativeAzimuth(i, j), ScreenNum);
                             SumTrans += (SurfaceScreens(ScreenNum).BmBmTrans + SurfaceScreens(ScreenNum).BmDifTrans) * skyArea[i - 1];
                             SumTransVis += (SurfaceScreens(ScreenNum).BmBmTransVis + SurfaceScreens(ScreenNum).BmDifTransVis) * skyArea[i - 1];
                             SumReflect += SurfaceScreens(ScreenNum).ReflectSolBeamFront * skyArea[i - 1];
@@ -7638,7 +7638,7 @@ namespace WindowManager {
                         for (i = 90 / dataMaterial.Material(MatNum).ScreenMapResolution + 1; i >= 1; --i) {
                             Real64 SunAzimuth = dataMaterial.Material(MatNum).ScreenMapResolution * (j - 1) * DegToRadians;
                             Real64 SunAltitude = dataMaterial.Material(MatNum).ScreenMapResolution * (i - 1) * DegToRadians;
-                            CalcScreenTransmittance(0, SunAltitude, SunAzimuth, ScreenNum);
+                            CalcScreenTransmittance(state, 0, SunAltitude, SunAzimuth, ScreenNum);
                             ScreenTrans(ScreenNum).Trans(i, j) = SurfaceScreens(ScreenNum).BmBmTrans;
                             ScreenTrans(ScreenNum).Scatt(i, j) = SurfaceScreens(ScreenNum).BmDifTrans;
                         }
@@ -8137,7 +8137,7 @@ namespace WindowManager {
             //       Direct-to-direct transmittance (portion of beam that passes between slats without
             //       without touching them
 
-            p(1 + i) = BlindBeamBeamTrans(phis, phib, Blind(BlindNum).SlatWidth, Blind(BlindNum).SlatSeparation, Blind(BlindNum).SlatThickness);
+            p(1 + i) = BlindBeamBeamTrans(state, phis, phib, Blind(BlindNum).SlatWidth, Blind(BlindNum).SlatSeparation, Blind(BlindNum).SlatThickness);
             //       Direct-to-direct reflectance; this is zero for now since all reflection is assumed to be diffuse.
             p(2 + i) = 0.0;
 

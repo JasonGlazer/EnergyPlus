@@ -90,7 +90,6 @@ namespace DemandManager {
     // Using/Aliasing
     using DataGlobals::NumOfTimeStepInHour;
     using DataGlobals::ScheduleAlwaysOn;
-    using DataGlobals::SecInHour;
 
     // Data
     // MODULE PARAMETER DEFINITIONS:
@@ -248,7 +247,7 @@ namespace DemandManager {
                     SurveyDemandManagers(state); // Determines which Demand Managers can reduce demand
 
                     for (ListNum = 1; ListNum <= NumDemandManagerList; ++ListNum) {
-                        SimulateDemandManagerList(ListNum, ResimExt, ResimHB, ResimHVAC);
+                        SimulateDemandManagerList(state, ListNum, ResimExt, ResimHB, ResimHVAC);
                     } // ListNum
 
                     ActivateDemandManagers(state); // Sets limits on loads
@@ -267,7 +266,8 @@ namespace DemandManager {
         }
     }
 
-    void SimulateDemandManagerList(int const ListNum,
+    void SimulateDemandManagerList(EnergyPlusData &state,
+                                   int const ListNum,
                                    bool &ResimExt, // Flag to resimulate the exterior energy use simulation
                                    bool &ResimHB,  // Flag to resimulate the heat balance simulation (including HVAC)
                                    bool &ResimHVAC // Flag to resimulate the HVAC simulation
@@ -285,7 +285,6 @@ namespace DemandManager {
         // METHODOLOGY EMPLOYED:
 
         // Using/Aliasing
-        using DataGlobals::SecInHour;
         using DataGlobals::TimeStepZoneSec;
         using DataHVACGlobals::TimeStepSys;
         using ScheduleManager::GetCurrentScheduleValue;
@@ -305,7 +304,7 @@ namespace DemandManager {
         DemandManagerList(ListNum).DemandLimit = DemandManagerList(ListNum).ScheduledLimit * DemandManagerList(ListNum).SafetyFraction;
 
         DemandManagerList(ListNum).MeterDemand = GetInstantMeterValue(DemandManagerList(ListNum).Meter, OutputProcessor::TimeStepType::TimeStepZone) / TimeStepZoneSec +
-                                                 GetInstantMeterValue(DemandManagerList(ListNum).Meter, OutputProcessor::TimeStepType::TimeStepSystem) / (TimeStepSys * SecInHour);
+                                                 GetInstantMeterValue(DemandManagerList(ListNum).Meter, OutputProcessor::TimeStepType::TimeStepSystem) / (TimeStepSys * state.dataGlobal->SecInHour);
 
         // Calculate average demand over the averaging window including the current timestep meter demand
         AverageDemand = DemandManagerList(ListNum).AverageDemand +

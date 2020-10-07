@@ -284,14 +284,10 @@ namespace OutdoorAirUnit {
                              int const EquipIndex, // Component Type -- Integerized for this module
                              Real64 &LoadMet);
 
-    // SUBROUTINE UpdateOutdoorAirUnit
-
     // No update routine needed in this module since all of the updates happen on
-    // the Node derived type directly and these updates are done by other routines.
+    // the Node derived type directly and these updates are done by other routines
 
-    // END SUBROUTINE UpdateOutdoorAirUnit
-
-    void ReportOutdoorAirUnit(int const OAUnitNum); // Index for the outdoor air unit under consideration within the derived types
+    void ReportOutdoorAirUnit(EnergyPlusData &state, int const OAUnitNum); // Index for the outdoor air unit under consideration within the derived types
 
     int GetOutdoorAirUnitOutAirNode(EnergyPlusData &state, int const OAUnitNum);
 

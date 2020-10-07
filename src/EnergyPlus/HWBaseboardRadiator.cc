@@ -267,7 +267,7 @@ namespace HWBaseboardRadiator {
 
             UpdateHWBaseboard(BaseboardNum);
 
-            ReportHWBaseboard(BaseboardNum);
+            ReportHWBaseboard(state, BaseboardNum);
 
         } else {
             ShowFatalError("SimHWBaseboard: Unit not found=" + EquipName);
@@ -1651,7 +1651,7 @@ namespace HWBaseboardRadiator {
         }
     }
 
-    void ReportHWBaseboard(int const BaseboardNum)
+    void ReportHWBaseboard(EnergyPlusData &state, int const BaseboardNum)
     {
 
         // SUBROUTINE INFORMATION:
@@ -1686,10 +1686,10 @@ namespace HWBaseboardRadiator {
 
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
 
-        HWBaseboard(BaseboardNum).TotEnergy = HWBaseboard(BaseboardNum).TotPower * TimeStepSys * SecInHour;
-        HWBaseboard(BaseboardNum).Energy = HWBaseboard(BaseboardNum).Power * TimeStepSys * SecInHour;
-        HWBaseboard(BaseboardNum).ConvEnergy = HWBaseboard(BaseboardNum).ConvPower * TimeStepSys * SecInHour;
-        HWBaseboard(BaseboardNum).RadEnergy = HWBaseboard(BaseboardNum).RadPower * TimeStepSys * SecInHour;
+        HWBaseboard(BaseboardNum).TotEnergy = HWBaseboard(BaseboardNum).TotPower * TimeStepSys * state.dataGlobal->SecInHour;
+        HWBaseboard(BaseboardNum).Energy = HWBaseboard(BaseboardNum).Power * TimeStepSys * state.dataGlobal->SecInHour;
+        HWBaseboard(BaseboardNum).ConvEnergy = HWBaseboard(BaseboardNum).ConvPower * TimeStepSys * state.dataGlobal->SecInHour;
+        HWBaseboard(BaseboardNum).RadEnergy = HWBaseboard(BaseboardNum).RadPower * TimeStepSys * state.dataGlobal->SecInHour;
     }
 
     Real64 SumHATsurf(int const ZoneNum) // Zone number

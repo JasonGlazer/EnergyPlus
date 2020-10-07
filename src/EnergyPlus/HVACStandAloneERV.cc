@@ -114,7 +114,6 @@ namespace HVACStandAloneERV {
     using DataGlobals::DisplayExtraWarnings;
     using DataGlobals::NumOfZones;
     using DataGlobals::ScheduleAlwaysOn;
-    using DataGlobals::SecInHour;
     using DataGlobals::SysSizingCalc;
     using DataGlobals::WarmupFlag;
     using namespace DataHVACGlobals;
@@ -239,7 +238,7 @@ namespace HVACStandAloneERV {
 
         CalcStandAloneERV(state, StandAloneERVNum, FirstHVACIteration, SensLoadMet, LatLoadMet);
 
-        ReportStandAloneERV(StandAloneERVNum);
+        ReportStandAloneERV(state, StandAloneERVNum);
     }
 
     void GetStandAloneERV(EnergyPlusData &state)
@@ -1795,7 +1794,7 @@ namespace HVACStandAloneERV {
         }
     }
 
-    void ReportStandAloneERV(int const StandAloneERVNum) // number of the current Stand Alone ERV being simulated
+    void ReportStandAloneERV(EnergyPlusData &state, int const StandAloneERVNum) // number of the current Stand Alone ERV being simulated
     {
 
         // SUBROUTINE INFORMATION:
@@ -1831,7 +1830,7 @@ namespace HVACStandAloneERV {
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
         Real64 ReportingConstant;
 
-        ReportingConstant = TimeStepSys * SecInHour;
+        ReportingConstant = TimeStepSys * state.dataGlobal->SecInHour;
         StandAloneERV(StandAloneERVNum).ElecUseEnergy = StandAloneERV(StandAloneERVNum).ElecUseRate * ReportingConstant;
         StandAloneERV(StandAloneERVNum).SensCoolingEnergy = StandAloneERV(StandAloneERVNum).SensCoolingRate * ReportingConstant;
         StandAloneERV(StandAloneERVNum).LatCoolingEnergy = StandAloneERV(StandAloneERVNum).LatCoolingRate * ReportingConstant;

@@ -329,7 +329,6 @@ namespace EconomicTariff {
 
         using DataGlobals::DoOutputReporting;
         using DataGlobals::KindOfSim;
-        using DataGlobals::ksRunPeriodWeather;
         using OutputReportTabular::AddTOCEntry;
         using OutputReportTabular::displayEconomicResultSummary;
 
@@ -353,8 +352,8 @@ namespace EconomicTariff {
             Update_GetInput = false;
             if (ErrorsFound) ShowFatalError("UpdateUtilityBills: Preceding errors cause termination.");
         }
-        if (DoOutputReporting && (KindOfSim == ksRunPeriodWeather)) {
-            GatherForEconomics();
+        if (DoOutputReporting && (KindOfSim == state.dataGlobal->ksRunPeriodWeather)) {
+            GatherForEconomics(state);
         }
     }
 
@@ -2726,7 +2725,7 @@ namespace EconomicTariff {
     //======================================================================================================================
     //======================================================================================================================
 
-    void GatherForEconomics()
+    void GatherForEconomics(EnergyPlusData &state)
     {
         //    AUTHOR         Jason Glazer of GARD Analytics, Inc.
         //    DATE WRITTEN   June 2004
@@ -2736,7 +2735,6 @@ namespace EconomicTariff {
         //   calculation.
 
         using DataEnvironment::Month;
-        using DataGlobals::SecInHour;
         using DataGlobals::TimeStepZoneSec;
         using ScheduleManager::GetCurrentScheduleValue;
 
@@ -2766,8 +2764,8 @@ namespace EconomicTariff {
                 // length of time. This gathers the energy also.
                 tariff(iTariff).collectEnergy += curInstantValue;
                 tariff(iTariff).collectTime += TimeStepZoneSec;
-                // added *SecInHour when adding RTP support August 2008
-                if (tariff(iTariff).collectTime >= tariff(iTariff).demWinTime * SecInHour) {
+                // added *state.dataGlobal->SecInHour when adding RTP support August 2008
+                if (tariff(iTariff).collectTime >= tariff(iTariff).demWinTime * state.dataGlobal->SecInHour) {
                     // get current value that has been converted into desired units
                     curDemand = tariff(iTariff).demandConv * tariff(iTariff).collectEnergy / tariff(iTariff).collectTime;
                     curEnergy = tariff(iTariff).energyConv * tariff(iTariff).collectEnergy;

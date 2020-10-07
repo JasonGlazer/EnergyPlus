@@ -311,7 +311,7 @@ namespace HeatingCoils {
         UpdateHeatingCoil(CoilNum);
 
         // Report the current HeatingCoil
-        ReportHeatingCoil(CoilNum);
+        ReportHeatingCoil(state, CoilNum);
 
         if (present(QCoilActual)) {
             QCoilActual = QCoilActual2;
@@ -2858,7 +2858,7 @@ namespace HeatingCoils {
     // Beginning of Reporting subroutines for the HeatingCoil Module
     // *****************************************************************************
 
-    void ReportHeatingCoil(int const CoilNum)
+    void ReportHeatingCoil(EnergyPlusData &state, int const CoilNum)
     {
 
         // SUBROUTINE INFORMATION:
@@ -2894,7 +2894,7 @@ namespace HeatingCoils {
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
         Real64 ReportingConstant;
 
-        ReportingConstant = TimeStepSys * SecInHour;
+        ReportingConstant = TimeStepSys * state.dataGlobal->SecInHour;
         // report the HeatingCoil energy from this component
         HeatingCoil(CoilNum).HeatingCoilRate = HeatingCoil(CoilNum).HeatingCoilLoad;
         HeatingCoil(CoilNum).HeatingCoilLoad *= ReportingConstant;

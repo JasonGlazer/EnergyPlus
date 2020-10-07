@@ -244,7 +244,6 @@ namespace RuntimeLanguageProcessor {
         using DataEnvironment::Year;
         using DataGlobals::CurrentTime;
         using DataGlobals::HourOfDay;
-        using DataGlobals::Pi;
         using DataGlobals::TimeStepZone;
         using DataGlobals::WarmupFlag;
         using DataHVACGlobals::SysTimeElapsed;
@@ -1405,7 +1404,7 @@ namespace RuntimeLanguageProcessor {
 
                     if (i_parse("@Round", FuncRound) || i_parse("@Mod", FuncMod) || i_parse("@Sin", FuncSin) || i_parse("@Cos", FuncCos) ||
                         i_parse("@ArcCos", FuncArcCos) || i_parse("@ArcSin", FuncArcSin) || i_parse("@DegToRad", FuncDegToRad) ||
-                        i_parse("@RadToDeg", FuncRadToDeg) || i_parse("@Exp", FuncExp) || i_parse("@Ln", FuncLn) || i_parse("@Max", FuncMax) ||
+                        i_parse("@state.dataGlobal->RadToDeg", FuncRadToDeg) || i_parse("@Exp", FuncExp) || i_parse("@Ln", FuncLn) || i_parse("@Max", FuncMax) ||
                         i_parse("@Min", FuncMin) || i_parse("@Abs", FuncABS) || i_parse("@RANDOMUNIFORM", FuncRandU) ||
                         i_parse("@RANDOMNORMAL", FuncRandG) || i_parse("@SEEDRANDOM", FuncRandSeed) ||
                         i_parse("@RhoAirFnPbTdbW", FuncRhoAirFnPbTdbW) || i_parse("@CpAirFnW", FuncCpAirFnW) ||
@@ -1827,9 +1826,7 @@ namespace RuntimeLanguageProcessor {
 
         // METHODOLOGY EMPLOYED:
 
-        // USE, INTRINSIC :: IEEE_ARITHMETIC, ONLY : IEEE_IS_NAN ! Use IEEE_IS_NAN when GFortran supports it
         // Using/Aliasing
-        using DataGlobals::DegToRadians; // unused, TimeStepZone
         using namespace Psychrometrics;
         using CurveManager::CurveValue;
         using General::RoundSigDigits;

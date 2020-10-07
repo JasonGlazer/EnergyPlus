@@ -146,9 +146,9 @@ namespace EarthTube {
 
         if (TotEarthTube == 0) return;
 
-        CalcEarthTube();
+        CalcEarthTube(state);
 
-        ReportEarthTube();
+        ReportEarthTube(state);
     }
 
     void GetEarthTube(EnergyPlusData &state, bool &ErrorsFound) // If errors found in input
@@ -499,7 +499,7 @@ namespace EarthTube {
         }
     }
 
-    void CalcEarthTube()
+    void CalcEarthTube(EnergyPlusData &state)
     {
 
         // SUBROUTINE INFORMATION:
@@ -566,16 +566,16 @@ namespace EarthTube {
                 EarthTubeSys(Loop).FanPower = EAMFL(NZ) * EarthTubeSys(Loop).FanPressure / (EarthTubeSys(Loop).FanEfficiency * AirDensity);
             }
 
-            AverPipeAirVel = EVF / Pi / pow_2(EarthTubeSys(Loop).r1);
+            AverPipeAirVel = EVF / state.dataGlobal->Pi / pow_2(EarthTubeSys(Loop).r1);
             AirMassFlowRate = EVF * AirDensity;
 
             // Calculation of Average Ground Temperature between Depth z1 and z2 at time t
             GroundTempz1z2t = EarthTubeSys(Loop).AverSoilSurTemp -
                               EarthTubeSys(Loop).ApmlSoilSurTemp *
-                                  std::exp(-EarthTubeSys(Loop).z * std::sqrt(Pi / 365.0 / EarthTubeSys(Loop).SoilThermDiff)) *
-                                  std::cos(2.0 * Pi / 365.0 *
+                                  std::exp(-EarthTubeSys(Loop).z * std::sqrt(state.dataGlobal->Pi / 365.0 / EarthTubeSys(Loop).SoilThermDiff)) *
+                                  std::cos(2.0 * state.dataGlobal->Pi / 365.0 *
                                            (DayOfYear - EarthTubeSys(Loop).SoilSurPhaseConst -
-                                            EarthTubeSys(Loop).z / 2.0 * std::sqrt(365.0 / Pi / EarthTubeSys(Loop).SoilThermDiff)));
+                                            EarthTubeSys(Loop).z / 2.0 * std::sqrt(365.0 / state.dataGlobal->Pi / EarthTubeSys(Loop).SoilThermDiff)));
             EarthTubeSys(Loop).GroundTempz1z2t = GroundTempz1z2t;
 
             // Calculation of Convective Heat Transfer Coefficient at Inner Pipe Surface
@@ -597,10 +597,10 @@ namespace EarthTube {
             PipeHeatTransCoef = Nu * AirThermCond / 2.0 / EarthTubeSys(Loop).r1;
 
             // Claculation of Thermal Resistance and Overall Heat Transger Coefficient
-            Rc = 1.0 / 2.0 / Pi / EarthTubeSys(Loop).r1 / PipeHeatTransCoef;
-            Rp = std::log((EarthTubeSys(Loop).r1 + EarthTubeSys(Loop).r2) / EarthTubeSys(Loop).r1) / 2.0 / Pi / EarthTubeSys(Loop).PipeThermCond;
+            Rc = 1.0 / 2.0 / state.dataGlobal->Pi / EarthTubeSys(Loop).r1 / PipeHeatTransCoef;
+            Rp = std::log((EarthTubeSys(Loop).r1 + EarthTubeSys(Loop).r2) / EarthTubeSys(Loop).r1) / 2.0 / state.dataGlobal->Pi / EarthTubeSys(Loop).PipeThermCond;
             Rs = std::log((EarthTubeSys(Loop).r1 + EarthTubeSys(Loop).r2 + EarthTubeSys(Loop).r3) / (EarthTubeSys(Loop).r1 + EarthTubeSys(Loop).r2)) /
-                 2.0 / Pi / EarthTubeSys(Loop).SoilThermCond;
+                 2.0 / state.dataGlobal->Pi / EarthTubeSys(Loop).SoilThermCond;
             Rt = Rc + Rp + Rs;
             OverallHeatTransCoef = 1.0 / Rt;
 
@@ -689,7 +689,7 @@ namespace EarthTube {
         EAMFLxHumRat(NZ) = EAMFL(NZ) * InsideHumRat;
     }
 
-    void ReportEarthTube()
+    void ReportEarthTube(EnergyPlusData &state)
     {
 
         // SUBROUTINE INFORMATION:
@@ -710,7 +710,7 @@ namespace EarthTube {
         Real64 CpAir;
         Real64 ReportingConstant; // reporting constant for this module
 
-        ReportingConstant = TimeStepSys * SecInHour;
+        ReportingConstant = TimeStepSys * state.dataGlobal->SecInHour;
 
         for (ZoneLoop = 1; ZoneLoop <= NumOfZones; ++ZoneLoop) { // Start of zone loads report variable update loop ...
 

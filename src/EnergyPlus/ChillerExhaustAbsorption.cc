@@ -144,12 +144,12 @@ namespace ChillerExhaustAbsorption {
             this->InCoolingMode = RunFlag != 0;
             this->initialize(state);
             this->calcChiller(state, CurLoad);
-            this->updateCoolRecords(CurLoad, RunFlag);
+            this->updateCoolRecords(state, CurLoad, RunFlag);
         } else if (BranchInletNodeNum == this->HeatReturnNodeNum) { // Operate as heater
             this->InHeatingMode = RunFlag != 0;
             this->initialize(state);
             this->calcHeater(state, CurLoad, RunFlag);
-            this->updateHeatRecords(CurLoad, RunFlag);
+            this->updateHeatRecords(state, CurLoad, RunFlag);
         } else if (BranchInletNodeNum == this->CondReturnNodeNum) { // called from condenser loop
             if (this->CDLoopNum > 0) {
                 PlantUtilities::UpdateChillerComponentCondenserSide(state,
@@ -1937,7 +1937,7 @@ namespace ChillerExhaustAbsorption {
         this->ExhHeatRecPotentialHeat = lExhHeatRecPotentialHeat;
     }
 
-    void ExhaustAbsorberSpecs::updateCoolRecords(Real64 MyLoad, bool RunFlag)
+    void ExhaustAbsorberSpecs::updateCoolRecords(EnergyPlusData &state, Real64 MyLoad, bool RunFlag)
     {
 
         // SUBROUTINE INFORMATION:
@@ -1978,7 +1978,7 @@ namespace ChillerExhaustAbsorption {
         }
 
         // convert power to energy and instantaneous use to use over the time step
-        RptConstant = DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+        RptConstant = DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
         this->CoolingEnergy = this->CoolingLoad * RptConstant;
         this->TowerEnergy = this->TowerLoad * RptConstant;
         this->ThermalEnergy = this->ThermalEnergyUseRate * RptConstant;
@@ -1992,7 +1992,7 @@ namespace ChillerExhaustAbsorption {
         }
     }
 
-    void ExhaustAbsorberSpecs::updateHeatRecords(Real64 MyLoad, bool RunFlag)
+    void ExhaustAbsorberSpecs::updateHeatRecords(EnergyPlusData &state, Real64 MyLoad, bool RunFlag)
     {
 
         // SUBROUTINE INFORMATION:
@@ -2017,7 +2017,7 @@ namespace ChillerExhaustAbsorption {
         }
 
         // convert power to energy and instantaneous use to use over the time step
-        RptConstant = DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+        RptConstant = DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
         this->HeatingEnergy = this->HeatingLoad * RptConstant;
         this->ThermalEnergy = this->ThermalEnergyUseRate * RptConstant;
         this->HeatThermalEnergy = this->HeatThermalEnergyUseRate * RptConstant;

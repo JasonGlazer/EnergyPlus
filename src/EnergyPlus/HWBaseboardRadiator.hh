@@ -200,7 +200,7 @@ namespace HWBaseboardRadiator {
 
     void DistributeBBRadGains();
 
-    void ReportHWBaseboard(int const BaseboardNum);
+    void ReportHWBaseboard(EnergyPlusData &state, int const BaseboardNum);
 
     Real64 SumHATsurf(int const ZoneNum); // Zone number
 

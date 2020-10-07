@@ -517,7 +517,7 @@ namespace SimulationManager {
             DisplayString("Initializing New Environment Parameters");
 
             BeginEnvrnFlag = true;
-            if ((KindOfSim == ksDesignDay) && (state.dataWeatherManager->DesDayInput(state.dataWeatherManager->Environment(state.dataWeatherManager->Envrn).DesignDayNum).suppressBegEnvReset)) {
+            if ((KindOfSim == state.dataGlobal->ksDesignDay) && (state.dataWeatherManager->DesDayInput(state.dataWeatherManager->Environment(state.dataWeatherManager->Envrn).DesignDayNum).suppressBegEnvReset)) {
                 // user has input in SizingPeriod:DesignDay directing to skip begin environment rests, for accuracy-with-speed as zones can more
                 // easily converge fewer warmup days are allowed
                 DisplayString("Design Day Fast Warmup Mode: Suppressing Initialization of New Environment Parameters");
@@ -993,7 +993,7 @@ namespace SimulationManager {
 
         TimeStepZone = 1.0 / double(NumOfTimeStepInHour);
         MinutesPerTimeStep = TimeStepZone * 60;
-        TimeStepZoneSec = TimeStepZone * SecInHour;
+        TimeStepZoneSec = TimeStepZone * state.dataGlobal->SecInHour;
 
         CurrentModuleObject = "ConvergenceLimits";
         Num = inputProcessor->getNumObjectsFound(CurrentModuleObject);
@@ -1327,7 +1327,7 @@ namespace SimulationManager {
                         DataGlobals::NumOfTimeStepInHour = 1;
                         DataGlobals::TimeStepZone = 1.0 / double(DataGlobals::NumOfTimeStepInHour);
                         DataGlobals::MinutesPerTimeStep = DataGlobals::TimeStepZone * 60;
-                        DataGlobals::TimeStepZoneSec = DataGlobals::TimeStepZone * SecInHour;
+                        DataGlobals::TimeStepZoneSec = DataGlobals::TimeStepZone * state.dataGlobal->SecInHour;
                     }
                     if (overrideZoneAirHeatBalAlg) {
                         ShowWarningError(

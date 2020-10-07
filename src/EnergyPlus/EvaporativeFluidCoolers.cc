@@ -1025,7 +1025,7 @@ namespace EvaporativeFluidCoolers {
 
         this->CalculateWaterUsage(state);
         this->UpdateEvapFluidCooler();
-        this->ReportEvapFluidCooler(RunFlag);
+        this->ReportEvapFluidCooler(state, RunFlag);
     }
 
     void EvapFluidCoolerSpecs::InitEvapFluidCooler(EnergyPlusData &state)
@@ -2443,12 +2443,12 @@ namespace EvaporativeFluidCoolers {
 
         //   total water usage
         // update report variables
-        this->EvaporationVol = this->EvaporationVdot * (DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour);
-        this->DriftVol = this->DriftVdot * (DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour);
-        this->BlowdownVol = this->BlowdownVdot * (DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour);
-        this->MakeUpVol = this->MakeUpVdot * (DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour);
-        this->TankSupplyVol = this->TankSupplyVdot * (DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour);
-        this->StarvedMakeUpVol = this->StarvedMakeUpVdot * (DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour);
+        this->EvaporationVol = this->EvaporationVdot * (DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour);
+        this->DriftVol = this->DriftVdot * (DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour);
+        this->BlowdownVol = this->BlowdownVdot * (DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour);
+        this->MakeUpVol = this->MakeUpVdot * (DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour);
+        this->TankSupplyVol = this->TankSupplyVdot * (DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour);
+        this->StarvedMakeUpVol = this->StarvedMakeUpVdot * (DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour);
     }
 
     void EvapFluidCoolerSpecs::UpdateEvapFluidCooler()
@@ -2532,7 +2532,7 @@ namespace EvaporativeFluidCoolers {
         }
     }
 
-    void EvapFluidCoolerSpecs::ReportEvapFluidCooler(bool const RunFlag)
+    void EvapFluidCoolerSpecs::ReportEvapFluidCooler(EnergyPlusData &state, bool const RunFlag)
     {
 
         // SUBROUTINE INFORMATION:
@@ -2546,7 +2546,7 @@ namespace EvaporativeFluidCoolers {
 
         Real64 ReportingConstant;
 
-        ReportingConstant = DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+        ReportingConstant = DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
 
         if (!RunFlag) {
             this->fluidCoolerInletWaterTemp = DataLoopNode::Node(this->WaterInletNode).Temp;

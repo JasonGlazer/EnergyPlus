@@ -251,7 +251,8 @@ namespace PlantChillers {
                        int EquipFlowCtrl // Flow control mode for the equipment
         );
 
-        void update(Real64 MyLoad, // current load
+        void update(EnergyPlusData &state,
+                    Real64 MyLoad, // current load
                     bool RunFlag   // TRUE if chiller operating
         );
 
@@ -355,7 +356,8 @@ namespace PlantChillers {
                               Real64 &HeatRecRatio    // Max Heat recovery ratio
         );
 
-        void update(Real64 MyLoad, // current load
+        void update(EnergyPlusData &state,
+                    Real64 MyLoad, // current load
                     bool RunFlag   // TRUE if chiller operating
         );
     };
@@ -444,7 +446,8 @@ namespace PlantChillers {
                        int EquipFlowCtrl // Flow control mode for the equipment
         );
 
-        void update(Real64 MyLoad, // current load
+        void update(EnergyPlusData &state,
+                    Real64 MyLoad, // current load
                     bool RunFlag   // TRUE if chiller operating
         );
     };
@@ -473,7 +476,7 @@ namespace PlantChillers {
 
         void calculate(EnergyPlusData &state, Real64 &MyLoad, bool RunFlag, int EquipFlowCtrl);
 
-        void update(Real64 MyLoad, bool RunFlag);
+        void update(EnergyPlusData &state, Real64 MyLoad, bool RunFlag);
     };
 
 } // namespace PlantChillers

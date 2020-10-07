@@ -989,7 +989,7 @@ namespace AirflowNetwork {
 
         if (FanTypeNum == FanType_SimpleOnOff) {
             if (state.dataAirLoop->AirLoopAFNInfo(AirLoopNum).LoopFanOperationMode == CycFanCycComp && Node(InletNode).MassFlowRate == 0.0) {
-                NF = GenericDuct(0.1, 0.001, LFLAG, PDROP, propN, propM, F, DF);
+                NF = GenericDuct(state, 0.1, 0.001, LFLAG, PDROP, propN, propM, F, DF);
             } else if (state.dataAirLoop->AirLoopAFNInfo(AirLoopNum).LoopFanOperationMode == CycFanCycComp &&
                        state.dataAirLoop->AirLoopAFNInfo(AirLoopNum).LoopSystemOnMassFlowrate > 0.0) {
                 F[0] = state.dataAirLoop->AirLoopAFNInfo(AirLoopNum).LoopSystemOnMassFlowrate;
@@ -1004,7 +1004,7 @@ namespace AirflowNetwork {
             if (Node(InletNode).MassFlowRate > 0.0) {
                 F[0] = FlowRate * Ctrl;
             } else if (NumPrimaryAirSys > 1 && Node(InletNode).MassFlowRate <= 0.0) {
-                NF = GenericDuct(0.1, 0.001, LFLAG, PDROP, propN, propM, F, DF);
+                NF = GenericDuct(state, 0.1, 0.001, LFLAG, PDROP, propN, propM, F, DF);
             }
 
             if (MultiSpeedHPIndicator == 2) {
@@ -1594,7 +1594,7 @@ namespace AirflowNetwork {
         return 1;
     }
 
-    int DetailedOpening::calculate(EnergyPlusData & EP_UNUSED(state),
+    int DetailedOpening::calculate(EnergyPlusData & state,
                                    bool const EP_UNUSED(LFLAG),           // Initialization flag.If = 1, use laminar relationship
                                    Real64 const PDROP,                    // Total pressure drop across a component (P1 - P2) [Pa]
                                    int const IL,                          // Linkage number
@@ -1650,8 +1650,6 @@ namespace AirflowNetwork {
         // Lawrence Berkeley National Laboratory, Berkeley, CA, May 1990
 
         // USE STATEMENTS:
-        using DataGlobals::PiOvr2;
-
         // Locals
         // SUBROUTINE ARGUMENT DEFINITIONS:
 
@@ -1958,7 +1956,7 @@ namespace AirflowNetwork {
             DpZeroOffset = DifLim * 1e-3;
             // New definition for opening factors for LVO type 2: opening angle = 90 degrees --> opening factor = 1.0
             // should be PIOvr2 in below?
-            alpha = Fact * PiOvr2;
+            alpha = Fact * state.dataGlobal->PiOvr2;
             Real64 const cos_alpha(std::cos(alpha));
             Real64 const tan_alpha(std::tan(alpha));
             h2 = Axishght * (1.0 - cos_alpha);
@@ -2435,7 +2433,7 @@ namespace AirflowNetwork {
         return 1;
     }
 
-    int DisSysCompCoilProp::calculate(EnergyPlusData & EP_UNUSED(state),
+    int DisSysCompCoilProp::calculate(EnergyPlusData & state,
                                       bool const LFLAG,           // Initialization flag.If = 1, use laminar relationship
                                       Real64 const PDROP,         // Total pressure drop across a component (P1 - P2) [Pa]
                                       int const EP_UNUSED(i),     // Linkage number
@@ -2500,7 +2498,7 @@ namespace AirflowNetwork {
         // ed = Rough / DisSysCompCoilData(CompNum).hydraulicDiameter;
         ed = Rough / hydraulicDiameter;
 
-        area = square(hydraulicDiameter) * DataGlobals::Pi;
+        area = square(hydraulicDiameter) * state.dataGlobal->Pi;
         ld = L / hydraulicDiameter;
         g = 1.14 - 0.868589 * std::log(ed);
         AA1 = g;
@@ -2597,7 +2595,8 @@ namespace AirflowNetwork {
         return 1;
     }
 
-    int DisSysCompCoilProp::calculate(Real64 const PDROP,                 // Total pressure drop across a component (P1 - P2) [Pa]
+    int DisSysCompCoilProp::calculate(EnergyPlusData &state,
+                                      Real64 const PDROP,                 // Total pressure drop across a component (P1 - P2) [Pa]
                                       const Real64 EP_UNUSED(multiplier), // Element multiplier
                                       const Real64 EP_UNUSED(control),    // Element control signal
                                       const AirProperties &propN,         // Node 1 properties
@@ -2658,7 +2657,7 @@ namespace AirflowNetwork {
         // ed = Rough / DisSysCompCoilData(CompNum).hydraulicDiameter;
         ed = Rough / hydraulicDiameter;
 
-        area = square(hydraulicDiameter) * DataGlobals::Pi;
+        area = square(hydraulicDiameter) * state.dataGlobal->Pi;
         ld = L / hydraulicDiameter;
         g = 1.14 - 0.868589 * std::log(ed);
         AA1 = g;
@@ -2744,7 +2743,7 @@ namespace AirflowNetwork {
         return 1;
     }
 
-    int DisSysCompTermUnitProp::calculate(EnergyPlusData & EP_UNUSED(state),
+    int DisSysCompTermUnitProp::calculate(EnergyPlusData & state,
                                           bool const LFLAG,           // Initialization flag.If = 1, use laminar relationship
                                           Real64 const PDROP,         // Total pressure drop across a component (P1 - P2) [Pa]
                                           int const i,                // Linkage number
@@ -2810,7 +2809,7 @@ namespace AirflowNetwork {
         // FLOW:
         // Get component properties
         ed = Rough / hydraulicDiameter;
-        area = pow_2(hydraulicDiameter) * DataGlobals::Pi;
+        area = pow_2(hydraulicDiameter) * state.dataGlobal->Pi;
         ld = L / hydraulicDiameter;
         g = 1.14 - 0.868589 * std::log(ed);
         AA1 = g;
@@ -2915,7 +2914,7 @@ namespace AirflowNetwork {
         return 1;
     }
 
-    int DisSysCompHXProp::calculate(EnergyPlusData & EP_UNUSED(state),
+    int DisSysCompHXProp::calculate(EnergyPlusData & state,
                                     bool const LFLAG,           // Initialization flag.If = 1, use laminar relationship
                                     Real64 const PDROP,         // Total pressure drop across a component (P1 - P2) [Pa]
                                     int const EP_UNUSED(i),     // Linkage number
@@ -2975,7 +2974,7 @@ namespace AirflowNetwork {
         // FLOW:
         // Get component properties
         ed = Rough / hydraulicDiameter;
-        area = pow_2(hydraulicDiameter) * DataGlobals::Pi;
+        area = pow_2(hydraulicDiameter) * state.dataGlobal->Pi;
         ld = L / hydraulicDiameter;
         g = 1.14 - 0.868589 * std::log(ed);
         AA1 = g;
@@ -3065,7 +3064,8 @@ namespace AirflowNetwork {
         return 1;
     }
 
-    int DisSysCompHXProp::calculate(Real64 const PDROP,                 // Total pressure drop across a component (P1 - P2) [Pa]
+    int DisSysCompHXProp::calculate(EnergyPlusData &state,
+                                    Real64 const PDROP,                 // Total pressure drop across a component (P1 - P2) [Pa]
                                     const Real64 EP_UNUSED(multiplier), // Element multiplier
                                     const Real64 EP_UNUSED(control),    // Element control signal
                                     const AirProperties &propN,         // Node 1 properties
@@ -3121,7 +3121,7 @@ namespace AirflowNetwork {
         // FLOW:
         // Get component properties
         ed = Rough / hydraulicDiameter;
-        area = pow_2(hydraulicDiameter) * DataGlobals::Pi;
+        area = pow_2(hydraulicDiameter) * state.dataGlobal->Pi;
         ld = L / hydraulicDiameter;
         g = 1.14 - 0.868589 * std::log(ed);
         AA1 = g;
@@ -3444,7 +3444,7 @@ namespace AirflowNetwork {
         return 1;
     }
 
-    int HorizontalOpening::calculate(EnergyPlusData & EP_UNUSED(state),
+    int HorizontalOpening::calculate(EnergyPlusData & state,
                                      bool const LFLAG,           // Initialization flag.If = 1, use laminar relationship
                                      Real64 const PDROP,         // Total pressure drop across a component (P1 - P2) [Pa]
                                      int const i,                // Linkage number
@@ -3473,9 +3473,6 @@ namespace AirflowNetwork {
         // REFERENCES:
         // Cooper, L., 1989, "Calculation of the Flow Through a Horizontal Ceiling/Floor Vent,"
         // NISTIR 89-4052, National Institute of Standards and Technology, Gaithersburg, MD
-
-        // USE STATEMENTS:
-        using DataGlobals::Pi;
 
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
         Real64 RhozAver;
@@ -3509,7 +3506,7 @@ namespace AirflowNetwork {
         // Slope = MultizoneCompHorOpeningData(CompNum).Slope;
         // DischCoeff = MultizoneCompHorOpeningData(CompNum).DischCoeff;
         Cshape = 0.942 * Width / Height;
-        OpenArea = Width * Height * Fact * std::sin(Slope * Pi / 180.0) * (1.0 + std::cos(Slope * Pi / 180.0));
+        OpenArea = Width * Height * Fact * std::sin(Slope * state.dataGlobal->Pi / 180.0) * (1.0 + std::cos(Slope * state.dataGlobal->Pi / 180.0));
         DH = 4.0 * (Width * Height) / 2.0 / (Width + Height) * Fact;
 
         // Check which zone is higher

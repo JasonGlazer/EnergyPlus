@@ -1223,7 +1223,7 @@ void CalcPassiveExteriorBaffleGap(EnergyPlusData &state,
 
     Gr = g * pow_3(GapThick) * std::abs(Tso - TmpTsBaf) * pow_2(RhoAir) / (TmeanK * pow_2(nu));
 
-    PassiveGapNusseltNumber(AspRat, Tilt, TmpTsBaf, Tso, Gr, NuPlen); // intentionally switch Tso to Tsi
+    PassiveGapNusseltNumber(state, AspRat, Tilt, TmpTsBaf, Tso, Gr, NuPlen); // intentionally switch Tso to Tsi
 
     HcPlen = NuPlen * (k / GapThick);
 
@@ -1267,7 +1267,8 @@ void CalcPassiveExteriorBaffleGap(EnergyPlusData &state,
 
 //****************************************************************************
 
-void PassiveGapNusseltNumber(Real64 const AspRat, // Aspect Ratio of Gap height to gap width
+void PassiveGapNusseltNumber(EnergyPlusData &state,
+                             Real64 const AspRat, // Aspect Ratio of Gap height to gap width
                              Real64 const Tilt,   // Tilt of gap, degrees
                              Real64 const Tso,    // Temperature of gap surface closest to outside (K)
                              Real64 const Tsi,    // Temperature of gap surface closest to zone (K)
@@ -1294,8 +1295,6 @@ void PassiveGapNusseltNumber(Real64 const AspRat, // Aspect Ratio of Gap height 
     // Window5 source code; ISO 15099
 
     // Using/Aliasing
-    using DataGlobals::DegToRadians;
-
     // Locals
     // SUBROUTINE ARGUMENT DEFINITIONS:
 
@@ -1324,7 +1323,7 @@ void PassiveGapNusseltNumber(Real64 const AspRat, // Aspect Ratio of Gap height 
     Real64 ang;
     Real64 tiltr;
 
-    tiltr = Tilt * DegToRadians;
+    tiltr = Tilt * state.dataGlobal->DegToRadians;
     Ra = Gr * Pr;
 
     if (Ra > 2.0e6) {

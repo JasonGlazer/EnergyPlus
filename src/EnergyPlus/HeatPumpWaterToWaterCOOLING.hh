@@ -170,7 +170,7 @@ namespace HeatPumpWaterToWaterCOOLING {
 
         void calculate(EnergyPlusData &state, Real64 &MyLoad);
 
-        void update();
+        void update(EnergyPlusData &state);
     };
 
     // Object Data

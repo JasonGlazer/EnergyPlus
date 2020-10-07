@@ -98,11 +98,9 @@ namespace WindowComplexManager {
     using namespace DataComplexFenestration;
     using namespace DataVectorTypes;
     using namespace DataBSDFWindow;
-    using DataGlobals::DegToRadians;
     using DataGlobals::KelvinConv;
     using DataGlobals::NumOfTimeStepInHour;
     using DataGlobals::NumOfZones;
-    using DataGlobals::Pi;
     using DataGlobals::rTinyValue;
     using DataGlobals::TimeStepZoneSec;
     using namespace DataSurfaces; // , ONLY: TotSurfaces,TotWindows,Surface,SurfaceWindow   !update this later

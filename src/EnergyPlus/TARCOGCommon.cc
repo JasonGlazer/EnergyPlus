@@ -102,7 +102,6 @@ namespace TARCOGCommon {
         // Height - glazing system height
 
         // Using/Aliasing
-        using DataGlobals::PiOvr2;
         using namespace TARCOGParams;
         // use TARCOGGassesParams
 
@@ -132,7 +131,6 @@ namespace TARCOGCommon {
         // Height - glazing system height
 
         // Using/Aliasing
-        using DataGlobals::Pi;
         using namespace TARCOGParams;
         // use TARCOGGassesParams
 

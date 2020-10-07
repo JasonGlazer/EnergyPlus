@@ -6870,7 +6870,7 @@ namespace SolarShading {
                 ScNum = SurfWinScreenNumber(SurfNum);
                 ShadeFlag = SurfWinShadingFlag(SurfNum); // Set in subr. WindowShadingManager
                 ProfAng = 0.0;
-                if (ShadeFlag != ExtScreenOn && BlNum > 0) ProfileAngle(SurfNum, SOLCOS, Blind(BlNum).SlatOrientation, ProfAng);
+                if (ShadeFlag != ExtScreenOn && BlNum > 0) ProfileAngle(state, SurfNum, SOLCOS, Blind(BlNum).SlatOrientation, ProfAng);
                 SlatAng = SurfWinSlatAngThisTS(SurfNum);
                 VarSlats = SurfWinMovableSlats(SurfNum);
 
@@ -6961,7 +6961,7 @@ namespace SolarShading {
                                 } else {
                                     // Blind or screen on
 
-                                    if (Lay == 1 && ShadeFlag != ExtScreenOn) ProfileAngle(SurfNum, SOLCOS, Blind(BlNum).SlatOrientation, ProfAng);
+                                    if (Lay == 1 && ShadeFlag != ExtScreenOn) ProfileAngle(state, SurfNum, SOLCOS, Blind(BlNum).SlatOrientation, ProfAng);
 
                                     if (ShadeFlag == IntBlindOn) {
 
@@ -6969,8 +6969,8 @@ namespace SolarShading {
                                         if (Lay == 1) {
                                             TGlBm = POLYF(CosInc, state.dataConstruction->Construct(ConstrNum).TransSolBeamCoef);
                                             RGlDiffBack = state.dataConstruction->Construct(ConstrNum).ReflectSolDiffBack;
-                                            RhoBlFront = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffRefl);
-                                            RhoBlDiffFront = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffRefl);
+                                            RhoBlFront = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffRefl);
+                                            RhoBlDiffFront = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffRefl);
                                         }
                                         AGlDiffBack = state.dataConstruction->Construct(ConstrNum).AbsDiffBack(Lay);
                                         AbWinSh = AbWin + (TGlBm * AGlDiffBack * RhoBlFront / (1.0 - RhoBlFront * RGlDiffBack)) * CosInc * FracSunLit;
@@ -6980,16 +6980,16 @@ namespace SolarShading {
 
                                         // Exterior blind on
                                         if (Lay == 1) {
-                                            TBlBmBm = BlindBeamBeamTrans(
+                                            TBlBmBm = BlindBeamBeamTrans(state,
                                                     ProfAng, SlatAng, Blind(BlNum).SlatWidth, Blind(BlNum).SlatSeparation, Blind(BlNum).SlatThickness);
-                                            TBlBmDiff = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffTrans);
-                                            RhoBlBack = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolBackBeamDiffRefl);
-                                            RhoBlDiffBack = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolBackDiffDiffRefl);
+                                            TBlBmDiff = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffTrans);
+                                            RhoBlBack = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolBackBeamDiffRefl);
+                                            RhoBlDiffBack = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolBackDiffDiffRefl);
                                             RGlFront = POLYF(CosInc, state.dataConstruction->Construct(ConstrNum).ReflSolBeamFrontCoef);
                                             RGlDiffFront = state.dataConstruction->Construct(ConstrNum).ReflectSolDiffFront;
-                                            TBlDifDif = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffTrans);
+                                            TBlDifDif = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffTrans);
                                             RGlDifFr = state.dataConstruction->Construct(ConstrNum).ReflectSolDiffFront;
-                                            RhoBlDifDifBk = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolBackDiffDiffRefl);
+                                            RhoBlDifDifBk = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolBackDiffDiffRefl);
                                         }
                                         AGlDiffFront = state.dataConstruction->Construct(ConstrNum).AbsDiff(Lay);
                                         AbWinSh = TBlBmBm * AbWin +
@@ -7046,25 +7046,25 @@ namespace SolarShading {
                                             rfd2 = state.dataConstruction->Construct(ConstrNum).rfBareSolDiff(2);
                                             rbd1 = state.dataConstruction->Construct(ConstrNum).rbBareSolDiff(1);
                                             rbd2 = state.dataConstruction->Construct(ConstrNum).rbBareSolDiff(2);
-                                            tfshBB = BlindBeamBeamTrans(
+                                            tfshBB = BlindBeamBeamTrans(state,
                                                     ProfAng, SlatAng, Blind(BlNum).SlatWidth, Blind(BlNum).SlatSeparation, Blind(BlNum).SlatThickness);
-                                            tfshBd = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffTrans);
-                                            tfshd = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffTrans);
-                                            tbshBB = BlindBeamBeamTrans(ProfAng,
+                                            tfshBd = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffTrans);
+                                            tfshd = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffTrans);
+                                            tbshBB = BlindBeamBeamTrans(state, ProfAng,
                                                                         Pi - SlatAng,
                                                                         Blind(BlNum).SlatWidth,
                                                                         Blind(BlNum).SlatSeparation,
                                                                         Blind(BlNum).SlatThickness);
-                                            tbshBd = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolBackBeamDiffTrans);
-                                            tbshd = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolBackDiffDiffTrans);
-                                            afshB = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamAbs);
-                                            abshB = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolBackBeamAbs);
-                                            afshd = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolFrontDiffAbs);
-                                            abshd = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolBackDiffAbs);
-                                            rfshB = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffRefl);
-                                            rbshB = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolBackBeamDiffRefl);
-                                            rfshd = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffRefl);
-                                            rbshd = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolBackDiffDiffRefl);
+                                            tbshBd = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolBackBeamDiffTrans);
+                                            tbshd = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolBackDiffDiffTrans);
+                                            afshB = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamAbs);
+                                            abshB = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolBackBeamAbs);
+                                            afshd = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolFrontDiffAbs);
+                                            abshd = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolBackDiffAbs);
+                                            rfshB = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffRefl);
+                                            rbshB = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolBackBeamDiffRefl);
+                                            rfshd = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffRefl);
+                                            rbshd = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolBackDiffDiffRefl);
                                         }
 
                                         if (Lay == 1 && NGlass == 3) {
@@ -7186,10 +7186,10 @@ namespace SolarShading {
                         if (ShadeFlag == IntBlindOn) {
                             TBmBm = POLYF(CosInc, state.dataConstruction->Construct(ConstrNum).TransSolBeamCoef);
                             RGlDiffBack = state.dataConstruction->Construct(ConstrNum).ReflectSolDiffBack;
-                            RhoBlFront = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffRefl);
-                            AbsBlFront = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamAbs);
-                            RhoBlDiffFront = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffRefl);
-                            AbsBlDiffFront = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolFrontDiffAbs);
+                            RhoBlFront = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffRefl);
+                            AbsBlFront = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamAbs);
+                            RhoBlDiffFront = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffRefl);
+                            AbsBlDiffFront = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolFrontDiffAbs);
                             AbsShade = TBmBm * (AbsBlFront + RhoBlFront * RGlDiffBack * AbsBlDiffFront / (1.0 - RhoBlDiffFront * RGlDiffBack));
                             AbsShadeDiff = state.dataConstruction->Construct(ConstrNum).TransDiff *
                                            (AbsBlDiffFront + RhoBlDiffFront * RGlDiffBack * AbsBlDiffFront / (1.0 - RhoBlDiffFront * RGlDiffBack));
@@ -7204,15 +7204,15 @@ namespace SolarShading {
 
                         if (ShadeFlag == ExtBlindOn) {
                             TBlBmBm =
-                                    BlindBeamBeamTrans(ProfAng, SlatAng, Blind(BlNum).SlatWidth, Blind(BlNum).SlatSeparation, Blind(BlNum).SlatThickness);
+                                    BlindBeamBeamTrans(state, ProfAng, SlatAng, Blind(BlNum).SlatWidth, Blind(BlNum).SlatSeparation, Blind(BlNum).SlatThickness);
                             RGlFront = POLYF(CosInc, state.dataConstruction->Construct(ConstrNum).ReflSolBeamFrontCoef);
-                            AbsBlFront = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamAbs);
-                            AbsBlBack = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolBackBeamAbs);
-                            AbsBlDiffBack = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolBackDiffAbs);
+                            AbsBlFront = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamAbs);
+                            AbsBlBack = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolBackBeamAbs);
+                            AbsBlDiffBack = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolBackDiffAbs);
                             RGlDiffFront = state.dataConstruction->Construct(ConstrNum).ReflectSolDiffFront;
-                            RhoBlDiffBack = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolBackDiffDiffRefl);
-                            RhoBlBack = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolBackBeamDiffRefl);
-                            TBlBmDiff = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffTrans);
+                            RhoBlDiffBack = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolBackDiffDiffRefl);
+                            RhoBlBack = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolBackBeamDiffRefl);
+                            TBlBmDiff = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffTrans);
                             AbsShade =
                                     AbsBlFront + AbsBlBack * RGlFront * TBlBmBm +
                                     (AbsBlDiffBack * RGlDiffFront / (1.0 - RhoBlDiffBack * RGlDiffFront)) * (RGlFront * TBlBmBm * RhoBlBack + TBlBmDiff);
@@ -7454,12 +7454,12 @@ namespace SolarShading {
                             DiffTrans = state.dataConstruction->Construct(ConstrNumSh).TransDiff;
                         } else {
                             // Blind
-                            DiffTrans = InterpSlatAng(SlatAng, VarSlats, state.dataConstruction->Construct(ConstrNumSh).BlTransDiff);
+                            DiffTrans = InterpSlatAng(state, SlatAng, VarSlats, state.dataConstruction->Construct(ConstrNumSh).BlTransDiff);
                             // For blinds with horizontal slats, allow different diffuse/diffuse transmittance for
                             // ground and sky solar
                             if (Blind(SurfWinBlindNumber(SurfNum)).SlatOrientation == Horizontal) {
-                                DiffTransGnd = InterpSlatAng(SlatAng, VarSlats, state.dataConstruction->Construct(ConstrNumSh).BlTransDiffGnd);
-                                DiffTransSky = InterpSlatAng(SlatAng, VarSlats, state.dataConstruction->Construct(ConstrNumSh).BlTransDiffSky);
+                                DiffTransGnd = InterpSlatAng(state, SlatAng, VarSlats, state.dataConstruction->Construct(ConstrNumSh).BlTransDiffGnd);
+                                DiffTransSky = InterpSlatAng(state, SlatAng, VarSlats, state.dataConstruction->Construct(ConstrNumSh).BlTransDiffSky);
                             }
                         }
                         if (DifSolarRad != 0.0) {
@@ -7607,7 +7607,7 @@ namespace SolarShading {
                                 SurfWinBlGlSysTsolDifDif(SurfNum) = DiffTrans;
                                 SurfWinScGlSysTsolDifDif(SurfNum) = DiffTrans;
                                 if (ShadeFlag == IntBlindOn || ShadeFlag == ExtBlindOn || ShadeFlag == BGBlindOn) {
-                                    SurfWinBlTsolDifDif(SurfNum) = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffTrans);
+                                    SurfWinBlTsolDifDif(SurfNum) = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffTrans);
                                 } else if (ShadeFlag == ExtScreenOn) {
                                     SurfWinScTsolDifDif(SurfNum) = SurfaceScreens(ScNum).DifDifTrans;
                                 }
@@ -7618,7 +7618,7 @@ namespace SolarShading {
                                         TScBmBm = SurfaceScreens(ScNum).BmBmTrans;
                                         SurfWinScTsolBmBm(SurfNum) = TScBmBm;
                                     } else {
-                                        TBlBmBm = BlindBeamBeamTrans(
+                                        TBlBmBm = BlindBeamBeamTrans(state,
                                                 ProfAng, SlatAng, Blind(BlNum).SlatWidth, Blind(BlNum).SlatSeparation, Blind(BlNum).SlatThickness);
                                         SurfWinBlTsolBmBm(SurfNum) = TBlBmBm;
                                     }
@@ -7648,10 +7648,8 @@ namespace SolarShading {
                                         //           Report variable for Beam-to-Diffuse transmittance (scattered transmittance)
                                         SurfWinScTsolBmDif(SurfNum) = TScBmDif;
                                     } else {
-                                        TBlBmDif = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffTrans);
+                                        TBlBmDif = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffTrans);
                                         SurfWinBlTsolBmDif(SurfNum) = TBlBmDif;
-                                        // CR6913     SurfaceWindow(SurfNum)%BlTsolDifDif =
-                                        // InterpSlatAng(SlatAng,VarSlats,Blind(BlNum)%SolFrontDiffDiffTrans)
                                     }
 
                                     // added TH 12/9/2009
@@ -7662,10 +7660,10 @@ namespace SolarShading {
 
                                         // Interior blind on: beam-beam and diffuse transmittance of exterior beam
 
-                                        TBlDifDif = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffTrans);
-                                        RhoBlBmDifFr = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffRefl);
+                                        TBlDifDif = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffTrans);
+                                        RhoBlBmDifFr = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolFrontBeamDiffRefl);
                                         RGlDifBk = state.dataConstruction->Construct(ConstrNum).ReflectSolDiffBack;
-                                        RhoBlDifDifFr = InterpSlatAng(SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffRefl);
+                                        RhoBlDifDifFr = InterpSlatAng(state, SlatAng, VarSlats, Blind(BlNum).SolFrontDiffDiffRefl);
                                         TBmAllShBlSc =
                                                 TBmBm * (TBlBmBm + TBlBmDif + TBlDifDif * RhoBlBmDifFr * RGlDifBk / (1 - RhoBlDifDifFr * RGlDifBk));
 
@@ -7678,7 +7676,7 @@ namespace SolarShading {
 
                                         // Exterior blind on: beam-beam and diffuse transmittance of exterior beam
 
-                                        RhoBlBmDifBk = InterpProfSlatAng(ProfAng, SlatAng, VarSlats, Blind(BlNum).SolBackBeamDiffRefl);
+                                        RhoBlBmDifBk = InterpProfSlatAng(state, ProfAng, SlatAng, VarSlats, Blind(BlNum).SolBackBeamDiffRefl);
                                         RGlBmFr = POLYF(CosInc, state.dataConstruction->Construct(ConstrNum).ReflSolBeamFrontCoef);
                                         TBmAllShBlSc = TBlBmBm * (TBmBm + TDifBare * RGlBmFr * RhoBlBmDifBk / (1 - RGlDifFr * RhoBlDifDifBk)) +
                                                        TBlBmDif * TDifBare / (1 - RGlDifFr * RhoBlDifDifBk);
@@ -8045,23 +8043,23 @@ namespace SolarShading {
 
                                     if (ShadeFlagBack == IntBlindOn || ShadeFlagBack == ExtBlindOn || ShadeFlagBack == BGBlindOn) {
                                         BlNumBack = SurfWinBlindNumber(BackSurfNum);
-                                        ProfileAngle(BackSurfNum, SOLCOS, Blind(BlNumBack).SlatOrientation, ProfAngBack);
+                                        ProfileAngle(state, BackSurfNum, SOLCOS, Blind(BlNumBack).SlatOrientation, ProfAngBack);
                                         TGlBmBack = POLYF(CosIncBack, state.dataConstruction->Construct(ConstrNumBack).TransSolBeamCoef);
-                                        TBlBmBmBack = BlindBeamBeamTrans(ProfAngBack,
+                                        TBlBmBmBack = BlindBeamBeamTrans(state, ProfAngBack,
                                                                          Pi - SlatAngBack,
                                                                          Blind(BlNumBack).SlatWidth,
                                                                          Blind(BlNumBack).SlatSeparation,
                                                                          Blind(BlNumBack).SlatThickness);
                                         TBlBmDiffBack =
-                                                InterpProfSlatAng(ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackBeamDiffTrans);
+                                                InterpProfSlatAng(state, ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackBeamDiffTrans);
 
                                         if (ShadeFlagBack == IntBlindOn) {
 
                                             // Interior beam absorptance of GLASS LAYERS of exterior back window with INTERIOR BLIND
 
                                             RhoBlFront =
-                                                    InterpProfSlatAng(ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontBeamDiffRefl);
-                                            RhoBlDiffFront = InterpSlatAng(SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontDiffDiffRefl);
+                                                    InterpProfSlatAng(state, ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontBeamDiffRefl);
+                                            RhoBlDiffFront = InterpSlatAng(state, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontDiffDiffRefl);
                                             RGlBack = POLYF(CosIncBack, state.dataConstruction->Construct(ConstrNumBack).ReflSolBeamBackCoef({1, 6}));
                                             RGlDiffBack = state.dataConstruction->Construct(ConstrNumBack).ReflectSolDiffBack;
                                             for (Lay = 1; Lay <= NBackGlass; ++Lay) {
@@ -8080,9 +8078,9 @@ namespace SolarShading {
 
                                             // Interior beam absorbed by BLIND on exterior back window with INTERIOR BLIND
 
-                                            AbsBlFront = InterpProfSlatAng(ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontBeamAbs);
-                                            AbsBlBack = InterpProfSlatAng(ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackBeamAbs);
-                                            AbsBlDiffFront = InterpSlatAng(SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontDiffAbs);
+                                            AbsBlFront = InterpProfSlatAng(state, ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontBeamAbs);
+                                            AbsBlBack = InterpProfSlatAng(state, ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackBeamAbs);
+                                            AbsBlDiffFront = InterpSlatAng(state, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontDiffAbs);
                                             ABlBack = AbsBlBack + TBlBmBmBack * RGlBack * AbsBlFront +
                                                       (AbsBlDiffFront * RGlDiffBack / (1 - RhoBlDiffFront * RGlDiffBack)) *
                                                       (RGlBack * TBlBmBmBack * RhoBlFront + TBlBmDiffBack);
@@ -8097,7 +8095,7 @@ namespace SolarShading {
 
                                             RGlDiffFront = state.dataConstruction->Construct(ConstrNumBack).ReflectSolDiffFront;
                                             RhoBlBack =
-                                                    InterpProfSlatAng(ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackBeamDiffRefl);
+                                                    InterpProfSlatAng(state, ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackBeamDiffRefl);
                                             for (Lay = 1; Lay <= NBackGlass; ++Lay) {
                                                 AbWinBack = POLYF(CosIncBack, state.dataConstruction->Construct(ConstrNumBack).AbsBeamBackCoef({1, 6}, Lay));
                                                 AGlDiffFront = state.dataConstruction->Construct(ConstrNumBack).AbsDiff(Lay);
@@ -8107,19 +8105,19 @@ namespace SolarShading {
 
                                             // Interior beam transmitted by exterior back window with EXTERIOR BLIND
 
-                                            TBlDifDif = InterpSlatAng(SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackDiffDiffTrans);
+                                            TBlDifDif = InterpSlatAng(state, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackDiffDiffTrans);
                                             RhoBlBmDifBk =
-                                                    InterpProfSlatAng(ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackBeamDiffRefl);
+                                                    InterpProfSlatAng(state, ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackBeamDiffRefl);
                                             RGlDifFr = state.dataConstruction->Construct(ConstrNum).ReflectSolDiffFront;
-                                            RhoBlDifDifBk = InterpSlatAng(SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackDiffDiffRefl);
+                                            RhoBlDifDifBk = InterpSlatAng(state, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackDiffDiffRefl);
                                             TransBeamWin = TGlBmBack * (TBlBmBmBack + TBlBmDiffBack +
                                                                         TBlDifDif * RhoBlBmDifBk * RGlDifFr / (1.0 - RhoBlDifDifBk * RGlDifFr));
 
                                             // Interior beam absorbed by EXTERIOR BLIND on exterior back window
 
-                                            AbsBlBack = InterpProfSlatAng(ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackBeamAbs);
-                                            AbsBlDiffBack = InterpSlatAng(SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackDiffAbs);
-                                            RhoBlDiffBack = InterpSlatAng(SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackDiffDiffRefl);
+                                            AbsBlBack = InterpProfSlatAng(state, ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackBeamAbs);
+                                            AbsBlDiffBack = InterpSlatAng(state, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackDiffAbs);
+                                            RhoBlDiffBack = InterpSlatAng(state, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackDiffDiffRefl);
                                             ABlBack = TGlBmBack *
                                                       (AbsBlBack + RhoBlBack * RGlDiffFront * AbsBlDiffBack / (1 - RhoBlDiffBack * RGlDiffFront));
                                             BABSZone += BOverlap * ABlBack;
@@ -8144,30 +8142,30 @@ namespace SolarShading {
                                             rfd2k = state.dataConstruction->Construct(ConstrNumBack).rfBareSolDiff(2);
                                             rbd1k = state.dataConstruction->Construct(ConstrNumBack).rbBareSolDiff(1);
                                             rbd2k = state.dataConstruction->Construct(ConstrNumBack).rbBareSolDiff(2);
-                                            tfshBBk = BlindBeamBeamTrans(ProfAngBack,
+                                            tfshBBk = BlindBeamBeamTrans(state, ProfAngBack,
                                                                          SlatAngBack,
                                                                          Blind(BlNumBack).SlatWidth,
                                                                          Blind(BlNumBack).SlatSeparation,
                                                                          Blind(BlNumBack).SlatThickness);
                                             tfshBdk =
-                                                    InterpProfSlatAng(ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontBeamDiffTrans);
-                                            tfshdk = InterpSlatAng(SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontDiffDiffTrans);
-                                            tbshBBk = BlindBeamBeamTrans(ProfAngBack,
+                                                    InterpProfSlatAng(state, ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontBeamDiffTrans);
+                                            tfshdk = InterpSlatAng(state, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontDiffDiffTrans);
+                                            tbshBBk = BlindBeamBeamTrans(state, ProfAngBack,
                                                                          Pi - SlatAngBack,
                                                                          Blind(BlNumBack).SlatWidth,
                                                                          Blind(BlNumBack).SlatSeparation,
                                                                          Blind(BlNumBack).SlatThickness);
                                             tbshBdk =
-                                                    InterpProfSlatAng(ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackBeamDiffTrans);
-                                            tbshdk = InterpSlatAng(SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackDiffDiffTrans);
-                                            rfshBk = InterpProfSlatAng(ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontBeamDiffRefl);
-                                            rbshBk = InterpProfSlatAng(ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackBeamDiffRefl);
-                                            rfshdk = InterpSlatAng(SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontDiffDiffRefl);
-                                            rbshdk = InterpSlatAng(SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackDiffDiffRefl);
-                                            afshdk = InterpSlatAng(SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontDiffAbs);
-                                            abshdk = InterpSlatAng(SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackDiffAbs);
-                                            afshBk = InterpProfSlatAng(ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontBeamAbs);
-                                            abshBk = InterpProfSlatAng(ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackBeamAbs);
+                                                    InterpProfSlatAng(state, ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackBeamDiffTrans);
+                                            tbshdk = InterpSlatAng(state, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackDiffDiffTrans);
+                                            rfshBk = InterpProfSlatAng(state, ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontBeamDiffRefl);
+                                            rbshBk = InterpProfSlatAng(state, ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackBeamDiffRefl);
+                                            rfshdk = InterpSlatAng(state, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontDiffDiffRefl);
+                                            rbshdk = InterpSlatAng(state, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackDiffDiffRefl);
+                                            afshdk = InterpSlatAng(state, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontDiffAbs);
+                                            abshdk = InterpSlatAng(state, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackDiffAbs);
+                                            afshBk = InterpProfSlatAng(state, ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolFrontBeamAbs);
+                                            abshBk = InterpProfSlatAng(state, ProfAngBack, SlatAngBack, VarSlatsBack, Blind(BlNumBack).SolBackBeamAbs);
 
                                             if (NBackGlass == 3) {
                                                 t3k = POLYF(CosIncBack, state.dataConstruction->Construct(ConstrNumBack).tBareSolCoef({1, 6}, 3));
@@ -10249,7 +10247,7 @@ namespace SolarShading {
 
 
                         if (Blind(BlNum).SlatWidth > Blind(BlNum).SlatSeparation && BeamSolarOnWindow > 0.0) {
-                            ProfileAngle(ISurf, SOLCOS, Blind(BlNum).SlatOrientation, ProfAng);
+                            ProfileAngle(state, ISurf, SOLCOS, Blind(BlNum).SlatOrientation, ProfAng);
                             Real64 ThetaBase = std::acos(
                                     std::cos(ProfAng) * Blind(BlNum).SlatSeparation / Blind(BlNum).SlatWidth);
                             // There are two solutions for the slat angle that just blocks beam radiation
@@ -10265,7 +10263,7 @@ namespace SolarShading {
                         if (Blind(BlNum).SlatWidth <= Blind(BlNum).SlatSeparation && BeamSolarOnWindow > 0.0) {
                             if (WindowShadingControl(IShadingCtrl).SlatAngleControlForBlinds == WSC_SAC_BlockBeamSolar) {
 
-                                ProfileAngle(ISurf, SOLCOS, Blind(BlNum).SlatOrientation, ProfAng);
+                                ProfileAngle(state, ISurf, SOLCOS, Blind(BlNum).SlatOrientation, ProfAng);
 
                                 if (std::abs(std::cos(ProfAng) * Blind(BlNum).SlatSeparation / Blind(BlNum).SlatWidth) <= 1.0) {
                                     // set to block 100% of beam solar, not necessarily to block maximum solar (beam + diffuse)
@@ -10366,7 +10364,7 @@ namespace SolarShading {
 
                 //   CALL CalcScreenTransmittance to intialized all screens prior to HB calc's
                 if (SurfWinShadingFlag(ISurf) == ExtScreenOn && SunIsUp) {
-                    CalcScreenTransmittance(ISurf);
+                    CalcScreenTransmittance(state, ISurf);
                 }
 
                 // EMS Actuator Point: override setting if ems flag on
@@ -10797,7 +10795,7 @@ namespace SolarShading {
                 ProfileAngVert = std::abs(std::acos(dot3));
                 //  END IF
                 // Constrain to 0 to pi
-                if (ProfileAngVert > Pi) ProfileAngVert = TwoPi - ProfileAngVert;
+                if (ProfileAngVert > Pi) ProfileAngVert = state.dataGlobal->TwoPi - ProfileAngVert;
 
                 SurfWinProfileAngHor(SurfNum) = ProfileAngHor / DegToRadians;
                 SurfWinProfileAngVert(SurfNum) = ProfileAngVert / DegToRadians;
@@ -12160,7 +12158,7 @@ namespace SolarShading {
                                     }
 
                                     if (ShadeFlag == IntBlindOn || ShadeFlag == ExtBlindOn || ShadeFlag == BGBlindOn) {
-                                        BlAbsDiffBk = InterpSlatAng(HTsurf_slat_ang, HTsurf_movable_slats, construct_sh_BlAbsDiffBack(_, IGlass));
+                                        BlAbsDiffBk = InterpSlatAng(state, HTsurf_slat_ang, HTsurf_movable_slats, construct_sh_BlAbsDiffBack(_, IGlass));
                                         // Calc diffuse solar absorbed in each window glass layer and shade
                                         WinDifSolLayAbsW = WinDifSolarTrans_Factor * BlAbsDiffBk;
                                     }
@@ -12182,7 +12180,7 @@ namespace SolarShading {
                                 if (ShadeFlag == IntBlindOn || ShadeFlag == ExtBlindOn) {
                                     // Diffuse back solar reflectance, blind present, vs. slat angle
                                     InsideDifReflectance =
-                                            InterpSlatAng(HTsurf_slat_ang, HTsurf_movable_slats, state.dataConstruction->Construct(ConstrNum).BlReflectSolDiffBack);
+                                            InterpSlatAng(state, HTsurf_slat_ang, HTsurf_movable_slats, state.dataConstruction->Construct(ConstrNum).BlReflectSolDiffBack);
                                 }
                                 DifSolarReflW = WinDifSolarTrans_Factor * InsideDifReflectance;
 
@@ -12201,7 +12199,7 @@ namespace SolarShading {
                                 }
                                 if (ShadeFlag == IntBlindOn || ShadeFlag == ExtBlindOn || ShadeFlag == BGBlindOn) {
                                     // Calc diffuse solar absorbed by blind [W]
-                                    AbsDiffBkBl = InterpSlatAng(HTsurf_slat_ang, HTsurf_movable_slats, construct_sh.AbsDiffBackBlind);
+                                    AbsDiffBkBl = InterpSlatAng(state, HTsurf_slat_ang, HTsurf_movable_slats, construct_sh.AbsDiffBackBlind);
                                     ShBlDifSolarAbsW = WinDifSolarTrans_Factor * AbsDiffBkBl;
                                 }
                                 // Correct for divider shadowing
@@ -12677,7 +12675,7 @@ namespace SolarShading {
                         }
 
                         if (ShadeFlag == IntBlindOn || ShadeFlag == ExtBlindOn || ShadeFlag == BGBlindOn) {
-                            BlAbsDiffBk = InterpSlatAng(SurfWinSlatAngThisTS(HeatTransSurfNum),
+                            BlAbsDiffBk = InterpSlatAng(state, SurfWinSlatAngThisTS(HeatTransSurfNum),
                                                         SurfWinMovableSlats(HeatTransSurfNum),
                                                         state.dataConstruction->Construct(ConstrNumSh).BlAbsDiffBack(_, IGlass));
                             // Calc diffuse solar absorbed in each window glass layer and shade
@@ -12699,7 +12697,7 @@ namespace SolarShading {
                     InsideDifReflectance = state.dataConstruction->Construct(ConstrNum).ReflectSolDiffBack;
                     if (ShadeFlag == IntBlindOn || ShadeFlag == ExtBlindOn) {
                         // Diffuse back solar reflectance, blind present, vs. slat angle
-                        InsideDifReflectance = InterpSlatAng(SurfWinSlatAngThisTS(HeatTransSurfNum),
+                        InsideDifReflectance = InterpSlatAng(state, SurfWinSlatAngThisTS(HeatTransSurfNum),
                                                              SurfWinMovableSlats(HeatTransSurfNum),
                                                              state.dataConstruction->Construct(ConstrNum).BlReflectSolDiffBack);
                     }
@@ -12720,7 +12718,7 @@ namespace SolarShading {
                     }
                     if (ShadeFlag == IntBlindOn || ShadeFlag == ExtBlindOn || ShadeFlag == BGBlindOn) {
                         // Calc diffuse solar absorbed by blind [W]
-                        AbsDiffBkBl = InterpSlatAng(SurfWinSlatAngThisTS(HeatTransSurfNum),
+                        AbsDiffBkBl = InterpSlatAng(state, SurfWinSlatAngThisTS(HeatTransSurfNum),
                                                     SurfWinMovableSlats(HeatTransSurfNum),
                                                     state.dataConstruction->Construct(ConstrNumSh).AbsDiffBackBlind);
                         ShBlDifSolarAbsW = SolarTrans_ViewFactor * AbsDiffBkBl;

@@ -321,7 +321,7 @@ namespace SizingManager {
                     ++NumSizingPeriodsPerformed;
 
                     BeginEnvrnFlag = true;
-                    if ((KindOfSim == ksDesignDay) && (state.dataWeatherManager->DesDayInput(state.dataWeatherManager->Environment(state.dataWeatherManager->Envrn).DesignDayNum).suppressBegEnvReset)) {
+                    if ((KindOfSim == state.dataGlobal->ksDesignDay) && (state.dataWeatherManager->DesDayInput(state.dataWeatherManager->Environment(state.dataWeatherManager->Envrn).DesignDayNum).suppressBegEnvReset)) {
                         // user has input in SizingPeriod:DesignDay directing to skip begin environment rests, for accuracy-with-speed as zones can
                         // more easily converge fewer warmup days are allowed
                         DisplayString("Suppressing Initialization of New Environment Parameters");
@@ -359,8 +359,8 @@ namespace SizingManager {
                                     DisplayString("...for Sizing Period: #" + RoundSigDigits(NumSizingPeriodsPerformed) + ' ' + EnvironmentName);
                                 }
                             }
-                            UpdateZoneSizing(state, BeginDay);
-                            UpdateFacilitySizing(state, BeginDay);
+                            UpdateZoneSizing(state, state.dataGlobal->BeginDay);
+                            UpdateFacilitySizing(state, state.dataGlobal->BeginDay);
                         }
 
                         for (HourOfDay = 1; HourOfDay <= 24; ++HourOfDay) { // Begin hour loop ...
@@ -419,8 +419,8 @@ namespace SizingManager {
                         } // ... End hour loop.
 
                         if (EndDayFlag) {
-                            UpdateZoneSizing(state, EndDay);
-                            UpdateFacilitySizing(state, EndDay);
+                            UpdateZoneSizing(state, state.dataGlobal->EndDay);
+                            UpdateFacilitySizing(state, state.dataGlobal->EndDay);
                         }
 
                         if (!WarmupFlag && (DayOfSim > 0) && (DayOfSim < NumOfDayInEnvrn)) {
@@ -510,7 +510,7 @@ namespace SizingManager {
                 ++NumSizingPeriodsPerformed;
 
                 BeginEnvrnFlag = true;
-                if ((KindOfSim == ksDesignDay) && (state.dataWeatherManager->DesDayInput(state.dataWeatherManager->Environment(state.dataWeatherManager->Envrn).DesignDayNum).suppressBegEnvReset)) {
+                if ((KindOfSim == state.dataGlobal->ksDesignDay) && (state.dataWeatherManager->DesDayInput(state.dataWeatherManager->Environment(state.dataWeatherManager->Envrn).DesignDayNum).suppressBegEnvReset)) {
                     // user has input in SizingPeriod:DesignDay directing to skip begin environment rests, for accuracy-with-speed as zones can more
                     // easily converge fewer warmup days are allowed
                     DisplayString("Suppressing Initialization of New Environment Parameters");
@@ -542,7 +542,7 @@ namespace SizingManager {
                             DisplayString("Calculating System sizing");
                             DisplayString("...for Sizing Period: #" + RoundSigDigits(NumSizingPeriodsPerformed) + ' ' + EnvironmentName);
                         }
-                        UpdateSysSizing(state, BeginDay);
+                        UpdateSysSizing(state, state.dataGlobal->BeginDay);
                     }
 
                     for (HourOfDay = 1; HourOfDay <= 24; ++HourOfDay) { // Begin hour loop ...
@@ -571,7 +571,7 @@ namespace SizingManager {
 
                             ManageWeather(state);
 
-                            UpdateSysSizing(state, DuringDay);
+                            UpdateSysSizing(state, state.dataGlobal->DuringDay);
 
                             BeginHourFlag = false;
                             BeginDayFlag = false;
@@ -583,7 +583,7 @@ namespace SizingManager {
 
                     } // ... End hour loop.
 
-                    if (EndDayFlag) UpdateSysSizing(state, EndDay);
+                    if (EndDayFlag) UpdateSysSizing(state, state.dataGlobal->EndDay);
 
                     if (!WarmupFlag && (DayOfSim > 0) && (DayOfSim < NumOfDayInEnvrn)) {
                         ++CurOverallSimDay;
@@ -594,7 +594,7 @@ namespace SizingManager {
             } // ... End environment loop
 
             if (NumSizingPeriodsPerformed > 0) {
-                UpdateSysSizing(state, EndSysSizingCalc);
+                UpdateSysSizing(state, state.dataGlobal->EndDay);
                 SysSizingRunDone = true;
             } else {
                 ShowSevereError(RoutineName + "No Sizing periods were performed for System Sizing. No System Sizing calculations saved.");
@@ -4853,10 +4853,10 @@ namespace SizingManager {
             CalcFinalFacilitySizing.HeatZoneTempSeq = 0.;
             CalcFinalFacilitySizing.HeatLoadSeq = 0.;
         }
-        if (CallIndicator == BeginDay) {
+        if (CallIndicator == state.dataGlobal->BeginDay) {
             CalcFacilitySizing(CurOverallSimDay).HeatDDNum = CurOverallSimDay;
             CalcFacilitySizing(CurOverallSimDay).CoolDDNum = CurOverallSimDay;
-        } else if (CallIndicator == DuringDay) {
+        } else if (CallIndicator == state.dataGlobal->DuringDay) {
             int TimeStepInDay = (HourOfDay - 1) * NumOfTimeStepInHour + TimeStep;
             // save the results of the ideal zone component calculation in the CalcZoneSizing sequence variables
             Real64 sumCoolLoad = 0.;
@@ -4899,7 +4899,7 @@ namespace SizingManager {
                 CalcFacilitySizing(CurOverallSimDay).HeatOutHumRatSeq(TimeStepInDay) = wghtdHeatHumRat / sumHeatLoad;
             }
 
-        } else if (CallIndicator == EndDay) {
+        } else if (CallIndicator == state.dataGlobal->EndDay) {
             for (int TimeStepIndex = 1; TimeStepIndex <= NumOfTimeStepInDay; ++TimeStepIndex) {
                 if (CalcFacilitySizing(CurOverallSimDay).CoolLoadSeq(TimeStepIndex) > CalcFacilitySizing(CurOverallSimDay).DesCoolLoad) {
                     CalcFacilitySizing(CurOverallSimDay).DesCoolLoad = CalcFacilitySizing(CurOverallSimDay).CoolLoadSeq(TimeStepIndex);

@@ -73,58 +73,9 @@ namespace DataGlobals {
     // This data-only module is a repository for all variables which are considered
     // to be "global" in nature in EnergyPlus.
 
-    // METHODOLOGY EMPLOYED:
-    // na
-
-    // REFERENCES:
-    // na
-
-    // OTHER NOTES:
-    // na
-
-    // Using/Aliasing
-
-    // Data
     // -only module should be available to other modules and routines.
     // Thus, all variables in this module must be PUBLIC.
-//    bool runReadVars(false);
-//    bool DDOnlySimulation(false);
-//    bool outputEpJSONConversion(false);
-//    bool outputEpJSONConversionOnly(false);
-//    bool isEpJSON(false);
-//    bool isCBOR(false);
-//    bool isMsgPack(false);
-//    bool isUBJSON(false);
-//    bool isBSON(false);
-//    bool preserveIDFOrder(true);
-//    bool stopSimulation(false);
-    std::function<void (void *)> externalHVACManager;
-    bool externalHVACManagerInitialized(false);
 
-    // MODULE PARAMETER DEFINITIONS:
-    int const BeginDay(1);
-    int const DuringDay(2);
-    int const EndDay(3);
-    int const EndSysSizingCalc(5);
-
-    // Parameters for KindOfSim
-    int const ksDesignDay(1);
-    int const ksRunPeriodDesign(2);
-    int const ksRunPeriodWeather(3);
-    int const ksHVACSizeDesignDay(4);       // a regular design day run during HVAC Sizing Simulation
-    int const ksHVACSizeRunPeriodDesign(5); // a weather period design day run during HVAC Sizing Simulation
-    int const ksReadAllWeatherData(6);      // a weather period for reading all weather data prior to the simulation
-
-    Real64 const MaxEXPArg(709.78);       // maximum exponent in EXP() function
-    Real64 const Pi(3.14159265358979324); // Pi 3.1415926535897932384626435
-    Real64 const PiOvr2(Pi / 2.0);        // Pi/2
-    Real64 const TwoPi(2.0 * Pi);         // 2*Pi 6.2831853071795864769252868
-    Real64 const GravityConstant(9.807);
-    Real64 const DegToRadians(Pi / 180.0);           // Conversion for Degrees to Radians
-    Real64 const RadToDeg(180.0 / Pi);               // Conversion for Radians to Degrees
-    Real64 const SecInHour(3600.0);                  // Conversion for hours to seconds
-    Real64 const HoursInDay(24.0);                   // Number of Hours in Day
-    Real64 const SecsInDay(SecInHour *HoursInDay);   // Number of seconds in Day
     Real64 const BigNumber(HUGE_(1.0));              // Max Number real used for initializations
     Real64 const rTinyValue(EPSILON(1.0));           // Tiny value to replace use of TINY(x)
     std::string::size_type const MaxNameLength(100); // Maximum Name Length in Characters -- should be the same
@@ -262,8 +213,6 @@ namespace DataGlobals {
     // Needed for unit tests, should not be normally called.
     void clear_state(IOFiles &ioFiles)
     {
-        externalHVACManager = nullptr;
-        externalHVACManagerInitialized = false;
         BeginDayFlag = false;
         BeginEnvrnFlag = false;
         BeginHourFlag = false;

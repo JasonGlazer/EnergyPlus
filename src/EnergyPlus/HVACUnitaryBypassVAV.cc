@@ -257,7 +257,7 @@ namespace HVACUnitaryBypassVAV {
         SimCBVAV(state, CBVAVNum, FirstHVACIteration, QUnitOut, OnOffAirFlowRatio, HXUnitOn);
 
         // Report the result of the simulation
-        ReportCBVAV(CBVAVNum);
+        ReportCBVAV(state, CBVAVNum);
     }
 
     void SimCBVAV(EnergyPlusData &state,
@@ -3956,7 +3956,7 @@ namespace HVACUnitaryBypassVAV {
         }
     }
 
-    void ReportCBVAV(int const CBVAVNum) // Index of the current CBVAV unit being simulated
+    void ReportCBVAV(EnergyPlusData &state, int const CBVAVNum) // Index of the current CBVAV unit being simulated
     {
 
         // SUBROUTINE INFORMATION:
@@ -3966,7 +3966,7 @@ namespace HVACUnitaryBypassVAV {
         // PURPOSE OF THIS SUBROUTINE:
         // Fills some of the report variables for the changeover-bypass VAV system
 
-        Real64 ReportingConstant = DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+        Real64 ReportingConstant = DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
 
         CBVAV(CBVAVNum).TotCoolEnergy = CBVAV(CBVAVNum).TotCoolEnergyRate * ReportingConstant;
         CBVAV(CBVAVNum).TotHeatEnergy = CBVAV(CBVAVNum).TotHeatEnergyRate * ReportingConstant;

@@ -89,9 +89,6 @@ namespace DXFEarClipping {
     // Using/Aliasing
     using namespace DataPrecisionGlobals;
     using namespace DataVectorTypes;
-    using DataGlobals::Pi;
-    using DataGlobals::RadToDeg;
-    using DataGlobals::TwoPi;
 
     // Data
 
@@ -107,7 +104,7 @@ namespace DXFEarClipping {
 
     // Functions
 
-    bool InPolygon(Vector const &point, Array1D<Vector> &poly, int const nsides)
+    bool InPolygon(EnergyPlusData &state, Vector const &point, Array1D<Vector> &poly, int const nsides)
     {
         // this routine is not used in the current scheme
 
@@ -162,7 +159,7 @@ namespace DXFEarClipping {
             }
         }
 
-        if (std::abs(anglesum - TwoPi) <= epsilon) {
+        if (std::abs(anglesum - state.dataGlobal->TwoPi) <= epsilon) {
             InPolygon = true;
         }
 
@@ -243,27 +240,20 @@ namespace DXFEarClipping {
         Array1D_int c_vertices(nsides);
         Array2D_int earvert(nsides, 3);
         Array1D_bool removed(nsides);
-        // unused  type(Vector_2d), dimension(3) :: testtri
-        // unused  type(Vector_2d) :: point
         Array1D_int earverts(3);
         Array1D<Real64> xvt(nsides);
         Array1D<Real64> yvt(nsides);
         Array1D<Real64> zvt(nsides);
 
-        // unused  integer k
         int ntri;
-        // unused  logical inpoly
         int nvertcur;
         int ncount;
         int svert;
         int mvert;
         int evert;
-        // unused  integer tvert
         int nears;
         int nrangles;
         int ncverts;
-        // unused  double precision :: ang
-        // unused  double precision :: val
         std::string line;
         static int errcount(0);
 
@@ -272,14 +262,8 @@ namespace DXFEarClipping {
         Array1D<dTriangle> Triangle(nsides);
 
         errFlag = false;
-        //  vertex=polygon
-        //  if (surfname == 'BOTTOM:OFFICE_E_3') THEN
-        //    trackit=.TRUE.
-        //  else
-        //    trackit=.FALSE.
-        //  endif
         if (surfclass == SurfaceClass_Floor || surfclass == SurfaceClass_Roof || surfclass == SurfaceClass_Overhang) {
-            CalcRfFlrCoordinateTransformation(nsides, polygon, surfazimuth, surftilt, xvt, yvt, zvt);
+            CalcRfFlrCoordinateTransformation(state, nsides, polygon, surfazimuth, surftilt, xvt, yvt, zvt);
             for (svert = 1; svert <= nsides; ++svert) {
                 for (mvert = svert + 1; mvert <= nsides; ++mvert) {
                     if (std::abs(xvt(svert) - xvt(mvert)) <= point_tolerance) xvt(svert) = xvt(mvert);
@@ -289,10 +273,9 @@ namespace DXFEarClipping {
             for (svert = 1; svert <= nsides; ++svert) {
                 vertex(svert).x = xvt(svert);
                 vertex(svert).y = zvt(svert);
-                //      if (trackit) write(outputfiledebug,*) 'x=',xvt(svert),' y=',zvt(svert)
             }
         } else {
-            CalcWallCoordinateTransformation(nsides, polygon, surfazimuth, surftilt, xvt, yvt, zvt);
+            CalcWallCoordinateTransformation(state, nsides, polygon, surfazimuth, surftilt, xvt, yvt, zvt);
             for (svert = 1; svert <= nsides; ++svert) {
                 for (mvert = svert + 1; mvert <= nsides; ++mvert) {
                     if (std::abs(xvt(svert) - xvt(mvert)) <= point_tolerance) xvt(svert) = xvt(mvert);
@@ -329,7 +312,7 @@ namespace DXFEarClipping {
                     }
                     ShowMessage(format(" number of triangles found={:12}", ncount));
                     for (int j = 1; j <= nrangles; ++j) {
-                        ShowMessage(format(" r angle={} vert={} deg={:.1R}", j, r_angles(j), rangles(j) * RadToDeg));
+                        ShowMessage(format(" r angle={} vert={} deg={:.1R}", j, r_angles(j), rangles(j) * state.dataGlobal->RadToDeg));
                     }
                 }
                 break; // while loop
@@ -375,7 +358,8 @@ namespace DXFEarClipping {
         return Triangulate;
     }
 
-    Real64 angle_2dvector(Real64 const xa, // vertex coordinate
+    Real64 angle_2dvector(EnergyPlusData &state,
+                          Real64 const xa, // vertex coordinate
                           Real64 const ya, // vertex coordinate
                           Real64 const xb, // vertex coordinate
                           Real64 const yb, // vertex coordinate
@@ -446,7 +430,7 @@ namespace DXFEarClipping {
         angle = std::acos(t);
 
         if (x2 * y1 - y2 * x1 < 0.0E+00) {
-            angle = 2.0E+00 * Pi - angle;
+            angle = 2.0E+00 * state.dataGlobal->Pi - angle;
         }
 
         return angle;
@@ -622,9 +606,9 @@ namespace DXFEarClipping {
 
             // have gotten start, middle and ending vertices.  test for reflex angle
 
-            ang = angle_2dvector(vertex(svert).x, vertex(svert).y, vertex(mvert).x, vertex(mvert).y, vertex(evert).x, vertex(evert).y);
+            ang = angle_2dvector(state, vertex(svert).x, vertex(svert).y, vertex(mvert).x, vertex(mvert).y, vertex(evert).x, vertex(evert).y);
 
-            if (ang > Pi) { // sufficiently close to 180 degrees.
+            if (ang > state.dataGlobal->Pi) { // sufficiently close to 180 degrees.
                 ++nrverts;
                 r_vertices(nrverts) = mvert;
                 rangles(nrverts) = ang;
@@ -671,7 +655,8 @@ namespace DXFEarClipping {
         }
     }
 
-    void CalcWallCoordinateTransformation(int const nsides,
+    void CalcWallCoordinateTransformation(EnergyPlusData &state,
+                                          int const nsides,
                                           Array1D<Vector> &polygon,
                                           Real64 const surfazimuth,
                                           Real64 const EP_UNUSED(surftilt), // unused1208
@@ -724,7 +709,7 @@ namespace DXFEarClipping {
         Real64 const alpha = surfazimuth;
 
         Real64 const alpha180 = 180.0 - alpha; // amount to rotate
-        Real64 const alphrad = alpha180 / RadToDeg;
+        Real64 const alphrad = alpha180 / state.dataGlobal->RadToDeg;
         Real64 const cos_alphrad = std::cos(alphrad);
         Real64 const sin_alphrad = std::sin(alphrad);
 
@@ -735,7 +720,8 @@ namespace DXFEarClipping {
         }
     }
 
-    void CalcRfFlrCoordinateTransformation(int const nsides,
+    void CalcRfFlrCoordinateTransformation(EnergyPlusData &state,
+                                           int const nsides,
                                            Array1D<Vector> &polygon,
                                            Real64 const EP_UNUSED(surfazimuth), // unused1208
                                            Real64 const surftilt,
@@ -784,7 +770,7 @@ namespace DXFEarClipping {
         // Subroutine local variable declarations:
 
         Real64 const alpha = -surftilt;
-        Real64 const alphrad = alpha / RadToDeg;
+        Real64 const alphrad = alpha / state.dataGlobal->RadToDeg;
         Real64 const cos_alphrad = std::cos(alphrad);
         Real64 const sin_alphrad = std::sin(alphrad);
 

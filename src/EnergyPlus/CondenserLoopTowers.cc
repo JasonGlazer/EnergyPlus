@@ -147,7 +147,7 @@ namespace CondenserLoopTowers {
         }
         this->calculateWaterUsage(state);
         this->update();
-        this->report(RunFlag);
+        this->report(state, RunFlag);
     }
 
     void CoolingTower::getDesignCapacities(EnergyPlusData &EP_UNUSED(state), const PlantLocation &EP_UNUSED(calledFromLocation), Real64 &MaxLoad, Real64 &MinLoad, Real64 &OptLoad)
@@ -5860,17 +5860,17 @@ namespace CondenserLoopTowers {
         //   total water usage
         // update report variables
         this->EvaporationVdot = EvapVdot;
-        this->EvaporationVol = EvapVdot * (DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour);
+        this->EvaporationVol = EvapVdot * (DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour);
         this->DriftVdot = driftVdot;
-        this->DriftVol = driftVdot * (DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour);
+        this->DriftVol = driftVdot * (DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour);
         this->BlowdownVdot = BlowDownVdot;
-        this->BlowdownVol = BlowDownVdot * (DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour);
+        this->BlowdownVol = BlowDownVdot * (DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour);
         this->MakeUpVdot = makeUpVdot;
-        this->MakeUpVol = makeUpVdot * (DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour);
+        this->MakeUpVol = makeUpVdot * (DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour);
         this->TankSupplyVdot = tankSupplyVdot;
-        this->TankSupplyVol = tankSupplyVdot * (DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour);
+        this->TankSupplyVol = tankSupplyVdot * (DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour);
         this->StarvedMakeUpVdot = StarvedVdot;
-        this->StarvedMakeUpVol = StarvedVdot * (DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour);
+        this->StarvedMakeUpVol = StarvedVdot * (DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour);
     }
 
     void CoolingTower::update()
@@ -5954,7 +5954,7 @@ namespace CondenserLoopTowers {
         }
     }
 
-    void CoolingTower::report(bool const RunFlag)
+    void CoolingTower::report(EnergyPlusData &state, bool const RunFlag)
     {
 
         // SUBROUTINE INFORMATION:
@@ -5966,7 +5966,7 @@ namespace CondenserLoopTowers {
         // PURPOSE OF THIS SUBROUTINE:
         // This subroutine updates the report variables for the tower.
 
-        Real64 const ReportingConstant = DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+        Real64 const ReportingConstant = DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
 
         if (!RunFlag) {
             this->InletWaterTemp = DataLoopNode::Node(this->WaterInletNodeNum).Temp;

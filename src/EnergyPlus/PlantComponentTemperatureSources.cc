@@ -385,7 +385,7 @@ namespace PlantComponentTemperatureSources {
                                                                DataPlant::PlantLoop(this->Location.loopNum).FluidIndex,
                                                                RoutineName);
             this->HeatRate = this->MassFlowRate * Cp * (this->OutletTemp - this->InletTemp);
-            this->HeatEnergy = this->HeatRate * DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+            this->HeatEnergy = this->HeatRate * DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
         } else {
             this->OutletTemp = this->BoundaryTemp;
             this->HeatRate = 0.0;

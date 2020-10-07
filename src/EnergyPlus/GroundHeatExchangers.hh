@@ -301,7 +301,7 @@ namespace GroundHeatExchangers {
 
         virtual Real64 calcHXResistance(EnergyPlusData &state) = 0;
 
-        virtual void getAnnualTimeConstant() = 0;
+        virtual void getAnnualTimeConstant(EnergyPlusData &state) = 0;
     };
 
     struct GLHEVert : GLHEBase {
@@ -343,7 +343,7 @@ namespace GroundHeatExchangers {
 
         void calcShortTimestepGFunctions(EnergyPlusData &state);
 
-        void calcLongTimestepGFunctions();
+        void calcLongTimestepGFunctions(EnergyPlusData &state);
 
         void calcGFunctions(EnergyPlusData &state);
 
@@ -351,7 +351,7 @@ namespace GroundHeatExchangers {
 
         void initGLHESimVars(EnergyPlusData &state);
 
-        void getAnnualTimeConstant();
+        void getAnnualTimeConstant(EnergyPlusData &state);
 
         Real64 getGFunc(Real64 time);
 
@@ -367,7 +367,7 @@ namespace GroundHeatExchangers {
 
         Real64 calcBHGroutResistance(EnergyPlusData &state);
 
-        Real64 calcPipeConductionResistance();
+        Real64 calcPipeConductionResistance(EnergyPlusData &state);
 
         Real64 calcPipeConvectionResistance(EnergyPlusData &state);
 
@@ -413,12 +413,12 @@ namespace GroundHeatExchangers {
 
         void initGLHESimVars(EnergyPlusData &state) override;
 
-        void getAnnualTimeConstant() override;
+        void getAnnualTimeConstant(EnergyPlusData &state) override;
 
-        Real64 doubleIntegral(int m, int n, int m1, int n1, Real64 t, int I0,
+        Real64 doubleIntegral(EnergyPlusData &state, int m, int n, int m1, int n1, Real64 t, int I0,
                               int J0);
 
-        Real64 integral(int m, int n, int m1, int n1, Real64 t, Real64 eta,
+        Real64 integral(EnergyPlusData &state, int m, int n, int m1, int n1, Real64 t, Real64 eta,
                         Real64 J0);
 
         Real64 distance(int m, int n, int m1, int n1, Real64 eta, Real64 theta);
@@ -430,7 +430,7 @@ namespace GroundHeatExchangers {
 
         Real64 nearFieldResponseFunction(int m, int n, int m1, int n1, Real64 eta, Real64 theta, Real64 t);
 
-        Real64 midFieldResponseFunction(int m, int n, int m1, int n1, Real64 t);
+        Real64 midFieldResponseFunction(EnergyPlusData &state, int m, int n, int m1, int n1, Real64 t);
 
         Real64 getGFunc(Real64 time) override;
 

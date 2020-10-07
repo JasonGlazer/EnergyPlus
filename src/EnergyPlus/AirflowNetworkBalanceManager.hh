@@ -112,7 +112,8 @@ namespace AirflowNetworkBalanceManager {
 
     void CalcAirflowNetworkAirBalance(EnergyPlusData &state);
 
-    Real64 CalcDuctInsideConvResist(Real64 Tair, // Average air temperature
+    Real64 CalcDuctInsideConvResist(EnergyPlusData &state,
+                                    Real64 Tair, // Average air temperature
                                     Real64 mdot, // Mass flow rate
                                     Real64 Dh,   // Hydraulic diameter
                                     Real64 hIn   // User defined convection coefficient

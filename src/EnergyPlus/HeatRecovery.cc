@@ -116,7 +116,6 @@ namespace HeatRecovery {
     using DataGlobals::BeginEnvrnFlag;
     using DataGlobals::DisplayExtraWarnings;
     using DataGlobals::ScheduleAlwaysOn;
-    using DataGlobals::SecInHour;
     using DataGlobals::SysSizingCalc;
     using DataGlobals::WarmupFlag;
     using namespace DataLoopNode;
@@ -351,7 +350,7 @@ namespace HeatRecovery {
 
         UpdateHeatRecovery(HeatExchNum);
 
-        ReportHeatRecovery(HeatExchNum);
+        ReportHeatRecovery(state, HeatExchNum);
     }
 
     void GetHeatRecoveryInput(EnergyPlusData &state)
@@ -3259,7 +3258,7 @@ namespace HeatRecovery {
         }
     }
 
-    void ReportHeatRecovery(int const ExNum) // number of the current heat exchanger being simulated
+    void ReportHeatRecovery(EnergyPlusData &state, int const ExNum) // number of the current heat exchanger being simulated
     {
 
         // SUBROUTINE INFORMATION:
@@ -3296,7 +3295,7 @@ namespace HeatRecovery {
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
         Real64 ReportingConstant;
 
-        ReportingConstant = TimeStepSys * SecInHour;
+        ReportingConstant = TimeStepSys * state.dataGlobal->SecInHour;
         ExchCond(ExNum).ElecUseEnergy = ExchCond(ExNum).ElecUseRate * ReportingConstant;
         ExchCond(ExNum).SensHeatingEnergy = ExchCond(ExNum).SensHeatingRate * ReportingConstant;
         ExchCond(ExNum).LatHeatingEnergy = ExchCond(ExNum).LatHeatingRate * ReportingConstant;

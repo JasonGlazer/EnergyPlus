@@ -139,7 +139,8 @@ namespace MoistureBalanceEMPDManager {
         InitEnvrnFlag = true;
     }
 
-    Real64 CalcDepthFromPeriod(Real64 const period,          // in seconds
+    Real64 CalcDepthFromPeriod(EnergyPlusData &state,
+                               Real64 const period,          // in seconds
                                Material::MaterialProperties const &mat // material
     )
     {
@@ -163,7 +164,7 @@ namespace MoistureBalanceEMPDManager {
         Real64 const EMPDdiffusivity = diffusivity_air / mat.EMPDmu;
 
         // Calculate penetration depth
-        Real64 const PenetrationDepth = std::sqrt(EMPDdiffusivity * PV_sat * period / (mat.Density * slope_MC * DataGlobals::Pi));
+        Real64 const PenetrationDepth = std::sqrt(EMPDdiffusivity * PV_sat * period / (mat.Density * slope_MC * state.dataGlobal->Pi));
 
         return PenetrationDepth;
     }
@@ -265,12 +266,12 @@ namespace MoistureBalanceEMPDManager {
             material.MoistCCoeff = MaterialProps(4);
             material.MoistDCoeff = MaterialProps(5);
             if (lNumericFieldBlanks(6) || MaterialProps(6) == AutoCalculate) {
-                material.EMPDSurfaceDepth = CalcDepthFromPeriod(24 * 3600, material); // 1 day
+                material.EMPDSurfaceDepth = CalcDepthFromPeriod(state, 24 * 3600, material); // 1 day
             } else {
                 material.EMPDSurfaceDepth = MaterialProps(6);
             }
             if (lNumericFieldBlanks(7) || MaterialProps(7) == AutoCalculate) {
-                material.EMPDDeepDepth = CalcDepthFromPeriod(21 * 24 * 3600, material); // 3 weeks
+                material.EMPDDeepDepth = CalcDepthFromPeriod(state, 21 * 24 * 3600, material); // 3 weeks
             } else {
                 material.EMPDDeepDepth = MaterialProps(7);
             }

@@ -65,48 +65,6 @@ struct EnergyPlusData;
 
 namespace DataGlobals {
 
-    // Data
-    // -only module should be available to other modules and routines.
-    // Thus, all variables in this module must be PUBLIC.
-
-//    extern bool runReadVars;
-//    extern bool DDOnlySimulation;
-//    extern bool outputEpJSONConversion;
-//    extern bool outputEpJSONConversionOnly;
-//    extern bool isEpJSON;
-//    extern bool isCBOR;
-//    extern bool isMsgPack;
-//    extern bool isUBJSON;
-//    extern bool isBSON;
-//    extern bool preserveIDFOrder;
-//    extern bool stopSimulation;
-    extern std::function<void (void *)> externalHVACManager;
-    extern bool externalHVACManagerInitialized;
-
-    // MODULE PARAMETER DEFINITIONS:
-    extern int const BeginDay;
-    extern int const DuringDay;
-    extern int const EndDay;
-    extern int const EndSysSizingCalc;
-
-    // Parameters for KindOfSim
-    extern int const ksDesignDay;
-    extern int const ksRunPeriodDesign;
-    extern int const ksRunPeriodWeather;
-    extern int const ksHVACSizeDesignDay;       // a regular design day run during HVAC Sizing Simulation
-    extern int const ksHVACSizeRunPeriodDesign; // a weather period design day run during HVAC Sizing Simulation
-    extern int const ksReadAllWeatherData;      // a weather period for reading all weather data prior to the simulation
-
-    extern Real64 const MaxEXPArg; // maximum exponent in EXP() function
-    extern Real64 const Pi;        // Pi 3.1415926535897932384626435
-    extern Real64 const PiOvr2;    // Pi/2
-    extern Real64 const TwoPi;     // 2*Pi 6.2831853071795864769252868
-    extern Real64 const GravityConstant;
-    extern Real64 const DegToRadians;                  // Conversion for Degrees to Radians
-    extern Real64 const RadToDeg;                      // Conversion for Radians to Degrees
-    extern Real64 const SecInHour;                     // Conversion for hours to seconds
-    extern Real64 const HoursInDay;                    // Number of Hours in Day
-    extern Real64 const SecsInDay;                     // Number of seconds in Day
     extern Real64 const BigNumber;                     // Max Number real used for initializations
     extern Real64 const rTinyValue;                    // Tiny value to replace use of TINY(x)
     extern std::string::size_type const MaxNameLength; // Maximum Name Length in Characters -- should be the same
@@ -265,6 +223,33 @@ namespace DataGlobals {
 
         static constexpr int EndZoneSizingCalc = 4;
 
+        std::function<void (void *)> externalHVACManager;
+        bool externalHVACManagerInitialized = false;
+
+        static constexpr int BeginDay = 1;
+        static constexpr int DuringDay = 2;
+        static constexpr int EndDay = 3;
+        static constexpr int EndSysSizingCalc = 5;
+
+        // Parameters for KindOfSim
+        static constexpr int ksDesignDay = 1;
+        static constexpr int ksRunPeriodDesign = 2;
+        static constexpr int ksRunPeriodWeather = 3;
+        static constexpr int ksHVACSizeDesignDay = 4;                   // a regular design day run during HVAC Sizing Simulation
+        static constexpr int ksHVACSizeRunPeriodDesign = 5;             // a weather period design day run during HVAC Sizing Simulation
+        static constexpr int ksReadAllWeatherData = 6;                  // a weather period for reading all weather data prior to the simulation
+
+        static constexpr Real64 MaxEXPArg = 709.78;                     // maximum exponent in EXP = ) function
+        static constexpr Real64 Pi = 3.14159265358979324;               // Pi 3.1415926535897932384626435
+        static constexpr Real64 PiOvr2 = Pi / 2.0;                      // Pi/2
+        static constexpr Real64 TwoPi = 2.0 * Pi;                       // 2*Pi 6.2831853071795864769252868
+        static constexpr Real64 GravityConstant = 9.807;
+        static constexpr Real64 DegToRadians = Pi / 180.0;              // Conversion for Degrees to Radians
+        static constexpr Real64 RadToDeg = 180.0 / Pi;                  // Conversion for Radians to Degrees
+        static constexpr Real64 SecInHour = 3600.0;                     // Conversion for hours to seconds
+        static constexpr Real64 HoursInDay = 24.0;                      // Number of Hours in Day
+        static constexpr Real64 SecsInDay = SecInHour * HoursInDay;     // Number of seconds in Day
+
         void clear_state() override {
             this->AnnualSimulation = false;
             this->DayOfSimChr = "0";
@@ -279,6 +264,8 @@ namespace DataGlobals {
             this->isBSON = false;
             this->preserveIDFOrder = true;
             this->stopSimulation= false;
+            this->externalHVACManager = nullptr;
+            this->externalHVACManagerInitialized = false;
         }
     };
 

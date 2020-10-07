@@ -139,7 +139,8 @@ void CalcPassiveExteriorBaffleGap(EnergyPlusData &state,
 
 //****************************************************************************
 
-void PassiveGapNusseltNumber(Real64 const AspRat, // Aspect Ratio of Gap height to gap width
+void PassiveGapNusseltNumber(EnergyPlusData &state,
+                             Real64 const AspRat, // Aspect Ratio of Gap height to gap width
                              Real64 const Tilt,   // Tilt of gap, degrees
                              Real64 const Tso,    // Temperature of gap surface closest to outside (K)
                              Real64 const Tsi,    // Temperature of gap surface closest to zone (K)

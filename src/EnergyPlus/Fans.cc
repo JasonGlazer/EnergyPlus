@@ -2596,32 +2596,10 @@ namespace Fans {
         // PURPOSE OF THIS SUBROUTINE:
         // This subroutine updates the report variables for the fans.
 
-        // METHODOLOGY EMPLOYED:
-        // na
-
-        // REFERENCES:
-        // na
-
         // Using/Aliasing
-        using DataGlobals::SecInHour;
         using DataHVACGlobals::TimeStepSys;
 
-        // Locals
-        // SUBROUTINE ARGUMENT DEFINITIONS:
-
-        // SUBROUTINE PARAMETER DEFINITIONS:
-        // na
-
-        // INTERFACE BLOCK SPECIFICATIONS
-        // na
-
-        // DERIVED TYPE DEFINITIONS
-        // na
-
-        // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
-        // na
-
-        Fan(FanNum).FanEnergy = Fan(FanNum).FanPower * TimeStepSys * SecInHour;
+        Fan(FanNum).FanEnergy = Fan(FanNum).FanPower * TimeStepSys * state.dataGlobal->SecInHour;
         Fan(FanNum).DeltaTemp = Fan(FanNum).OutletAirTemp - Fan(FanNum).InletAirTemp;
 
         if (Fan(FanNum).FanType_Num == FanType_SimpleOnOff) {

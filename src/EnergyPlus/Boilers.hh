@@ -169,7 +169,8 @@ namespace Boilers {
                              int EquipFlowCtrl // Flow control mode for the equipment
         );
 
-        void UpdateBoilerRecords(Real64 MyLoad, // boiler operating load
+        void UpdateBoilerRecords(EnergyPlusData &state,
+                                 Real64 MyLoad, // boiler operating load
                                  bool RunFlag   // boiler on when TRUE
         );
 

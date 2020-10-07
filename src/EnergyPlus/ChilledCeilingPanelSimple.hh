@@ -159,7 +159,7 @@ namespace CoolingPanelSimple {
 
         bool SizeCoolingPanelUA();
 
-        void ReportCoolingPanel();
+        void ReportCoolingPanel(EnergyPlusData &state);
     };
 
     struct CoolingPanelSysNumericFieldData

@@ -122,8 +122,6 @@ namespace GroundHeatExchangers {
     using DataGlobals::BeginTimeStepFlag;
     using DataGlobals::DayOfSim;
     using DataGlobals::HourOfDay;
-    using DataGlobals::Pi;
-    using DataGlobals::SecInHour;
     using DataGlobals::TimeStep;
     using DataGlobals::TimeStepZone;
     using DataGlobals::WarmupFlag;
@@ -590,7 +588,7 @@ namespace GroundHeatExchangers {
 
         // No other choice than to calculate the g-functions here
         calcShortTimestepGFunctions(state);
-        calcLongTimestepGFunctions();
+        calcLongTimestepGFunctions(state);
         combineShortAndLongTimestepGFunctions();
 
         // save data for later
@@ -604,13 +602,10 @@ namespace GroundHeatExchangers {
 
     //******************************************************************************
 
-    void GLHEVert::calcLongTimestepGFunctions()
+    void GLHEVert::calcLongTimestepGFunctions(EnergyPlusData &state)
     {
 
         int const numDaysInYear(365);
-        using DataGlobals::HoursInDay;
-        using DataGlobals::SecInHour;
-
         // Minimum simulation time for which finite line source method is applicable
         Real64 const lntts_min_for_long_timestep = -8.5;
 
@@ -626,7 +621,7 @@ namespace GroundHeatExchangers {
         // Determine how many g-function pairs to generate based on user defined maximum simulation time
         while (true) {
             Real64 maxPossibleSimTime = exp(tempLNTTS.back()) * t_s;
-            if (maxPossibleSimTime < myRespFactors->maxSimYears * numDaysInYear * HoursInDay * SecInHour) {
+            if (maxPossibleSimTime < myRespFactors->maxSimYears * numDaysInYear * state.dataGlobal->HoursInDay * state.dataGlobal->SecInHour) {
                 tempLNTTS.push_back(tempLNTTS.back() + lnttsStepSize);
             } else {
                 break;
@@ -774,7 +769,7 @@ namespace GroundHeatExchangers {
             thisCell.radius_inner = radius_conv + i * thisCell.thickness;
             thisCell.radius_center = thisCell.radius_inner + thisCell.thickness / 2.0;
             thisCell.radius_outer = thisCell.radius_inner + thisCell.thickness;
-            thisCell.conductivity = log(radius_pipe_in / radius_conv) / (2 * Pi * bh_equivalent_resistance_convection);
+            thisCell.conductivity = log(radius_pipe_in / radius_conv) / (2 * state.dataGlobal->Pi * bh_equivalent_resistance_convection);
             thisCell.rhoCp = 1;
             Cells.push_back(thisCell);
         }
@@ -787,7 +782,7 @@ namespace GroundHeatExchangers {
             thisCell.radius_inner = radius_pipe_in + i * thisCell.thickness;
             thisCell.radius_center = thisCell.radius_inner + thisCell.thickness / 2.0;
             thisCell.radius_outer = thisCell.radius_inner + thisCell.thickness;
-            thisCell.conductivity = log(radius_grout / radius_pipe_in) / (2 * Pi * bh_equivalent_resistance_tube_grout);
+            thisCell.conductivity = log(radius_grout / radius_pipe_in) / (2 * state.dataGlobal->Pi * bh_equivalent_resistance_tube_grout);
             thisCell.rhoCp = pipe.rhoCp;
             Cells.push_back(thisCell);
         }
@@ -800,7 +795,7 @@ namespace GroundHeatExchangers {
             thisCell.radius_inner = radius_pipe_out + i * thisCell.thickness;
             thisCell.radius_center = thisCell.radius_inner + thisCell.thickness / 2.0;
             thisCell.radius_outer = thisCell.radius_inner + thisCell.thickness;
-            thisCell.conductivity = log(radius_grout / radius_pipe_in) / (2 * Pi * bh_equivalent_resistance_tube_grout);
+            thisCell.conductivity = log(radius_grout / radius_pipe_in) / (2 * state.dataGlobal->Pi * bh_equivalent_resistance_tube_grout);
             thisCell.rhoCp = grout.rhoCp;
             Cells.push_back(thisCell);
         }
@@ -820,7 +815,7 @@ namespace GroundHeatExchangers {
 
         // other non-geometric specific setup
         for (auto &thisCell : Cells) {
-            thisCell.vol = Pi * (pow_2(thisCell.radius_outer) - pow_2(thisCell.radius_inner));
+            thisCell.vol = state.dataGlobal->Pi * (pow_2(thisCell.radius_outer) - pow_2(thisCell.radius_inner));
             thisCell.temperature = initial_temperature;
         }
 
@@ -855,8 +850,8 @@ namespace GroundHeatExchangers {
                     auto &thisCell = Cells[cell_index];
                     auto &eastCell = Cells[cell_index + 1];
 
-                    Real64 FE1 = log(thisCell.radius_outer / thisCell.radius_center) / (2 * Pi * thisCell.conductivity);
-                    Real64 FE2 = log(eastCell.radius_center / eastCell.radius_inner) / (2 * Pi * eastCell.conductivity);
+                    Real64 FE1 = log(thisCell.radius_outer / thisCell.radius_center) / (2 * state.dataGlobal->Pi * thisCell.conductivity);
+                    Real64 FE2 = log(eastCell.radius_center / eastCell.radius_inner) / (2 * state.dataGlobal->Pi * eastCell.conductivity);
                     Real64 AE = 1 / (FE1 + FE2);
 
                     Real64 AD = thisCell.rhoCp * thisCell.vol / time_step;
@@ -883,12 +878,12 @@ namespace GroundHeatExchangers {
                     auto &thisCell = Cells[cell_index];
                     auto &eastCell = Cells[cell_index + 1];
 
-                    Real64 FE1 = log(thisCell.radius_outer / thisCell.radius_center) / (2 * Pi * thisCell.conductivity);
-                    Real64 FE2 = log(eastCell.radius_center / eastCell.radius_inner) / (2 * Pi * eastCell.conductivity);
+                    Real64 FE1 = log(thisCell.radius_outer / thisCell.radius_center) / (2 * state.dataGlobal->Pi * thisCell.conductivity);
+                    Real64 FE2 = log(eastCell.radius_center / eastCell.radius_inner) / (2 * state.dataGlobal->Pi * eastCell.conductivity);
                     Real64 AE = 1 / (FE1 + FE2);
 
-                    Real64 FW1 = log(westCell.radius_outer / westCell.radius_center) / (2 * Pi * westCell.conductivity);
-                    Real64 FW2 = log(thisCell.radius_center / thisCell.radius_inner) / (2 * Pi * thisCell.conductivity);
+                    Real64 FW1 = log(westCell.radius_outer / westCell.radius_center) / (2 * state.dataGlobal->Pi * westCell.conductivity);
+                    Real64 FW2 = log(thisCell.radius_center / thisCell.radius_inner) / (2 * state.dataGlobal->Pi * thisCell.conductivity);
                     Real64 AW = -1 / (FW1 + FW2);
 
                     Real64 AD = thisCell.rhoCp * thisCell.vol / time_step;
@@ -915,8 +910,8 @@ namespace GroundHeatExchangers {
 
                 if (leftCell.type == CellType::GROUT && rightCell.type == CellType::SOIL) {
 
-                    Real64 left_conductance = 2 * Pi * leftCell.conductivity / log(leftCell.radius_outer / leftCell.radius_inner);
-                    Real64 right_conductance = 2 * Pi * rightCell.conductivity / log(rightCell.radius_center / leftCell.radius_inner);
+                    Real64 left_conductance = 2 * state.dataGlobal->Pi * leftCell.conductivity / log(leftCell.radius_outer / leftCell.radius_inner);
+                    Real64 right_conductance = 2 * state.dataGlobal->Pi * rightCell.conductivity / log(rightCell.radius_center / leftCell.radius_inner);
 
                     T_bhWall = (left_conductance * leftCell.temperature + right_conductance * rightCell.temperature) /
                                (left_conductance + right_conductance);
@@ -926,7 +921,7 @@ namespace GroundHeatExchangers {
 
             total_time += time_step;
 
-            GFNC_shortTimestep.push_back(2 * Pi * soil.k * ((Cells[0].temperature - initial_temperature) / heat_flux - bhResistance));
+            GFNC_shortTimestep.push_back(2 * state.dataGlobal->Pi * soil.k * ((Cells[0].temperature - initial_temperature) / heat_flux - bhResistance));
             LNTTS_shortTimestep.push_back(log(total_time / t_s));
 
         } // end timestep loop
@@ -1189,7 +1184,7 @@ namespace GroundHeatExchangers {
 
     //******************************************************************************
 
-    void GLHESlinky::calcGFunctions(EnergyPlusData &EP_UNUSED(state))
+    void GLHESlinky::calcGFunctions(EnergyPlusData &state)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR:          Matt Mitchell
@@ -1316,7 +1311,7 @@ namespace GroundHeatExchangers {
                             if (disRing <= 2.5 + coilDiameter) {
                                 // if no calculated value has been stored
                                 if (valStored(mm1, nn1) < 0) {
-                                    doubleIntegralVal = doubleIntegral(m, n, m1, n1, t, I0, J0);
+                                    doubleIntegralVal = doubleIntegral(state, m, n, m1, n1, t, I0, J0);
                                     valStored(mm1, nn1) = doubleIntegralVal;
                                     // else: if a stored value is found for the combination of (m, n, m1, n1)
                                 } else {
@@ -1342,7 +1337,7 @@ namespace GroundHeatExchangers {
                             } else {
                                 // if no calculated value have been stored
                                 if (valStored(mm1, nn1) < 0.0) {
-                                    midFieldVal = midFieldResponseFunction(m, n, m1, n1, t);
+                                    midFieldVal = midFieldResponseFunction(state, m, n, m1, n1, t);
                                     valStored(mm1, nn1) = midFieldVal;
                                     // if a stored value is found for the combination of (m, n, m1, n1), then
                                 } else {
@@ -1368,7 +1363,7 @@ namespace GroundHeatExchangers {
                 }         // n1
             }             // m1
 
-            myRespFactors->GFNC(NT) = (gFunc * (coilDiameter / 2.0)) / (4 * Pi * fraction * numTrenches * numCoils);
+            myRespFactors->GFNC(NT) = (gFunc * (coilDiameter / 2.0)) / (4 * state.dataGlobal->Pi * fraction * numTrenches * numCoils);
             myRespFactors->LNTTS(NT) = tLg;
 
         } // NT time
@@ -1433,7 +1428,7 @@ namespace GroundHeatExchangers {
 
     //******************************************************************************
 
-    Real64 GLHESlinky::midFieldResponseFunction(int const m, int const n, int const m1, int const n1, Real64 const t)
+    Real64 GLHESlinky::midFieldResponseFunction(EnergyPlusData &state, int const m, int const n, int const m1, int const n1, Real64 const t)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR:          Matt Mitchell
@@ -1459,7 +1454,7 @@ namespace GroundHeatExchangers {
         errFunc1 = std::erfc(0.5 * distance / sqrtAlphaT);
         errFunc2 = std::erfc(0.5 * sqrtDistDepth / sqrtAlphaT);
 
-        return 4 * pow_2(Pi) * (errFunc1 / distance - errFunc2 / sqrtDistDepth);
+        return 4 * pow_2(state.dataGlobal->Pi) * (errFunc1 / distance - errFunc2 / sqrtDistDepth);
     }
 
     //******************************************************************************
@@ -1581,7 +1576,7 @@ namespace GroundHeatExchangers {
 
     //******************************************************************************
 
-    Real64 GLHESlinky::integral(int const m, int const n, int const m1, int const n1, Real64 const t, Real64 const eta, Real64 const J0)
+    Real64 GLHESlinky::integral(EnergyPlusData &state, int const m, int const n, int const m1, int const n1, Real64 const t, Real64 const eta, Real64 const J0)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR:          Matt Mitchell
@@ -1600,7 +1595,7 @@ namespace GroundHeatExchangers {
         Real64 sumIntF(0.0);
         Real64 theta(0.0);
         Real64 theta1(0.0);
-        Real64 theta2(2 * Pi);
+        Real64 theta2(2 * state.dataGlobal->Pi);
         Real64 h;
         int j;
         Array1D<Real64> f(J0, 0.0);
@@ -1630,7 +1625,7 @@ namespace GroundHeatExchangers {
 
     //******************************************************************************
 
-    Real64 GLHESlinky::doubleIntegral(int const m, int const n, int const m1, int const n1, Real64 const t, int const I0, int const J0)
+    Real64 GLHESlinky::doubleIntegral(EnergyPlusData &state, int const m, int const n, int const m1, int const n1, Real64 const t, int const I0, int const J0)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR:          Matt Mitchell
@@ -1649,7 +1644,7 @@ namespace GroundHeatExchangers {
         Real64 sumIntF(0.0);
         Real64 eta(0.0);
         Real64 eta1(0.0);
-        Real64 eta2(2 * Pi);
+        Real64 eta2(2 * state.dataGlobal->Pi);
         Real64 h;
         int i;
         Array1D<Real64> g(I0, 0.0);
@@ -1660,7 +1655,7 @@ namespace GroundHeatExchangers {
         for (i = 1; i <= I0; ++i) {
 
             eta = eta1 + (i - 1) * h;
-            g(i) = integral(m, n, m1, n1, t, eta, J0);
+            g(i) = integral(state, m, n, m1, n1, t, eta, J0);
 
             if (i == 1 || i == I0) {
                 g(i) = g(i);
@@ -1678,7 +1673,7 @@ namespace GroundHeatExchangers {
 
     //******************************************************************************
 
-    void GLHEVert::getAnnualTimeConstant()
+    void GLHEVert::getAnnualTimeConstant(EnergyPlusData &state)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR:          Matt Mitchell
@@ -1689,13 +1684,13 @@ namespace GroundHeatExchangers {
         // PURPOSE OF THIS SUBROUTINE:
         // calculate annual time constant for ground conduction
 
-        timeSS = (pow_2(bhLength) / (9.0 * soil.diffusivity)) / SecInHour / 8760.0;
+        timeSS = (pow_2(bhLength) / (9.0 * soil.diffusivity)) / state.dataGlobal->SecInHour / 8760.0;
         timeSSFactor = timeSS * 8760.0;
     }
 
     //******************************************************************************
 
-    void GLHESlinky::getAnnualTimeConstant()
+    void GLHESlinky::getAnnualTimeConstant(EnergyPlusData &EP_UNUSED(state))
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR:          Matt Mitchell
@@ -1793,10 +1788,10 @@ namespace GroundHeatExchangers {
         cpFluid = GetSpecificHeatGlycol(state, PlantLoop(loopNum).FluidName, inletTemp, PlantLoop(loopNum).FluidIndex, RoutineName);
         fluidDensity = GetDensityGlycol(state, PlantLoop(loopNum).FluidName, inletTemp, PlantLoop(loopNum).FluidIndex, RoutineName);
 
-        kGroundFactor = 2.0 * Pi * soil.k;
+        kGroundFactor = 2.0 * state.dataGlobal->Pi * soil.k;
 
         // Get time constants
-        getAnnualTimeConstant();
+        getAnnualTimeConstant(state);
 
         if (triggerDesignDayReset && WarmupFlag) updateCurSimTime = true;
         if (DayOfSim == 1 && updateCurSimTime) {
@@ -2762,7 +2757,7 @@ namespace GroundHeatExchangers {
                 thisGLHE.numCoils = thisGLHE.trenchLength / thisGLHE.coilPitch;
 
                 // Total tube length
-                thisGLHE.totalTubeLength = Pi * thisGLHE.coilDiameter * thisGLHE.trenchLength * thisGLHE.numTrenches / thisGLHE.coilPitch;
+                thisGLHE.totalTubeLength = state.dataGlobal->Pi * thisGLHE.coilDiameter * thisGLHE.trenchLength * thisGLHE.numTrenches / thisGLHE.coilPitch;
 
                 // Get g function data
                 thisGLHE.SubAGG = 15;
@@ -2855,7 +2850,7 @@ namespace GroundHeatExchangers {
 
         // Equation 13
 
-        Real64 const beta = 2 * Pi * grout.k * calcPipeResistance(state);
+        Real64 const beta = 2 * state.dataGlobal->Pi * grout.k * calcPipeResistance(state);
 
         Real64 const final_term_1 = log(theta_2 / (2 * theta_1 * pow(1 - pow_4(theta_1), sigma)));
         Real64 const num_final_term_2 = pow_2(theta_3) * pow_2(1 - (4 * sigma * pow_4(theta_1)) / (1 - pow_4(theta_1)));
@@ -2864,7 +2859,7 @@ namespace GroundHeatExchangers {
         Real64 const den_final_term_2 = den_final_term_2_pt_1 + den_final_term_2_pt_2;
         Real64 const final_term_2 = num_final_term_2 / den_final_term_2;
 
-        return (1 / (4 * Pi * grout.k)) * (beta + final_term_1 - final_term_2);
+        return (1 / (4 * state.dataGlobal->Pi * grout.k)) * (beta + final_term_1 - final_term_2);
     }
 
     //******************************************************************************
@@ -2878,7 +2873,7 @@ namespace GroundHeatExchangers {
 
         // Equation 26
 
-        Real64 beta = 2 * Pi * grout.k * calcPipeResistance(state);
+        Real64 beta = 2 * state.dataGlobal->Pi * grout.k * calcPipeResistance(state);
 
         Real64 final_term_1 = log(pow(1 + pow_2(theta_1), sigma) / (theta_3 * pow(1 - pow_2(theta_1), sigma)));
         Real64 num_term_2 = pow_2(theta_3) * pow_2(1 - pow_4(theta_1) + 4 * sigma * pow_2(theta_1));
@@ -2888,7 +2883,7 @@ namespace GroundHeatExchangers {
         Real64 den_term_2 = den_term_2_pt_1 - den_term_2_pt_2 + den_term_2_pt_3;
         Real64 final_term_2 = num_term_2 / den_term_2;
 
-        return (1 / (Pi * grout.k)) * (beta + final_term_1 - final_term_2);
+        return (1 / (state.dataGlobal->Pi * grout.k)) * (beta + final_term_1 - final_term_2);
     }
 
     //******************************************************************************
@@ -2932,14 +2927,14 @@ namespace GroundHeatExchangers {
 
     //******************************************************************************
 
-    Real64 GLHEVert::calcPipeConductionResistance()
+    Real64 GLHEVert::calcPipeConductionResistance(EnergyPlusData &state)
     {
         // Calculates the thermal resistance of a pipe, in [K/(W/m)].
 
         // Javed, S. & Spitler, J.D. 2016. 'Accuracy of Borehole Thermal Resistance Calculation Methods
         // for Grouted Single U-tube Ground Heat Exchangers.' Applied Energy. 187:790-806.
 
-        return log(pipe.outDia / pipe.innerDia) / (2 * Pi * pipe.k);
+        return log(pipe.outDia / pipe.innerDia) / (2 * state.dataGlobal->Pi * pipe.k);
     }
 
     //******************************************************************************
@@ -2972,7 +2967,7 @@ namespace GroundHeatExchangers {
 
         Real64 const bhMassFlowRate = massFlowRate / myRespFactors->numBoreholes;
 
-        Real64 const reynoldsNum = 4 * bhMassFlowRate / (fluidViscosity * Pi * pipe.innerDia);
+        Real64 const reynoldsNum = 4 * bhMassFlowRate / (fluidViscosity * state.dataGlobal->Pi * pipe.innerDia);
 
         Real64 nusseltNum = 0.0;
         if (reynoldsNum < lower_limit) {
@@ -2992,7 +2987,7 @@ namespace GroundHeatExchangers {
 
         Real64 h = nusseltNum * kFluid / pipe.innerDia;
 
-        return 1 / (h * Pi * pipe.innerDia);
+        return 1 / (h * state.dataGlobal->Pi * pipe.innerDia);
     }
 
     //******************************************************************************
@@ -3033,7 +3028,7 @@ namespace GroundHeatExchangers {
 
         // Equation 3
 
-        return calcPipeConductionResistance() + calcPipeConvectionResistance(state);
+        return calcPipeConductionResistance(state) + calcPipeConvectionResistance(state);
     }
 
     //******************************************************************************
@@ -3098,7 +3093,7 @@ namespace GroundHeatExchangers {
             Rconv = 0.0;
         } else {
             // Re=Rho*V*D/Mu
-            reynoldsNum = fluidDensity * pipeInnerDia * (singleSlinkyMassFlowRate / fluidDensity / (Pi * pow_2(pipeInnerRad))) / fluidViscosity;
+            reynoldsNum = fluidDensity * pipeInnerDia * (singleSlinkyMassFlowRate / fluidDensity / (state.dataGlobal->Pi * pow_2(pipeInnerRad))) / fluidViscosity;
             prandtlNum = (cpFluid * fluidViscosity) / (kFluid);
             //   Convection Resistance
             if (reynoldsNum <= 2300) {
@@ -3111,11 +3106,11 @@ namespace GroundHeatExchangers {
                 nusseltNum = 0.023 * std::pow(reynoldsNum, 0.8) * std::pow(prandtlNum, 0.35);
             }
             hci = nusseltNum * kFluid / pipeInnerDia;
-            Rconv = 1.0 / (2.0 * Pi * pipeInnerDia * hci);
+            Rconv = 1.0 / (2.0 * state.dataGlobal->Pi * pipeInnerDia * hci);
         }
 
         //   Conduction Resistance
-        Rcond = std::log(pipeOuterRad / pipeInnerRad) / (2.0 * Pi * pipe.k) / 2.0; // pipe in parallel so /2
+        Rcond = std::log(pipeOuterRad / pipeInnerRad) / (2.0 * state.dataGlobal->Pi * pipe.k) / 2.0; // pipe in parallel so /2
 
         return Rcond + Rconv;
     }
@@ -3330,7 +3325,7 @@ namespace GroundHeatExchangers {
         Real64 fluidDensity;
         bool errFlag;
 
-        Real64 currTime = ((DayOfSim - 1) * 24 + (HourOfDay - 1) + (TimeStep - 1) * TimeStepZone + SysTimeElapsed) * SecInHour;
+        Real64 currTime = ((DayOfSim - 1) * 24 + (HourOfDay - 1) + (TimeStep - 1) * TimeStepZone + SysTimeElapsed) * state.dataGlobal->SecInHour;
 
         // Init more variables
         if (myFlag) {
@@ -3439,7 +3434,7 @@ namespace GroundHeatExchangers {
         bool errFlag;
         Real64 CurTime;
 
-        CurTime = ((DayOfSim - 1) * 24 + (HourOfDay - 1) + (TimeStep - 1) * TimeStepZone + SysTimeElapsed) * SecInHour;
+        CurTime = ((DayOfSim - 1) * 24 + (HourOfDay - 1) + (TimeStep - 1) * TimeStepZone + SysTimeElapsed) * state.dataGlobal->SecInHour;
 
         // Init more variables
         if (myFlag) {

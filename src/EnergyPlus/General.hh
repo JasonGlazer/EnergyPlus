@@ -161,11 +161,13 @@ namespace General {
                     Real64 const B          // Glazing property in fully switched state
     );
 
-    Real64 InterpBlind(Real64 const ProfAng,           // Profile angle (rad)
+    Real64 InterpBlind(EnergyPlusData &state,
+                       Real64 const ProfAng,           // Profile angle (rad)
                        Array1A<Real64> const PropArray // Array of blind properties
     );
 
-    Real64 InterpProfAng(Real64 const ProfAng,           // Profile angle (rad)
+    Real64 InterpProfAng(EnergyPlusData &state,
+                         Real64 const ProfAng,           // Profile angle (rad)
                          Array1S<Real64> const PropArray // Array of blind properties
     );
 
@@ -176,18 +178,21 @@ namespace General {
     //		Array1A< Real64 > const PropArray // Array of blind properties as function of slat angle
     //	);
 
-    Real64 InterpSlatAng(Real64 const SlatAng,           // Slat angle (rad)
+    Real64 InterpSlatAng(EnergyPlusData &state,
+                         Real64 const SlatAng,           // Slat angle (rad)
                          bool const VarSlats,            // True if slat angle is variable
                          Array1S<Real64> const PropArray // Array of blind properties as function of slat angle
     );
 
-    Real64 InterpProfSlatAng(Real64 const ProfAng,           // Profile angle (rad)
+    Real64 InterpProfSlatAng(EnergyPlusData &state,
+                             Real64 const ProfAng,           // Profile angle (rad)
                              Real64 const SlatAng,           // Slat angle (rad)
                              bool const VarSlats,            // True if variable-angle slats
                              Array2A<Real64> const PropArray // Array of blind properties
     );
 
-    Real64 BlindBeamBeamTrans(Real64 const ProfAng,        // Solar profile angle (rad)
+    Real64 BlindBeamBeamTrans(EnergyPlusData &state,
+                              Real64 const ProfAng,        // Solar profile angle (rad)
                               Real64 const SlatAng,        // Slat angle (rad)
                               Real64 const SlatWidth,      // Slat width (m)
                               Real64 const SlatSeparation, // Slat separation (distance between surfaces of adjacent slats) (m)
@@ -339,11 +344,11 @@ namespace General {
 
     int LogicalToInteger(bool const Flag);
 
-    Real64 GetCurrentHVACTime();
+    Real64 GetCurrentHVACTime(EnergyPlusData &state);
 
-    Real64 GetPreviousHVACTime();
+    Real64 GetPreviousHVACTime(EnergyPlusData &state);
 
-    std::string CreateHVACTimeIntervalString();
+    std::string CreateHVACTimeIntervalString(EnergyPlusData &state);
 
     std::string CreateTimeString(Real64 const Time); // Time in seconds
 

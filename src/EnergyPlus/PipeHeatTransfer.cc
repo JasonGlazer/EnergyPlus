@@ -256,8 +256,6 @@ namespace PipeHeatTransfer {
         // needed to define and simulate the surface.
 
         // Using/Aliasing
-        using DataGlobals::Pi;
-        using DataGlobals::SecInHour;
         using DataHeatBalance::IntGainTypeOf_PipeIndoor;
         using DataHeatBalance::Zone;
         using namespace DataIPShortCuts; // Data for field names, blank numerics
@@ -271,8 +269,7 @@ namespace PipeHeatTransfer {
         // SUBROUTINE PARAMETER DEFINITIONS:
         int const NumPipeSections(20);
         int const NumberOfDepthNodes(8); // Number of nodes in the cartesian grid-Should be an even # for now
-        Real64 const SecondsInHour(SecInHour);
-        Real64 const HoursInDay(24.0);
+        Real64 const SecondsInHour(state.dataGlobal->SecInHour);
 
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
         bool ErrorsFound(false); // Set to true if errors in input,
@@ -632,7 +629,7 @@ namespace PipeHeatTransfer {
                 PipeHT(Item).PipeDepth = PipeHT(Item).SoilDepth + PipeHT(Item).PipeID / 2.0;
                 PipeHT(Item).DomainDepth = PipeHT(Item).PipeDepth * 2.0;
                 PipeHT(Item).SoilDiffusivity = PipeHT(Item).SoilConductivity / (PipeHT(Item).SoilDensity * PipeHT(Item).SoilCp);
-                PipeHT(Item).SoilDiffusivityPerDay = PipeHT(Item).SoilDiffusivity * SecondsInHour * HoursInDay;
+                PipeHT(Item).SoilDiffusivityPerDay = PipeHT(Item).SoilDiffusivity * SecondsInHour * state.dataGlobal->HoursInDay;
 
                 // Mesh the cartesian domain
                 PipeHT(Item).NumDepthNodes = NumberOfDepthNodes;
@@ -681,15 +678,15 @@ namespace PipeHeatTransfer {
             PipeHT(Item).PreviousPipeTemp = 0.0;
 
             // work out heat transfer areas (area per section)
-            PipeHT(Item).InsideArea = Pi * PipeHT(Item).PipeID * PipeHT(Item).Length / NumSections;
-            PipeHT(Item).OutsideArea = Pi * (PipeHT(Item).PipeOD + 2 * PipeHT(Item).InsulationThickness) * PipeHT(Item).Length / NumSections;
+            PipeHT(Item).InsideArea = state.dataGlobal->Pi * PipeHT(Item).PipeID * PipeHT(Item).Length / NumSections;
+            PipeHT(Item).OutsideArea = state.dataGlobal->Pi * (PipeHT(Item).PipeOD + 2 * PipeHT(Item).InsulationThickness) * PipeHT(Item).Length / NumSections;
 
             // cross sectional area
-            PipeHT(Item).SectionArea = Pi * 0.25 * pow_2(PipeHT(Item).PipeID);
+            PipeHT(Item).SectionArea = state.dataGlobal->Pi * 0.25 * pow_2(PipeHT(Item).PipeID);
 
             // pipe & insulation mass
             PipeHT(Item).PipeHeatCapacity = PipeHT(Item).PipeCp * PipeHT(Item).PipeDensity *
-                                            (Pi * 0.25 * pow_2(PipeHT(Item).PipeOD) - PipeHT(Item).SectionArea); // the metal component
+                                            (state.dataGlobal->Pi * 0.25 * pow_2(PipeHT(Item).PipeOD) - PipeHT(Item).SectionArea); // the metal component
         }
 
         // final error check
@@ -852,8 +849,6 @@ namespace PipeHeatTransfer {
         using DataGlobals::BeginSimFlag;
         using DataGlobals::DayOfSim;
         using DataGlobals::HourOfDay;
-        using DataGlobals::Pi;
-        using DataGlobals::SecInHour;
         using DataGlobals::TimeStep;
         using DataGlobals::TimeStepZone;
         using DataHeatBalFanSys::MAT; // average (mean) zone air temperature [C]
@@ -943,7 +938,7 @@ namespace PipeHeatTransfer {
         if (!BeginEnvrnFlag) this->BeginSimEnvrn = true;
 
         // time step in seconds
-        nsvDeltaTime = TimeStepSys * SecInHour;
+        nsvDeltaTime = TimeStepSys * state.dataGlobal->SecInHour;
         nsvNumInnerTimeSteps = int(nsvDeltaTime / InnerDeltaTime);
 
         // previous temps are updated if necessary at start of timestep rather than end
@@ -1283,7 +1278,6 @@ namespace PipeHeatTransfer {
         using DataEnvironment::WindSpeed;
         using DataGlobals::HourOfDay;
         using DataGlobals::KelvinConv;
-        using DataGlobals::Pi;
         using DataGlobals::rTinyValue;
         using DataGlobals::TimeStep;
         using DataLoopNode::Node;
@@ -1655,7 +1649,6 @@ namespace PipeHeatTransfer {
         // Code based loosely on code from IBLAST program (research version)
 
         // Using/Aliasing
-        using DataGlobals::Pi;
         using DataPlant::PlantLoop;
         using FluidProperties::GetConductivityGlycol;
         using FluidProperties::GetViscosityGlycol;
@@ -1735,7 +1728,7 @@ namespace PipeHeatTransfer {
                    1000.0; // Note fluid properties routine returns mPa-s, we need Pa-s
 
         // Calculate the Reynold's number from RE=(4*Mdot)/(Pi*Mu*Diameter) - as RadiantSysLowTemp
-        ReD = 4.0 * MassFlowRate / (Pi * MUactual * Diameter);
+        ReD = 4.0 * MassFlowRate / (state.dataGlobal->Pi * MUactual * Diameter);
 
         if (ReD == 0.0) { // No flow
 
@@ -1935,9 +1928,7 @@ namespace PipeHeatTransfer {
         // REFERENCES: See Module Level Description
 
         // Using/Aliasing
-        using DataGlobals::SecsInDay;
-
-        Real64 curSimTime = DayOfSim * SecsInDay;
+        Real64 curSimTime = DayOfSim * state.dataGlobal->SecsInDay;
         Real64 TBND;
 
         TBND = this->groundTempModel->getGroundTempAtTimeInSeconds(state, z, curSimTime);

@@ -102,7 +102,6 @@ namespace Vectors {
     // OTHER NOTES: none
 
     // Using/Aliasing
-    using DataGlobals::DegToRadians;
     using namespace DataVectorTypes;
 
     // MODULE PARAMETER DEFINITIONS

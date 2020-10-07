@@ -172,7 +172,7 @@ namespace PlantLoadProfile {
         this->OutletTemp = this->InletTemp - DeltaTemp;
 
         this->UpdatePlantProfile();
-        this->ReportPlantProfile();
+        this->ReportPlantProfile(state);
 
     } // simulate()
 
@@ -313,7 +313,7 @@ namespace PlantLoadProfile {
         // DSU? enthalpy? quality etc? central routine? given inlet node, fluid type, delta T, properly fill all node vars?
     }
 
-    void PlantProfileData::ReportPlantProfile()
+    void PlantProfileData::ReportPlantProfile(EnergyPlusData &state)
     {
 
         // SUBROUTINE INFORMATION:
@@ -329,14 +329,13 @@ namespace PlantLoadProfile {
         // Standard EnergyPlus methodology.
 
         // Using/Aliasing
-        using DataGlobals::SecInHour;
         using DataHVACGlobals::TimeStepSys;
 
         // Locals
         // SUBROUTINE ARGUMENT DEFINITIONS:
 
         // FLOW:
-        this->Energy = this->Power * TimeStepSys * SecInHour;
+        this->Energy = this->Power * TimeStepSys * state.dataGlobal->SecInHour;
 
         if (this->Energy >= 0.0) {
             this->HeatingEnergy = this->Energy;

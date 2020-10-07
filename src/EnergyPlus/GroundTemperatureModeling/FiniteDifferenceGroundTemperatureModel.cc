@@ -69,7 +69,6 @@
 
 namespace EnergyPlus {
 
-using DataGlobals::SecsInDay;
 int simDay = 0;
 int numIterYears = 0;
 int const maxYearsToIterate = 10;
@@ -224,7 +223,7 @@ void FiniteDiffGroundTempsModel::getWeatherData(EnergyPlusData &state)
     ++state.dataWeatherManager->TotRunPers;
     state.dataWeatherManager->Environment.redimension(state.dataWeatherManager->NumOfEnvrn);
     state.dataWeatherManager->RunPeriodInput.redimension(state.dataWeatherManager->TotRunPers);
-    state.dataWeatherManager->Environment(state.dataWeatherManager->NumOfEnvrn).KindOfEnvrn = ksReadAllWeatherData;
+    state.dataWeatherManager->Environment(state.dataWeatherManager->NumOfEnvrn).KindOfEnvrn = state.dataGlobal->ksReadAllWeatherData;
     state.dataWeatherManager->RPReadAllWeatherData = true;
     WeathSimReq = true;
     // RunPeriod is initialized to be one year of simulation
@@ -241,7 +240,7 @@ void FiniteDiffGroundTempsModel::getWeatherData(EnergyPlusData &state)
         ShowFatalError("Site:GroundTemperature:Undisturbed:FiniteDifference: error in reading weather file data");
     }
 
-    if (KindOfSim != ksReadAllWeatherData) {
+    if (KindOfSim != state.dataGlobal->ksReadAllWeatherData) {
         // This shouldn't happen
         ShowFatalError("Site:GroundTemperature:Undisturbed:FiniteDifference: error in reading weather file data, bad KindOfSim.");
     }
@@ -470,7 +469,7 @@ void FiniteDiffGroundTempsModel::performSimulation(EnergyPlusData &state)
 
     // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
 
-    timeStepInSeconds = SecsInDay;
+    timeStepInSeconds = state.dataGlobal->SecsInDay;
     bool convergedFinal = false;
 
     initDomain(state);
@@ -831,7 +830,6 @@ void FiniteDiffGroundTempsModel::initDomain(EnergyPlusData &state)
     // Average ground temp initialized to average annual air temperature
 
     // USE STATEMENTS:
-    using DataGlobals::SecsInDay;
     using namespace GroundTemperatureManager;
 
     // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
@@ -844,7 +842,7 @@ void FiniteDiffGroundTempsModel::initDomain(EnergyPlusData &state)
     tempModel->aveGroundTemp = annualAveAirTemp;
     tempModel->aveGroundTempAmplitude =
         (maxDailyAirTemp - minDailyAirTemp) / 4.0; // Rough estimate here. Ground temps will not swing as far as the air temp.
-    tempModel->phaseShiftInSecs = dayOfMinDailyAirTemp * SecsInDay;
+    tempModel->phaseShiftInSecs = dayOfMinDailyAirTemp * state.dataGlobal->SecsInDay;
     tempModel->groundThermalDiffisivity = baseConductivity / (baseDensity * baseSpecificHeat);
 
     // Intialize temperatures and volume
@@ -1080,13 +1078,11 @@ Real64 FiniteDiffGroundTempsModel::getGroundTempAtTimeInSeconds(EnergyPlusData &
     // Retrieves ground tempeature when input time is in seconds
 
     // Using
-    using DataGlobals::SecsInDay;
-
     // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
 
     depth = _depth;
 
-    simTimeInDays = seconds / SecsInDay;
+    simTimeInDays = seconds / state.dataGlobal->SecsInDay;
 
     if (simTimeInDays > state.dataWeatherManager->NumDaysInYear) {
         simTimeInDays = remainder(simTimeInDays, state.dataWeatherManager->NumDaysInYear);

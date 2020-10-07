@@ -145,7 +145,6 @@ namespace PackagedTerminalHeatPump {
     using DataGlobals::DisplayExtraWarnings;
     using DataGlobals::NumOfZones;
     using DataGlobals::ScheduleAlwaysOn;
-    using DataGlobals::SecInHour;
     using DataGlobals::SysSizingCalc;
     using namespace DataHVACGlobals;
     using DXCoils::DXCoilPartLoadRatio;
@@ -347,7 +346,7 @@ namespace PackagedTerminalHeatPump {
         SimPTUnit(state, PTUnitNum, ZoneNum, FirstHVACIteration, QUnitOut, OnOffAirFlowRatio, QZnReq, LatOutputProvided);
 
         // Report the result of the simulation
-        ReportPTUnit(PTUnitNum);
+        ReportPTUnit(state, PTUnitNum);
 
         ZoneEqDXCoil = false;
     }
@@ -6823,7 +6822,7 @@ namespace PackagedTerminalHeatPump {
         }
     }
 
-    void ReportPTUnit(int const PTUnitNum) // number of the current AC unit being simulated
+    void ReportPTUnit(EnergyPlusData &state, int const PTUnitNum) // number of the current AC unit being simulated
     {
 
         // SUBROUTINE INFORMATION:
@@ -6861,7 +6860,7 @@ namespace PackagedTerminalHeatPump {
 
         // FLOW
 
-        ReportingConstant = TimeStepSys * SecInHour;
+        ReportingConstant = TimeStepSys * state.dataGlobal->SecInHour;
         PTUnit(PTUnitNum).TotCoolEnergy = PTUnit(PTUnitNum).TotCoolEnergyRate * ReportingConstant;
         PTUnit(PTUnitNum).TotHeatEnergy = PTUnit(PTUnitNum).TotHeatEnergyRate * ReportingConstant;
         PTUnit(PTUnitNum).SensCoolEnergy = PTUnit(PTUnitNum).SensCoolEnergyRate * ReportingConstant;

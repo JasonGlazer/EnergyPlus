@@ -95,7 +95,6 @@ namespace HeatPumpWaterToWaterHEATING {
     using DataGlobals::DayOfSim;
     using DataGlobals::HourOfDay;
     using DataGlobals::KelvinConv;
-    using DataGlobals::SecInHour;
     using DataGlobals::TimeStep;
     using DataGlobals::TimeStepZone;
     using DataGlobals::WarmupFlag;
@@ -145,7 +144,7 @@ namespace HeatPumpWaterToWaterHEATING {
         if (calledFromLocation.loopNum == this->LoadLoopNum) { // chilled water loop
             this->initialize(state);
             this->calculate(state, CurLoad);
-            this->update();
+            this->update(state);
         } else if (calledFromLocation.loopNum == this->SourceLoopNum) { // condenser loop
             PlantUtilities::UpdateChillerComponentCondenserSide(state,
                                                                 this->SourceLoopNum,
@@ -598,8 +597,7 @@ namespace HeatPumpWaterToWaterHEATING {
         }
 
         // CALCULATE THE SIMULATION TIME
-        Real64 const hoursInDay = 24.0;
-        CurrentSimTime = (DayOfSim - 1) * hoursInDay + HourOfDay - 1 + (TimeStep - 1) * TimeStepZone + SysTimeElapsed;
+        CurrentSimTime = (DayOfSim - 1) * state.dataGlobal->HoursInDay + HourOfDay - 1 + (TimeStep - 1) * TimeStepZone + SysTimeElapsed;
 
         if (MyLoad > 0.0) {
             this->MustRun = true;
@@ -867,7 +865,7 @@ namespace HeatPumpWaterToWaterHEATING {
         this->Running = 1;
     }
 
-    void GshpPeHeatingSpecs::update()
+    void GshpPeHeatingSpecs::update(EnergyPlusData &state)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR:          Dan Fisher
@@ -896,7 +894,7 @@ namespace HeatPumpWaterToWaterHEATING {
             // set node flow rates;  for these load based models
             // assume that the sufficient Source Side flow rate available
 
-            Real64 const ReportingConstant = DataHVACGlobals::TimeStepSys * SecInHour;
+            Real64 const ReportingConstant = DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
 
             this->Energy = this->Power * ReportingConstant;
             this->QSourceEnergy = QSource * ReportingConstant;

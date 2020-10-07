@@ -218,7 +218,7 @@ namespace MicroturbineElectricGenerator {
                                   Real64 MyLoad // Generator demand (W)
         );
 
-        void UpdateMTGeneratorRecords();
+        void UpdateMTGeneratorRecords(EnergyPlusData &state);
 
         void setupOutputVars(EnergyPlusData &state);
 

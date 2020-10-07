@@ -481,9 +481,9 @@ namespace ConvectionCoefficients {
 
     Real64 CalcZoneSystemVolFlowRate(int ZoneNum);
 
-    Real64 CalcZoneSystemACH(int ZoneNum);
+    Real64 CalcZoneSystemACH(EnergyPlusData &state, int ZoneNum);
 
-    Real64 CalcCeilingDiffuserACH(int ZoneNum);
+    Real64 CalcCeilingDiffuserACH(EnergyPlusData &state, int ZoneNum);
 
     Real64 CalcCeilingDiffuserIntConvCoeff(EnergyPlusData &state,
                                            Real64 ACH,  // [1/hr] air system air change rate
@@ -504,11 +504,13 @@ namespace ConvectionCoefficients {
                                       Array1D<Real64> &SurfaceTemperatures // For CalcASHRAEDetailed, if called
     );
 
-    void CalcTrombeWallIntConvCoeff(int ZoneNum,                        // Zone number for which coefficients are being calculated
+    void CalcTrombeWallIntConvCoeff(EnergyPlusData &state,
+                                    int ZoneNum,                        // Zone number for which coefficients are being calculated
                                     const Array1D<Real64> &SurfaceTemperatures // Temperature of surfaces for evaluation of HcIn
     );
 
-    void CalcNusselt(int SurfNum, // Surface number
+    void CalcNusselt(EnergyPlusData &state,
+                     int SurfNum, // Surface number
                      Real64 asp,  // Aspect ratio: window height to gap width
                      Real64 tso,  // Temperature of gap surface closest to outside (K)
                      Real64 tsi,  // Temperature of gap surface closest to zone (K)

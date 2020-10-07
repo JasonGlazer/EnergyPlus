@@ -112,9 +112,7 @@ namespace TranspiredCollector {
     //   See EngineeringReference for details
 
     // Using/Aliasing
-    using DataGlobals::DegToRadians;
     using DataGlobals::KelvinConv;
-    using DataGlobals::SecInHour;
     using DataHeatBalance::QRadSWOutIncident;
     using DataVectorTypes::Vector;
 
@@ -258,7 +256,6 @@ namespace TranspiredCollector {
         // Using/Aliasing
         using namespace DataIPShortCuts; // Data for field names, blank numerics
         using BranchNodeConnections::TestCompSet;
-        using DataGlobals::Pi;
         using DataGlobals::ScheduleAlwaysOn;
         using DataHeatBalance::MediumRough;
         using DataHeatBalance::MediumSmooth;
@@ -1200,7 +1197,7 @@ namespace TranspiredCollector {
         UTSC(UTSCNum).SupOutEnth = PsyHFnTdbW(UTSC(UTSCNum).SupOutTemp, UTSC(UTSCNum).SupOutHumRat);
         UTSC(UTSCNum).SupOutMassFlow = Mdot;
         UTSC(UTSCNum).SensHeatingRate = SensHeatingRate;
-        UTSC(UTSCNum).SensHeatingEnergy = SensHeatingRate * TimeStepSys * SecInHour;
+        UTSC(UTSCNum).SensHeatingEnergy = SensHeatingRate * TimeStepSys * state.dataGlobal->SecInHour;
         UTSC(UTSCNum).PassiveACH = 0.0;
         UTSC(UTSCNum).PassiveMdotVent = 0.0;
         UTSC(UTSCNum).PassiveMdotWind = 0.0;
@@ -1331,7 +1328,7 @@ namespace TranspiredCollector {
         UTSC(UTSCNum).SupOutMassFlow = 0.0;
         UTSC(UTSCNum).SensHeatingRate = 0.0;
         UTSC(UTSCNum).SensHeatingEnergy = 0.0;
-        UTSC(UTSCNum).PassiveACH = (MdotVent / RhoAir) * (1.0 / (UTSC(UTSCNum).ProjArea * UTSC(UTSCNum).PlenGapThick)) * SecInHour;
+        UTSC(UTSCNum).PassiveACH = (MdotVent / RhoAir) * (1.0 / (UTSC(UTSCNum).ProjArea * UTSC(UTSCNum).PlenGapThick)) * state.dataGlobal->SecInHour;
         UTSC(UTSCNum).PassiveMdotVent = MdotVent;
         UTSC(UTSCNum).PassiveMdotWind = VdotWind * RhoAir;
         UTSC(UTSCNum).PassiveMdotTherm = VdotThermal * RhoAir;

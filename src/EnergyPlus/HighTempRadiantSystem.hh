@@ -198,7 +198,7 @@ namespace HighTempRadiantSystem {
     void DistributeHTRadGains();
 
     void
-    ReportHighTempRadiantSystem(int const RadSysNum); // Index for the low temperature radiant system under consideration within the derived types
+    ReportHighTempRadiantSystem(EnergyPlusData &state, int const RadSysNum); // Index for the low temperature radiant system under consideration within the derived types
 
     Real64 SumHATsurf(int const ZoneNum); // Zone number
 

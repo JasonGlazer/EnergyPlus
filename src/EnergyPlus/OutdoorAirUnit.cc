@@ -288,7 +288,7 @@ namespace OutdoorAirUnit {
 
         // CALL UpdateOutdoorAirUnit(OAUnitNum, FirstHVACIteration)
 
-        ReportOutdoorAirUnit(OAUnitNum);
+        ReportOutdoorAirUnit(state, OAUnitNum);
 
         ZoneEqOutdoorAirUnit = false;
     }
@@ -2672,7 +2672,7 @@ CurrentModuleObjects(CO_OAEqList), ComponentListName);
 
     // END SUBROUTINE UpdateOutdoorAirUnit
 
-    void ReportOutdoorAirUnit(int const OAUnitNum) // Index for the outdoor air unit under consideration within the derived types
+    void ReportOutdoorAirUnit(EnergyPlusData &state, int const OAUnitNum) // Index for the outdoor air unit under consideration within the derived types
     {
 
         // SUBROUTINE INFORMATION:
@@ -2690,7 +2690,6 @@ CurrentModuleObjects(CO_OAEqList), ComponentListName);
         // na
 
         // Using/Aliasing
-        using DataGlobals::SecInHour;
         using DataHeatBalance::Zone;
         using DataHVACGlobals::TimeStepSys;
         using DataLoopNode::Node;
@@ -2711,14 +2710,14 @@ CurrentModuleObjects(CO_OAEqList), ComponentListName);
 
         // FLOW:
 
-        OutAirUnit(OAUnitNum).TotHeatingEnergy = OutAirUnit(OAUnitNum).TotHeatingRate * TimeStepSys * SecInHour;
-        OutAirUnit(OAUnitNum).SensHeatingEnergy = OutAirUnit(OAUnitNum).SensHeatingRate * TimeStepSys * SecInHour;
-        OutAirUnit(OAUnitNum).LatHeatingEnergy = OutAirUnit(OAUnitNum).LatHeatingRate * TimeStepSys * SecInHour;
-        OutAirUnit(OAUnitNum).SensCoolingEnergy = OutAirUnit(OAUnitNum).SensCoolingRate * TimeStepSys * SecInHour;
-        OutAirUnit(OAUnitNum).LatCoolingEnergy = OutAirUnit(OAUnitNum).LatCoolingRate * TimeStepSys * SecInHour;
-        OutAirUnit(OAUnitNum).TotCoolingEnergy = OutAirUnit(OAUnitNum).TotCoolingRate * TimeStepSys * SecInHour;
+        OutAirUnit(OAUnitNum).TotHeatingEnergy = OutAirUnit(OAUnitNum).TotHeatingRate * TimeStepSys * state.dataGlobal->SecInHour;
+        OutAirUnit(OAUnitNum).SensHeatingEnergy = OutAirUnit(OAUnitNum).SensHeatingRate * TimeStepSys * state.dataGlobal->SecInHour;
+        OutAirUnit(OAUnitNum).LatHeatingEnergy = OutAirUnit(OAUnitNum).LatHeatingRate * TimeStepSys * state.dataGlobal->SecInHour;
+        OutAirUnit(OAUnitNum).SensCoolingEnergy = OutAirUnit(OAUnitNum).SensCoolingRate * TimeStepSys * state.dataGlobal->SecInHour;
+        OutAirUnit(OAUnitNum).LatCoolingEnergy = OutAirUnit(OAUnitNum).LatCoolingRate * TimeStepSys * state.dataGlobal->SecInHour;
+        OutAirUnit(OAUnitNum).TotCoolingEnergy = OutAirUnit(OAUnitNum).TotCoolingRate * TimeStepSys * state.dataGlobal->SecInHour;
         OutAirUnit(OAUnitNum).AirMassFlow = OutAirUnit(OAUnitNum).OutAirMassFlow;
-        OutAirUnit(OAUnitNum).ElecFanEnergy = OutAirUnit(OAUnitNum).ElecFanRate * TimeStepSys * SecInHour;
+        OutAirUnit(OAUnitNum).ElecFanEnergy = OutAirUnit(OAUnitNum).ElecFanRate * TimeStepSys * state.dataGlobal->SecInHour;
 
         if (OutAirUnit(OAUnitNum).FirstPass) { // reset sizing flags so other zone equipment can size normally
             if (!DataGlobals::SysSizingCalc) {

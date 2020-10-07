@@ -121,7 +121,6 @@ namespace Photovoltaics {
     using DataGlobals::BeginSimFlag;
     using DataGlobals::EndEnvrnFlag;
     using DataGlobals::KelvinConv;
-    using DataGlobals::SecInHour;
     using DataHVACGlobals::TimeStepSys;
 
     // Data
@@ -201,7 +200,7 @@ namespace Photovoltaics {
 
             if (SELECT_CASE_var == iSimplePVModel) {
 
-                CalcSimplePV(PVnum, RunFlag);
+                CalcSimplePV(state, PVnum, RunFlag);
 
             } else if (SELECT_CASE_var == iTRNSYSPVModel) {
                 // 'PhotovoltaicPeformance:EquivalentOne-Diode' (aka. 5-parameter TRNSYS type 180 model)
@@ -213,7 +212,7 @@ namespace Photovoltaics {
             } else if (SELECT_CASE_var == iSandiaPVModel) {
                 // 'PhotovoltaicPerformance:Sandia' (aka. King model, Sandia Nat. Labs.)
 
-                CalcSandiaPV(PVnum, RunFlag);
+                CalcSandiaPV(state, PVnum, RunFlag);
 
             } else {
 
@@ -221,7 +220,7 @@ namespace Photovoltaics {
             }
         }
 
-        ReportPV(PVnum);
+        ReportPV(state, PVnum);
     }
 
     void GetPVGeneratorResults(int const EP_UNUSED(GeneratorType), // type of Generator !unused1208
@@ -799,7 +798,8 @@ namespace Photovoltaics {
 
     // **************************************
 
-    void CalcSimplePV(int const thisPV,
+    void CalcSimplePV(EnergyPlusData &state,
+                      int const thisPV,
                       bool const EP_UNUSED(RunFlag) // unused1208
     )
     {
@@ -822,7 +822,6 @@ namespace Photovoltaics {
         // USE STATEMENTS:
 
         // Using/Aliasing
-        using DataGlobals::SecInHour;
         using DataHeatBalance::QRadSWOutIncident;
         using DataHVACGlobals::TimeStepSys;
         using DataSurfaces::Surface;
@@ -877,7 +876,7 @@ namespace Photovoltaics {
             PVarray(thisPV).SurfaceSink = PVarray(thisPV).Report.DCPower;
 
             // array energy, power * timestep
-            PVarray(thisPV).Report.DCEnergy = PVarray(thisPV).Report.DCPower * (TimeStepSys * SecInHour);
+            PVarray(thisPV).Report.DCEnergy = PVarray(thisPV).Report.DCPower * (TimeStepSys * state.dataGlobal->SecInHour);
             PVarray(thisPV).Report.ArrayEfficiency = Eff;
         } else { // not enough incident solar, zero things out
 
@@ -888,7 +887,7 @@ namespace Photovoltaics {
         }
     }
 
-    void ReportPV(int const PVnum)
+    void ReportPV(EnergyPlusData &state, int const PVnum)
     {
 
         // SUBROUTINE INFORMATION:
@@ -909,7 +908,7 @@ namespace Photovoltaics {
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
         int thisZone; // working index for zones
 
-        PVarray(PVnum).Report.DCEnergy = PVarray(PVnum).Report.DCPower * (TimeStepSys * SecInHour);
+        PVarray(PVnum).Report.DCEnergy = PVarray(PVnum).Report.DCPower * (TimeStepSys * state.dataGlobal->SecInHour);
 
         // add check for multiplier.  if surface is attached to a zone that is on a multiplier
         // then PV production should be multiplied out as well
@@ -940,7 +939,8 @@ namespace Photovoltaics {
 
     // *************
 
-    void CalcSandiaPV(int const PVnum,   // ptr to current PV system
+    void CalcSandiaPV(EnergyPlusData &state,
+                      int const PVnum,   // ptr to current PV system
                       bool const RunFlag // controls if generator is scheduled *ON*
     )
     {
@@ -970,7 +970,6 @@ namespace Photovoltaics {
         // Using/Aliasing
         using DataEnvironment::Elevation;
         using DataEnvironment::SOLCOS;
-        using DataGlobals::DegToRadians;
         using DataHeatBalance::CosIncidenceAngle;
         using DataHeatBalance::QRadSWOutIncident;
         using DataHeatBalance::QRadSWOutIncidentBeam;
@@ -1000,8 +999,8 @@ namespace Photovoltaics {
         //   get input from elsewhere in Energyplus for the current point in the simulation
         PVarray(PVnum).SNLPVinto.IcBeam = QRadSWOutIncidentBeam(ThisSurf);                                  //(W/m2)from DataHeatBalance
         PVarray(PVnum).SNLPVinto.IcDiffuse = QRadSWOutIncident(ThisSurf) - QRadSWOutIncidentBeam(ThisSurf); //(W/ m2)(was kJ/hr m2)
-        PVarray(PVnum).SNLPVinto.IncidenceAngle = std::acos(CosIncidenceAngle(ThisSurf)) / DegToRadians;    // (deg) from dataHeatBalance
-        PVarray(PVnum).SNLPVinto.ZenithAngle = std::acos(SOLCOS(3)) / DegToRadians;                         //(degrees),
+        PVarray(PVnum).SNLPVinto.IncidenceAngle = std::acos(CosIncidenceAngle(ThisSurf)) / state.dataGlobal->DegToRadians;    // (deg) from dataHeatBalance
+        PVarray(PVnum).SNLPVinto.ZenithAngle = std::acos(SOLCOS(3)) / state.dataGlobal->DegToRadians;                         //(degrees),
         PVarray(PVnum).SNLPVinto.Tamb = Surface(ThisSurf).OutDryBulbTemp;                                   //(deg. C)
         PVarray(PVnum).SNLPVinto.WindSpeed = Surface(ThisSurf).WindSpeed;                                   // (m/s)
         PVarray(PVnum).SNLPVinto.Altitude = Elevation;                                                      // from DataEnvironment via USE
@@ -1066,7 +1065,7 @@ namespace Photovoltaics {
             }
 
             // Calculate Air Mass function
-            PVarray(PVnum).SNLPVCalc.AMa = AbsoluteAirMass(PVarray(PVnum).SNLPVinto.ZenithAngle, PVarray(PVnum).SNLPVinto.Altitude);
+            PVarray(PVnum).SNLPVCalc.AMa = AbsoluteAirMass(state, PVarray(PVnum).SNLPVinto.ZenithAngle, PVarray(PVnum).SNLPVinto.Altitude);
 
             // Calculate F1 polynomial function:
             PVarray(PVnum).SNLPVCalc.F1 = SandiaF1(PVarray(PVnum).SNLPVCalc.AMa,
@@ -1224,7 +1223,6 @@ namespace Photovoltaics {
         // Using/Aliasing
         using DataGlobals::BeginEnvrnFlag;
         using DataGlobals::HourOfDay;
-        using DataGlobals::SecInHour;
         using DataGlobals::TimeStep;
         using DataGlobals::TimeStepZone;
         using DataHeatBalance::QRadSWOutIncident;
@@ -1309,7 +1307,6 @@ namespace Photovoltaics {
 
         // Using/Aliasing
         using DataGlobals::MinutesPerTimeStep;
-        using DataGlobals::SecInHour;
         using DataSurfaces::Surface;
         //  USE DataPhotovoltaics, ONLY:CellTemp,LastCellTemp
         using DataHeatBalance::Zone;
@@ -2144,7 +2141,8 @@ namespace Photovoltaics {
 
     // -------------------------------------------------------------------------------
 
-    Real64 AbsoluteAirMass(Real64 const SolZen,  // solar zenith angle (deg)
+    Real64 AbsoluteAirMass(EnergyPlusData &state,
+                           Real64 const SolZen,  // solar zenith angle (deg)
                            Real64 const Altitude // site altitude (m)
     )
     {
@@ -2164,8 +2162,6 @@ namespace Photovoltaics {
         // na
 
         // Using/Aliasing
-        using DataGlobals::DegToRadians;
-
         // Return value
         Real64 AbsoluteAirMass;
 
@@ -2185,7 +2181,7 @@ namespace Photovoltaics {
         // na
 
         if (SolZen < 89.9) {
-            Real64 const AM(1.0 / (std::cos(SolZen * DegToRadians) + 0.5057 * std::pow(96.08 - SolZen, -1.634)));
+            Real64 const AM(1.0 / (std::cos(SolZen * state.dataGlobal->DegToRadians) + 0.5057 * std::pow(96.08 - SolZen, -1.634)));
             AbsoluteAirMass = std::exp(-0.0001184 * Altitude) * AM;
         } else {
             Real64 const AM(36.32); // evaluated above at SolZen = 89.9 issue #5528

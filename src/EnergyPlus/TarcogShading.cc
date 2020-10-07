@@ -610,10 +610,7 @@ namespace TarcogShading {
         //**************************************************************************************************************
 
         // Using/Aliasing
-        using DataGlobals::GravityConstant;
         using DataGlobals::KelvinConv;
-        using DataGlobals::Pi;
-
         // Argument array dimensioning
         EP_SIZE_CHECK(iprop1, maxgas);
         EP_SIZE_CHECK(frct1, maxgas);
@@ -723,7 +720,7 @@ namespace TarcogShading {
             //  A = dens0 * T0 * GravityConstant * ABS(cos(tilt)) * ABS(Tgap1 - Tgap2) / (Tgap1 * Tgap2)
 
             // bi...Bug fix #00005:
-            A = dens0 * T0 * GravityConstant * H * std::abs(cos_Tilt) * std::abs(Tgap1 - Tgap2) / (Tgap1 * Tgap2);
+            A = dens0 * T0 * state.dataGlobal->GravityConstant * H * std::abs(cos_Tilt) * std::abs(Tgap1 - Tgap2) / (Tgap1 * Tgap2);
 
             if (A == 0.0) {
                 qv1 = 0.0;
@@ -907,10 +904,7 @@ namespace TarcogShading {
         //**************************************************************************************************************
 
         // Using/Aliasing
-        using DataGlobals::GravityConstant;
         using DataGlobals::KelvinConv;
-        using DataGlobals::Pi;
-
         // Argument array dimensioning
         EP_SIZE_CHECK(iprop1, maxgas);
         EP_SIZE_CHECK(frct1, maxgas);
@@ -996,7 +990,7 @@ namespace TarcogShading {
             //  A = dens0 * T0 * gravity * ABS(cos(tilt)) * ABS(Tgap - Tenv) / (Tgap * Tenv)
 
             // bi...Bug fix #00005:
-            A = dens0 * T0 * GravityConstant * H * abs_cos_tilt * std::abs(Tgap - Tenv) / (Tgap * Tenv);
+            A = dens0 * T0 * state.dataGlobal->GravityConstant * H * abs_cos_tilt * std::abs(Tgap - Tenv) / (Tgap * Tenv);
             //  A = dens0 * T0 * GravityConstant * H * ABS(cos(tilt)) * (Tgap - Tenv) / (Tgap * Tenv)
 
             B1 = dens2 / 2;
@@ -1087,7 +1081,7 @@ namespace TarcogShading {
     {
         for (int i = 1; i <= nlayer; ++i) {
             if (LayerType(i) == VENETBLIND_HORIZ || LayerType(i) == VENETBLIND_VERT) {
-                const Real64 slatAngRad = SlatAngle(i) * 2 * DataGlobals::Pi / 360;
+                const Real64 slatAngRad = SlatAngle(i) * 2 * state.dataGlobal->Pi / 360;
                 Real64 C1_VENET(0);
                 Real64 C2_VENET(0);
                 Real64 C3_VENET(0);

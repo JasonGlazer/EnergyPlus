@@ -180,7 +180,7 @@ namespace HVACFan {
 
         update(state);
 
-        report();
+        report(state);
     }
 
     void FanSystem::init(EnergyPlusData &state)
@@ -1080,9 +1080,9 @@ namespace HVACFan {
         }
     }
 
-    void FanSystem::report()
+    void FanSystem::report(EnergyPlusData &state)
     {
-        m_fanEnergy = m_fanPower * DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+        m_fanEnergy = m_fanPower * DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
         m_deltaTemp = m_outletAirTemp - m_inletAirTemp;
     }
 

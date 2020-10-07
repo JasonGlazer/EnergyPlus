@@ -2715,7 +2715,7 @@ namespace PlantCentralGSHP {
                 if (CurCoolingLoad > 0.0 && CHWInletMassFlowRate > 0.0 && GLHEInletMassFlowRate > 0) {
 
                     this->CalcChillerModel(state);
-                    this->UpdateChillerRecords();
+                    this->UpdateChillerRecords(state);
 
                     // Initialize local variables only for calculating mass-weighed temperatures
                     CHWOutletTemp = 0.0;
@@ -2887,7 +2887,7 @@ namespace PlantCentralGSHP {
                 if (CurHeatingLoad > 0.0 && HWInletMassFlowRate > 0.0) {
 
                     this->CalcChillerHeaterModel(state);
-                    this->UpdateChillerHeaterRecords();
+                    this->UpdateChillerHeaterRecords(state);
 
                     // Calculate individual CH units's temperatures and mass flow rates
                     CHWOutletTemp = 0.0;
@@ -3328,7 +3328,7 @@ namespace PlantCentralGSHP {
         }
     }
 
-    void WrapperSpecs::UpdateChillerRecords() // Wrapper number
+    void WrapperSpecs::UpdateChillerRecords(EnergyPlusData &state) // Wrapper number
     {
 
         // SUBROUTINE INFORMATION:
@@ -3341,7 +3341,7 @@ namespace PlantCentralGSHP {
         Real64 SecInTimeStep; // Number of seconds per HVAC system time step, to convert from W (J/s) to J
         int ChillerHeaterNum; // Chiller heater number
 
-        SecInTimeStep = DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+        SecInTimeStep = DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
 
         for (ChillerHeaterNum = 1; ChillerHeaterNum <= this->ChillerHeaterNums; ++ChillerHeaterNum) {
             this->ChillerHeater(ChillerHeaterNum).Report.ChillerFalseLoad =
@@ -3359,7 +3359,7 @@ namespace PlantCentralGSHP {
         }
     }
 
-    void WrapperSpecs::UpdateChillerHeaterRecords() // Wrapper number
+    void WrapperSpecs::UpdateChillerHeaterRecords(EnergyPlusData &state) // Wrapper number
     {
 
         // SUBROUTINE INFORMATION:
@@ -3367,7 +3367,7 @@ namespace PlantCentralGSHP {
         //       DATE WRITTEN:    Feb 2013
 
         // Number of seconds per HVAC system time step, to convert from W (J/s) to J
-        Real64 SecInTimeStep = DataHVACGlobals::TimeStepSys * DataGlobals::SecInHour;
+        Real64 SecInTimeStep = DataHVACGlobals::TimeStepSys * state.dataGlobal->SecInHour;
 
         for (int ChillerHeaterNum = 1; ChillerHeaterNum <= this->ChillerHeaterNums; ++ChillerHeaterNum) {
             this->ChillerHeater(ChillerHeaterNum).Report.ChillerFalseLoad =

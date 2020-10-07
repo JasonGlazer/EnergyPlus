@@ -247,7 +247,7 @@ namespace ConvectionCoefficients {
                     CalcCeilingDiffuserIntConvCoeff(state, ZoneNum, SurfaceTemperatures);
 
                 } else if (SELECT_CASE_var == TrombeWall) {
-                    CalcTrombeWallIntConvCoeff(ZoneNum, SurfaceTemperatures);
+                    CalcTrombeWallIntConvCoeff(state, ZoneNum, SurfaceTemperatures);
 
                 } else {
                 }
@@ -2604,7 +2604,7 @@ namespace ConvectionCoefficients {
         if (HcIn(SurfNum) < LowHConvLimit) HcIn(SurfNum) = LowHConvLimit;
     }
 
-    Real64 CalcZoneSystemACH(int const ZoneNum)
+    Real64 CalcZoneSystemACH(EnergyPlusData &state, int const ZoneNum)
     {
         // FLOW:
         if (!allocated(Node)) {
@@ -2615,7 +2615,7 @@ namespace ConvectionCoefficients {
             Real64 ZoneVolFlowRate = CalcZoneSystemVolFlowRate(ZoneNum);
 
             // Calculate ACH
-            return ZoneVolFlowRate / ZoneVolume * SecInHour;
+            return ZoneVolFlowRate / ZoneVolume * state.dataGlobal->SecInHour;
         }
     }
 
@@ -2667,12 +2667,12 @@ namespace ConvectionCoefficients {
         }
     }
 
-    Real64 CalcCeilingDiffuserACH(int const ZoneNum)
+    Real64 CalcCeilingDiffuserACH(EnergyPlusData &state, int const ZoneNum)
     {
         Real64 const MinFlow(0.01); // Minimum mass flow rate
         Real64 const MaxACH(100.0); // Maximum ceiling diffuser correlation limit
 
-        Real64 ACH = CalcZoneSystemACH(ZoneNum); // Air changes per hour
+        Real64 ACH = CalcZoneSystemACH(state, ZoneNum); // Air changes per hour
 
         Real64 ZoneMassFlowRate;
         Real64 ZoneMult = Zone(ZoneNum).Multiplier * Zone(ZoneNum).ListMultiplier;
@@ -2748,7 +2748,7 @@ namespace ConvectionCoefficients {
                                          const Array1D<Real64> &SurfaceTemperatures) // zone number for which coefficients are being calculated
     {
 
-        Real64 ACH = CalcCeilingDiffuserACH(ZoneNum);
+        Real64 ACH = CalcCeilingDiffuserACH(state, ZoneNum);
 
         Real64 AirHumRat = DataHeatBalFanSys::ZoneAirHumRatAvg(ZoneNum);
 
@@ -2832,7 +2832,7 @@ namespace ConvectionCoefficients {
                 ACH = 0.0;
             } else {
                 // Calculate ACH
-                ACH = ZoneMassFlowRate / AirDensity / ZoneVolume * SecInHour;
+                ACH = ZoneMassFlowRate / AirDensity / ZoneVolume * state.dataGlobal->SecInHour;
                 // Limit ACH to range of correlation
                 ACH = min(ACH, MaxACH);
                 ACH = max(ACH, 0.0);
@@ -2872,7 +2872,8 @@ namespace ConvectionCoefficients {
         if (ACH > 100.0) ShowWarningError("CeilingDiffuser convection correlation is out of range: ACH > 100");
     }
 
-    void CalcTrombeWallIntConvCoeff(int const ZoneNum,                         // Zone number for which coefficients are being calculated
+    void CalcTrombeWallIntConvCoeff(EnergyPlusData &state,
+                                    int const ZoneNum,                         // Zone number for which coefficients are being calculated
                                     const Array1D<Real64> &SurfaceTemperatures // Temperature of surfaces for evaluation of HcIn
     )
     {
@@ -2981,7 +2982,7 @@ namespace ConvectionCoefficients {
 
             Gr = (g * beta * std::abs(Tsi - Tso) * pow_3(gapW)) / pow_2(v); // curve fit for v = v(T)?
 
-            CalcNusselt(SurfNum, asp, Tso, Tsi, Gr, Pr, Nu); // curve fit for Pr = Pr(T)?
+            CalcNusselt(state, SurfNum, asp, Tso, Tsi, Gr, Pr, Nu); // curve fit for Pr = Pr(T)?
 
             HConvNet = (k / gapW) * Nu; // curve fit for k = k(T)?
 
@@ -3009,7 +3010,8 @@ namespace ConvectionCoefficients {
         }
     }
 
-    void CalcNusselt(int const SurfNum, // Surface number
+    void CalcNusselt(EnergyPlusData &state,
+                     int const SurfNum, // Surface number
                      Real64 const asp,  // Aspect ratio: window height to gap width
                      Real64 const tso,  // Temperature of gap surface closest to outside (K)
                      Real64 const tsi,  // Temperature of gap surface closest to zone (K)
@@ -3060,7 +3062,7 @@ namespace ConvectionCoefficients {
         Real64 sintilt;
 
         tilt = Surface(SurfNum).Tilt;
-        tiltr = tilt * DegToRadians;
+        tiltr = tilt * state.dataGlobal->DegToRadians;
         costilt = Surface(SurfNum).CosTilt;
         sintilt = Surface(SurfNum).SinTilt;
         ra = gr * pr;
@@ -4345,7 +4347,7 @@ namespace ConvectionCoefficients {
                 }
                 Surface(SurfNum).TAirRef = ZoneMeanAirTemp;
             } else if (SELECT_CASE_var == HcInt_FisherPedersenCeilDiffuserFloor) {
-                Real64 AirChangeRate = CalcCeilingDiffuserACH(ZoneNum);
+                Real64 AirChangeRate = CalcCeilingDiffuserACH(state, ZoneNum);
                 Real64 AirHumRat = DataHeatBalFanSys::ZoneAirHumRatAvg(ZoneNum);
                 if (Surface(SurfNum).ExtBoundCond == DataSurfaces::KivaFoundation) {
 
@@ -4363,7 +4365,7 @@ namespace ConvectionCoefficients {
                 }
                 Surface(SurfNum).TAirRef = ZoneMeanAirTemp;
             } else if (SELECT_CASE_var == HcInt_FisherPedersenCeilDiffuserCeiling) {
-                Real64 AirChangeRate = CalcCeilingDiffuserACH(ZoneNum);
+                Real64 AirChangeRate = CalcCeilingDiffuserACH(state, ZoneNum);
                 Real64 AirHumRat = DataHeatBalFanSys::ZoneAirHumRatAvg(ZoneNum);
                 if (Surface(SurfNum).ExtBoundCond == DataSurfaces::KivaFoundation) {
 
@@ -4381,7 +4383,7 @@ namespace ConvectionCoefficients {
                 }
                 Surface(SurfNum).TAirRef = ZoneMeanAirTemp;
             } else if (SELECT_CASE_var == HcInt_FisherPedersenCeilDiffuserWalls) {
-                Real64 AirChangeRate = CalcCeilingDiffuserACH(ZoneNum);
+                Real64 AirChangeRate = CalcCeilingDiffuserACH(state, ZoneNum);
                 Real64 AirHumRat = DataHeatBalFanSys::ZoneAirHumRatAvg(ZoneNum);
                 if (Surface(SurfNum).ExtBoundCond == DataSurfaces::KivaFoundation) {
 
@@ -4485,9 +4487,9 @@ namespace ConvectionCoefficients {
                 Surface(SurfNum).TAirRef = ZoneMeanAirTemp;
             } else if (SELECT_CASE_var == HcInt_BeausoleilMorrisonMixedAssistingWall) {
                 if (Surface(SurfNum).ExtBoundCond == DataSurfaces::KivaFoundation) {
-                    HnFn = [=](double Tsurf, double Tamb, double, double, double) -> double {
+                    HnFn = [&](double Tsurf, double Tamb, double, double, double) -> double {
                         return CalcBeausoleilMorrisonMixedAssistedWall(
-                            Tsurf - Tamb, Surface(SurfNum).IntConvZoneWallHeight, Tsurf, CalcZoneSupplyAirTemp(ZoneNum), CalcZoneSystemACH(ZoneNum));
+                            Tsurf - Tamb, Surface(SurfNum).IntConvZoneWallHeight, Tsurf, CalcZoneSupplyAirTemp(ZoneNum), CalcZoneSystemACH(state, ZoneNum));
                     };
                 } else {
                     tmpHc = CalcBeausoleilMorrisonMixedAssistedWall(state, (Tsurface - Tzone), Surface(SurfNum).IntConvZoneWallHeight, Tsurface, ZoneNum);
@@ -4495,9 +4497,9 @@ namespace ConvectionCoefficients {
                 Surface(SurfNum).TAirRef = ZoneMeanAirTemp;
             } else if (SELECT_CASE_var == HcInt_BeausoleilMorrisonMixedOppossingWall) {
                 if (Surface(SurfNum).ExtBoundCond == DataSurfaces::KivaFoundation) {
-                    HnFn = [=](double Tsurf, double Tamb, double, double, double) -> double {
+                    HnFn = [&](double Tsurf, double Tamb, double, double, double) -> double {
                         return CalcBeausoleilMorrisonMixedOpposingWall(
-                            Tsurf - Tamb, Surface(SurfNum).IntConvZoneWallHeight, Tsurf, CalcZoneSupplyAirTemp(ZoneNum), CalcZoneSystemACH(ZoneNum));
+                            Tsurf - Tamb, Surface(SurfNum).IntConvZoneWallHeight, Tsurf, CalcZoneSupplyAirTemp(ZoneNum), CalcZoneSystemACH(state, ZoneNum));
                     };
                 } else {
                     tmpHc = CalcBeausoleilMorrisonMixedOpposingWall(state, (Tsurface - Tzone), Surface(SurfNum).IntConvZoneWallHeight, Tsurface, ZoneNum);
@@ -4505,12 +4507,12 @@ namespace ConvectionCoefficients {
                 Surface(SurfNum).TAirRef = ZoneMeanAirTemp;
             } else if (SELECT_CASE_var == HcInt_BeausoleilMorrisonMixedStableCeiling) {
                 if (Surface(SurfNum).ExtBoundCond == DataSurfaces::KivaFoundation) {
-                    HnFn = [=](double Tsurf, double Tamb, double, double, double) -> double {
+                    HnFn = [&](double Tsurf, double Tamb, double, double, double) -> double {
                         return CalcBeausoleilMorrisonMixedStableCeiling(Tsurf - Tamb,
                                                                         Surface(SurfNum).IntConvZoneHorizHydrDiam,
                                                                         Tsurf,
                                                                         CalcZoneSupplyAirTemp(ZoneNum),
-                                                                        CalcZoneSystemACH(ZoneNum));
+                                                                        CalcZoneSystemACH(state, ZoneNum));
                     };
                 } else {
                     tmpHc =
@@ -4519,12 +4521,12 @@ namespace ConvectionCoefficients {
                 Surface(SurfNum).TAirRef = ZoneMeanAirTemp;
             } else if (SELECT_CASE_var == HcInt_BeausoleilMorrisonMixedUnstableCeiling) {
                 if (Surface(SurfNum).ExtBoundCond == DataSurfaces::KivaFoundation) {
-                    HnFn = [=](double Tsurf, double Tamb, double, double, double) -> double {
+                    HnFn = [&](double Tsurf, double Tamb, double, double, double) -> double {
                         return CalcBeausoleilMorrisonMixedUnstableCeiling(Tsurf - Tamb,
                                                                           Surface(SurfNum).IntConvZoneHorizHydrDiam,
                                                                           Tsurf,
                                                                           CalcZoneSupplyAirTemp(ZoneNum),
-                                                                          CalcZoneSystemACH(ZoneNum));
+                                                                          CalcZoneSystemACH(state, ZoneNum));
                     };
                 } else {
                     tmpHc =
@@ -4533,12 +4535,12 @@ namespace ConvectionCoefficients {
                 Surface(SurfNum).TAirRef = ZoneMeanAirTemp;
             } else if (SELECT_CASE_var == HcInt_BeausoleilMorrisonMixedStableFloor) {
                 if (Surface(SurfNum).ExtBoundCond == DataSurfaces::KivaFoundation) {
-                    HnFn = [=](double Tsurf, double Tamb, double, double, double) -> double {
+                    HnFn = [&](double Tsurf, double Tamb, double, double, double) -> double {
                         return CalcBeausoleilMorrisonMixedStableFloor(Tsurf - Tamb,
                                                                       Surface(SurfNum).IntConvZoneHorizHydrDiam,
                                                                       Tsurf,
                                                                       CalcZoneSupplyAirTemp(ZoneNum),
-                                                                      CalcZoneSystemACH(ZoneNum));
+                                                                      CalcZoneSystemACH(state, ZoneNum));
                     };
                 } else {
                     tmpHc = CalcBeausoleilMorrisonMixedStableFloor(state, (Tsurface - Tzone), Surface(SurfNum).IntConvZoneHorizHydrDiam, Tsurface, ZoneNum);
@@ -4546,12 +4548,12 @@ namespace ConvectionCoefficients {
                 Surface(SurfNum).TAirRef = ZoneMeanAirTemp;
             } else if (SELECT_CASE_var == HcInt_BeausoleilMorrisonMixedUnstableFloor) {
                 if (Surface(SurfNum).ExtBoundCond == DataSurfaces::KivaFoundation) {
-                    HnFn = [=](double Tsurf, double Tamb, double, double, double) -> double {
+                    HnFn = [&](double Tsurf, double Tamb, double, double, double) -> double {
                         return CalcBeausoleilMorrisonMixedUnstableFloor(Tsurf - Tamb,
                                                                         Surface(SurfNum).IntConvZoneHorizHydrDiam,
                                                                         Tsurf,
                                                                         CalcZoneSupplyAirTemp(ZoneNum),
-                                                                        CalcZoneSystemACH(ZoneNum));
+                                                                        CalcZoneSystemACH(state, ZoneNum));
                     };
                 } else {
                     tmpHc =
@@ -6076,7 +6078,7 @@ namespace ConvectionCoefficients {
         if (Zone(ZoneNum).IsControlled) {
             ZoneNode = Zone(ZoneNum).SystemZoneNodeNumber;
             AirDensity = PsyRhoAirFnPbTdbW(OutBaroPress, Node(ZoneNode).Temp, PsyWFnTdpPb(Node(ZoneNode).Temp, OutBaroPress));
-            AirChangeRate = (Node(ZoneNode).MassFlowRate * SecInHour) / (AirDensity * Zone(ZoneNum).Volume);
+            AirChangeRate = (Node(ZoneNode).MassFlowRate * state.dataGlobal->SecInHour) / (AirDensity * Zone(ZoneNum).Volume);
             if (ZoneEquipConfig(ZoneNum).EquipListIndex > 0) {
                 for (EquipNum = 1; EquipNum <= ZoneEquipList(ZoneEquipConfig(ZoneNum).EquipListIndex).NumOfEquipTypes; ++EquipNum) {
                     if (allocated(ZoneEquipList(ZoneEquipConfig(ZoneNum).EquipListIndex).EquipData(EquipNum).OutletNodeNums)) {
@@ -6185,12 +6187,12 @@ namespace ConvectionCoefficients {
             } else if (SELECT_CASE_var == RefWindParallComp) {
                 // WindSpeed , WindDir, surface Azimuth
                 Theta = WindDir - Surface(SurfNum).Azimuth - 90.0; // TODO double check theta
-                ThetaRad = Theta * DegToRadians;
+                ThetaRad = Theta * state.dataGlobal->DegToRadians;
                 windVel = std::cos(ThetaRad) * WindSpeed;
             } else if (SELECT_CASE_var == RefWindParallCompAtZ) {
                 // Surface WindSpeed , Surface WindDir, surface Azimuth
                 Theta = Surface(SurfNum).WindDir - Surface(SurfNum).Azimuth - 90.0; // TODO double check theta
-                ThetaRad = Theta * DegToRadians;
+                ThetaRad = Theta * state.dataGlobal->DegToRadians;
                 windVel = std::cos(ThetaRad) * Surface(SurfNum).WindSpeed;
             }
         }
@@ -6846,7 +6848,7 @@ namespace ConvectionCoefficients {
     {
         if ((std::abs(DeltaTemp) > DataHVACGlobals::SmallTempDiff) && (Height != 0.0)) {
             Real64 SupplyAirTemp = CalcZoneSupplyAirTemp(ZoneNum);
-            Real64 AirChangeRate = CalcZoneSystemACH(ZoneNum);
+            Real64 AirChangeRate = CalcZoneSystemACH(state, ZoneNum);
             return CalcBeausoleilMorrisonMixedAssistedWall(DeltaTemp, Height, SurfTemp, SupplyAirTemp, AirChangeRate);
         } else {
             if (Height == 0.0) {
@@ -6950,7 +6952,7 @@ namespace ConvectionCoefficients {
                     state.dataConvectionCoefficient->BMMixedOpposingWallErrorIDX2);
             }
             Real64 SupplyAirTemp = CalcZoneSupplyAirTemp(ZoneNum);
-            Real64 AirChangeRate = CalcZoneSystemACH(ZoneNum);
+            Real64 AirChangeRate = CalcZoneSystemACH(state, ZoneNum);
             return CalcBeausoleilMorrisonMixedOpposingWall(DeltaTemp, Height, SurfTemp, SupplyAirTemp, AirChangeRate);
 
         } else {
@@ -7015,7 +7017,7 @@ namespace ConvectionCoefficients {
 
         if ((HydraulicDiameter != 0.0) && (std::abs(DeltaTemp) > DataHVACGlobals::SmallTempDiff)) {
             Real64 SupplyAirTemp = CalcZoneSupplyAirTemp(ZoneNum);
-            Real64 AirChangeRate = CalcZoneSystemACH(ZoneNum);
+            Real64 AirChangeRate = CalcZoneSystemACH(state, ZoneNum);
             return CalcBeausoleilMorrisonMixedStableFloor(DeltaTemp, HydraulicDiameter, SurfTemp, SupplyAirTemp, AirChangeRate);
         } else {
             if (HydraulicDiameter == 0.0) {
@@ -7092,7 +7094,7 @@ namespace ConvectionCoefficients {
 
         if ((HydraulicDiameter != 0.0) && (std::abs(DeltaTemp) > DataHVACGlobals::SmallTempDiff)) {
             Real64 SupplyAirTemp = CalcZoneSupplyAirTemp(ZoneNum);
-            Real64 AirChangeRate = CalcZoneSystemACH(ZoneNum);
+            Real64 AirChangeRate = CalcZoneSystemACH(state, ZoneNum);
             return CalcBeausoleilMorrisonMixedUnstableFloor(DeltaTemp, HydraulicDiameter, SurfTemp, SupplyAirTemp, AirChangeRate);
         } else {
             if (HydraulicDiameter == 0.0) {
@@ -7168,7 +7170,7 @@ namespace ConvectionCoefficients {
 
         if ((HydraulicDiameter != 0.0) && (std::abs(DeltaTemp) > DataHVACGlobals::SmallTempDiff)) {
             Real64 SupplyAirTemp = CalcZoneSupplyAirTemp(ZoneNum);
-            Real64 AirChangeRate = CalcZoneSystemACH(ZoneNum);
+            Real64 AirChangeRate = CalcZoneSystemACH(state, ZoneNum);
             return CalcBeausoleilMorrisonMixedStableCeiling(DeltaTemp, HydraulicDiameter, SurfTemp, SupplyAirTemp, AirChangeRate);
         } else {
             if (HydraulicDiameter == 0.0) {
@@ -7246,7 +7248,7 @@ namespace ConvectionCoefficients {
 
          if ((HydraulicDiameter != 0.0) && (std::abs(DeltaTemp) > DataHVACGlobals::SmallTempDiff)) {
             Real64 SupplyAirTemp = CalcZoneSupplyAirTemp(ZoneNum);
-            Real64 AirChangeRate = CalcZoneSystemACH(ZoneNum);
+            Real64 AirChangeRate = CalcZoneSystemACH(state, ZoneNum);
             return CalcBeausoleilMorrisonMixedUnstableCeiling(DeltaTemp, HydraulicDiameter, SurfTemp, SupplyAirTemp, AirChangeRate);
         } else {
             if (HydraulicDiameter == 0.0) {

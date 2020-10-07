@@ -201,7 +201,7 @@ namespace HVACStandAloneERV {
                            Real64 &LatentMassLoadMet      // latent zone load met by unit (kg/s), dehumid = negative
     );
 
-    void ReportStandAloneERV(int const StandAloneERVNum); // number of the current Stand Alone ERV being simulated
+    void ReportStandAloneERV(EnergyPlusData &state, int const StandAloneERVNum); // number of the current Stand Alone ERV being simulated
 
     //        End of Reporting subroutines for the Module
 

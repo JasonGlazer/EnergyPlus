@@ -309,7 +309,7 @@ namespace CrossVentMgr {
         }
     }
 
-    void EvolveParaUCSDCV(int const ZoneNum)
+    void EvolveParaUCSDCV(EnergyPlusData &state, int const ZoneNum)
     {
 
         // SUBROUTINE INFORMATION:
@@ -383,7 +383,7 @@ namespace CrossVentMgr {
 
         // Check if wind direction is within +/- 90 degrees of the outward normal of the dominant surface
         SurfNorm = Surface(AirflowNetwork::MultizoneSurfaceData(MaxSurf).SurfNum).Azimuth;
-        CosPhi = std::cos((WindDir - SurfNorm) * DegToRadians);
+        CosPhi = std::cos((WindDir - SurfNorm) * state.dataGlobal->DegToRadians);
         if (CosPhi <= 0) {
             AirModel(ZoneNum).SimAirModel = false;
             auto flows(CVJetRecFlows(_, ZoneNum));
@@ -785,7 +785,7 @@ namespace CrossVentMgr {
             MCpT_Total = state.dataAirflowNetworkBalanceManager->exchangeData(ZoneNum).SumMCpT + state.dataAirflowNetworkBalanceManager->exchangeData(ZoneNum).SumMMCpT;
         }
 
-        EvolveParaUCSDCV(ZoneNum);
+        EvolveParaUCSDCV(state, ZoneNum);
         L = Droom(ZoneNum);
 
         if (AirModel(ZoneNum).SimAirModel) {

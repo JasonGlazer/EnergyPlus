@@ -426,7 +426,7 @@ namespace EvaporativeCoolers {
     // Beginning of Reporting subroutines for the EvapCooler Module
     // *****************************************************************************
 
-    void ReportEvapCooler(int const EvapCoolNum);
+    void ReportEvapCooler(EnergyPlusData &state, int const EvapCoolNum);
 
     //***************
     // Begin routines for zone HVAC Evaporative cooler unit
@@ -477,7 +477,7 @@ namespace EvaporativeCoolers {
                                   Array1D<Real64> const &Par // parameters
     );
 
-    void ReportZoneEvaporativeCoolerUnit(int const UnitNum); // unit number
+    void ReportZoneEvaporativeCoolerUnit(EnergyPlusData &state, int const UnitNum); // unit number
 
     //        End of Reporting subroutines for the EvaporativeCoolers Module
     // *****************************************************************************

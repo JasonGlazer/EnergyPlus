@@ -1019,7 +1019,8 @@ namespace General {
         return InterpSw;
     }
 
-    Real64 InterpBlind(Real64 const ProfAng,           // Profile angle (rad)
+    Real64 InterpBlind(EnergyPlusData &state,
+                       Real64 const ProfAng,           // Profile angle (rad)
                        Array1A<Real64> const PropArray // Array of blind properties
     )
     {
@@ -1036,13 +1037,6 @@ namespace General {
         // METHODOLOGY EMPLOYED:
         // Linear interpolation.
 
-        // REFERENCES:
-        // na
-
-        // Using/Aliasing
-        using DataGlobals::Pi;
-        using DataGlobals::PiOvr2;
-
         // Return value
         Real64 InterpBlind;
 
@@ -1053,7 +1047,7 @@ namespace General {
         // FUNCTION ARGUMENT DEFINITIONS:
 
         // FUNCTION PARAMETER DEFINITIONS:
-        Real64 const DeltaAngRad(Pi / 36.0); // Profile angle increment (rad)
+        Real64 const DeltaAngRad(state.dataGlobal->Pi  / 36.0); // Profile angle increment (rad)
 
         // INTERFACE BLOCK SPECIFICATIONS
         // na
@@ -1065,17 +1059,18 @@ namespace General {
         Real64 InterpFac; // Interpolation factor
         int IAlpha;       // Profile angle index
 
-        if (ProfAng > PiOvr2 || ProfAng < -PiOvr2) {
+        if (ProfAng > state.dataGlobal->PiOvr2  || ProfAng < -state.dataGlobal->PiOvr2 ) {
             InterpBlind = 0.0;
         } else {
-            IAlpha = 1 + int((ProfAng + PiOvr2) / DeltaAngRad);
-            InterpFac = (ProfAng - (-PiOvr2 + DeltaAngRad * (IAlpha - 1))) / DeltaAngRad;
+            IAlpha = 1 + int((ProfAng + state.dataGlobal->PiOvr2 ) / DeltaAngRad);
+            InterpFac = (ProfAng - (-state.dataGlobal->PiOvr2  + DeltaAngRad * (IAlpha - 1))) / DeltaAngRad;
             InterpBlind = (1.0 - InterpFac) * PropArray(IAlpha) + InterpFac * PropArray(IAlpha + 1);
         }
         return InterpBlind;
     }
 
-    Real64 InterpProfAng(Real64 const ProfAng,           // Profile angle (rad)
+    Real64 InterpProfAng(EnergyPlusData &state,
+                         Real64 const ProfAng,           // Profile angle (rad)
                          Array1S<Real64> const PropArray // Array of blind properties
     )
     {
@@ -1092,12 +1087,6 @@ namespace General {
         // METHODOLOGY EMPLOYED:
         // Linear interpolation.
 
-        // REFERENCES:na
-
-        // Using/Aliasing
-        using DataGlobals::Pi;
-        using DataGlobals::PiOvr2;
-
         // Return value
         Real64 InterpProfAng;
 
@@ -1105,18 +1094,18 @@ namespace General {
         // FUNCTION ARGUMENT DEFINITIONS:
 
         // FUNCTION PARAMETER DEFINITIONS:
-        Real64 const DeltaAngRad(Pi / 36.0); // Profile angle increment (rad)
+        Real64 const DeltaAngRad(state.dataGlobal->Pi  / 36.0); // Profile angle increment (rad)
 
         // FUNCTION LOCAL VARIABLE DECLARATIONS:
         Real64 InterpFac; // Interpolation factor
         int IAlpha;       // Profile angle index
 
         // DeltaAng = Pi/36
-        if (ProfAng > PiOvr2 || ProfAng < -PiOvr2) {
+        if (ProfAng > state.dataGlobal->PiOvr2  || ProfAng < -state.dataGlobal->PiOvr2 ) {
             InterpProfAng = 0.0;
         } else {
-            IAlpha = 1 + int((ProfAng + PiOvr2) / DeltaAngRad);
-            InterpFac = (ProfAng - (-PiOvr2 + DeltaAngRad * (IAlpha - 1))) / DeltaAngRad;
+            IAlpha = 1 + int((ProfAng + state.dataGlobal->PiOvr2 ) / DeltaAngRad);
+            InterpFac = (ProfAng - (-state.dataGlobal->PiOvr2  + DeltaAngRad * (IAlpha - 1))) / DeltaAngRad;
             InterpProfAng = (1.0 - InterpFac) * PropArray(IAlpha) + InterpFac * PropArray(IAlpha + 1);
         }
         return InterpProfAng;
@@ -1147,9 +1136,7 @@ namespace General {
     //
     //		// USE STATEMENTS:
     //		// Using/Aliasing
-    //		using DataGlobals::Pi;
-    //		using DataGlobals::PiOvr2;
-    //		using DataSurfaces::MaxSlatAngs;
+    //		//		//		using DataSurfaces::MaxSlatAngs;
     //
     //		// Return value
     //		Real64 InterpSlatAng;
@@ -1188,7 +1175,8 @@ namespace General {
     //		return InterpSlatAng;
     //	}
 
-    Real64 InterpSlatAng(Real64 const SlatAng,           // Slat angle (rad)
+    Real64 InterpSlatAng(EnergyPlusData &state,
+                         Real64 const SlatAng,           // Slat angle (rad)
                          bool const VarSlats,            // True if slat angle is variable
                          Array1S<Real64> const PropArray // Array of blind properties as function of slat angle
     )
@@ -1207,10 +1195,6 @@ namespace General {
         // METHODOLOGY EMPLOYED:
         // Linear interpolation.
 
-        // REFERENCES:na
-
-        // Using/Aliasing
-        using DataGlobals::Pi;
         using DataSurfaces::MaxSlatAngs;
 
         // Return value
@@ -1220,19 +1204,19 @@ namespace General {
         // FUNCTION ARGUMENT DEFINITIONS:
 
         // FUNCTION PARAMETER DEFINITIONS:
-        static Real64 const DeltaAng(Pi / (double(MaxSlatAngs) - 1.0));
-        static Real64 const DeltaAng_inv((double(MaxSlatAngs) - 1.0) / Pi);
+        static Real64 const DeltaAng(state.dataGlobal->Pi  / (double(MaxSlatAngs) - 1.0));
+        static Real64 const DeltaAng_inv((double(MaxSlatAngs) - 1.0) / state.dataGlobal->Pi );
 
         // FUNCTION LOCAL VARIABLE DECLARATIONS:
         Real64 InterpFac; // Interpolation factor
         int IBeta;        // Slat angle index
         Real64 SlatAng1;
 
-        if (SlatAng > Pi || SlatAng < 0.0) {
+        if (SlatAng > state.dataGlobal->Pi  || SlatAng < 0.0) {
             //  InterpSlatAng = 0.0
             //  RETURN
             // END IF
-            SlatAng1 = min(max(SlatAng, 0.0), Pi);
+            SlatAng1 = min(max(SlatAng, 0.0), state.dataGlobal->Pi );
         } else {
             SlatAng1 = SlatAng;
         }
@@ -1248,7 +1232,8 @@ namespace General {
         return InterpSlatAng;
     }
 
-    Real64 InterpProfSlatAng(Real64 const ProfAng,           // Profile angle (rad)
+    Real64 InterpProfSlatAng(EnergyPlusData &state,
+                             Real64 const ProfAng,           // Profile angle (rad)
                              Real64 const SlatAng,           // Slat angle (rad)
                              bool const VarSlats,            // True if variable-angle slats
                              Array2A<Real64> const PropArray // Array of blind properties
@@ -1268,11 +1253,6 @@ namespace General {
         // METHODOLOGY EMPLOYED:
         // Linear interpolation.
 
-        // REFERENCES:na
-
-        // Using/Aliasing
-        using DataGlobals::Pi;
-        using DataGlobals::PiOvr2;
         using DataSurfaces::MaxSlatAngs;
 
         // Return value
@@ -1285,8 +1265,8 @@ namespace General {
         // FUNCTION ARGUMENT DEFINITIONS:
 
         // FUNCTION PARAMETER DEFINITIONS:
-        Real64 const DeltaProfAng(Pi / 36.0);
-        Real64 const DeltaSlatAng(Pi / (double(MaxSlatAngs) - 1.0));
+        Real64 const DeltaProfAng(state.dataGlobal->Pi  / 36.0);
+        Real64 const DeltaSlatAng(state.dataGlobal->Pi  / (double(MaxSlatAngs) - 1.0));
 
         // FUNCTION LOCAL VARIABLE DECLARATIONS:
         Real64 ProfAngRatio; // Profile angle interpolation factor
@@ -1302,21 +1282,19 @@ namespace General {
         Real64 SlatAng1;
         Real64 ProfAng1;
 
-        if (SlatAng > Pi || SlatAng < 0.0 || ProfAng > PiOvr2 || ProfAng < -PiOvr2) {
+        if (SlatAng > state.dataGlobal->Pi  || SlatAng < 0.0 || ProfAng > state.dataGlobal->PiOvr2  || ProfAng < -state.dataGlobal->PiOvr2 ) {
             //  InterpProfSlatAng = 0.0
             //  RETURN
-            SlatAng1 = min(max(SlatAng, 0.0), Pi);
+            SlatAng1 = min(max(SlatAng, 0.0), state.dataGlobal->Pi );
 
-            // This is not correct, fixed 2/17/2010
-            // ProfAng1 = MIN(MAX(SlatAng,-PiOvr2),PiOvr2)
-            ProfAng1 = min(max(ProfAng, -PiOvr2), PiOvr2);
+            ProfAng1 = min(max(ProfAng, -state.dataGlobal->PiOvr2 ), state.dataGlobal->PiOvr2 );
         } else {
             SlatAng1 = SlatAng;
             ProfAng1 = ProfAng;
         }
 
-        IAlpha = int((ProfAng1 + PiOvr2) / DeltaProfAng) + 1;
-        ProfAngRatio = (ProfAng1 + PiOvr2 - (IAlpha - 1) * DeltaProfAng) / DeltaProfAng;
+        IAlpha = int((ProfAng1 + state.dataGlobal->PiOvr2 ) / DeltaProfAng) + 1;
+        ProfAngRatio = (ProfAng1 + state.dataGlobal->PiOvr2  - (IAlpha - 1) * DeltaProfAng) / DeltaProfAng;
 
         if (VarSlats) { // Variable-angle slats: interpolate in profile angle and slat angle
             IBeta = int(SlatAng1 / DeltaSlatAng) + 1;
@@ -1337,7 +1315,8 @@ namespace General {
         return InterpProfSlatAng;
     }
 
-    Real64 BlindBeamBeamTrans(Real64 const ProfAng,        // Solar profile angle (rad)
+    Real64 BlindBeamBeamTrans(EnergyPlusData &state,
+                              Real64 const ProfAng,        // Solar profile angle (rad)
                               Real64 const SlatAng,        // Slat angle (rad)
                               Real64 const SlatWidth,      // Slat width (m)
                               Real64 const SlatSeparation, // Slat separation (distance between surfaces of adjacent slats) (m)
@@ -1356,12 +1335,6 @@ namespace General {
 
         // METHODOLOGY EMPLOYED:
         // Based on solar profile angle and slat geometry
-
-        // REFERENCES:na
-
-        // Using/Aliasing
-        using DataGlobals::Pi;
-        using DataGlobals::PiOvr2;
 
         // Return value
         Real64 BlindBeamBeamTrans;
@@ -1394,7 +1367,7 @@ namespace General {
             fEdge = 0.0;
             fEdge1 = 0.0;
             if (std::abs(std::sin(gamma)) > 0.01) {
-                if ((SlatAng > 0.0 && SlatAng <= PiOvr2 && ProfAng <= SlatAng) || (SlatAng > PiOvr2 && SlatAng <= Pi && ProfAng > -(Pi - SlatAng)))
+                if ((SlatAng > 0.0 && SlatAng <= state.dataGlobal->PiOvr2  && ProfAng <= SlatAng) || (SlatAng > state.dataGlobal->PiOvr2  && SlatAng <= state.dataGlobal->Pi  && ProfAng > -(state.dataGlobal->Pi  - SlatAng)))
                     fEdge1 =
                         SlatThickness * std::abs(std::sin(gamma)) / ((SlatSeparation + SlatThickness / std::abs(std::sin(SlatAng))) * CosProfAng);
                 fEdge = min(1.0, std::abs(fEdge1));
@@ -2873,7 +2846,7 @@ namespace General {
         return LogicalToInteger;
     }
 
-    Real64 GetCurrentHVACTime()
+    Real64 GetCurrentHVACTime(EnergyPlusData &state)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR         Dimitri Curtil
@@ -2892,7 +2865,6 @@ namespace General {
 
         // Using/Aliasing
         using DataGlobals::CurrentTime;
-        using DataGlobals::SecInHour;
         using DataGlobals::TimeStepZone;
         using DataHVACGlobals::SysTimeElapsed;
         using DataHVACGlobals::TimeStepSys;
@@ -2921,12 +2893,12 @@ namespace General {
         // Maybe later TimeStepZone, TimeStepSys and SysTimeElapsed could also be specified
         // as real.
         CurrentHVACTime = (CurrentTime - TimeStepZone) + SysTimeElapsed + TimeStepSys;
-        GetCurrentHVACTime = CurrentHVACTime * SecInHour;
+        GetCurrentHVACTime = CurrentHVACTime * state.dataGlobal->SecInHour;
 
         return GetCurrentHVACTime;
     }
 
-    Real64 GetPreviousHVACTime()
+    Real64 GetPreviousHVACTime(EnergyPlusData &state)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR         Dimitri Curtil
@@ -2945,7 +2917,6 @@ namespace General {
 
         // Using/Aliasing
         using DataGlobals::CurrentTime;
-        using DataGlobals::SecInHour;
         using DataGlobals::TimeStepZone;
         using DataHVACGlobals::SysTimeElapsed;
 
@@ -2971,12 +2942,12 @@ namespace General {
         // This is the correct formula that does not use MinutesPerSystemTimeStep, which would
         // erronously truncate all sub-minute system time steps down to the closest full minute.
         PreviousHVACTime = (CurrentTime - TimeStepZone) + SysTimeElapsed;
-        GetPreviousHVACTime = PreviousHVACTime * SecInHour;
+        GetPreviousHVACTime = PreviousHVACTime * state.dataGlobal->SecInHour;
 
         return GetPreviousHVACTime;
     }
 
-    std::string CreateHVACTimeIntervalString()
+    std::string CreateHVACTimeIntervalString(EnergyPlusData &state)
     {
 
         // FUNCTION INFORMATION:
@@ -3015,7 +2986,7 @@ namespace General {
         // FUNCTION LOCAL VARIABLE DECLARATIONS:
         // na
 
-        OutputString = CreateTimeIntervalString(GetPreviousHVACTime(), GetCurrentHVACTime());
+        OutputString = CreateTimeIntervalString(GetPreviousHVACTime(state), GetCurrentHVACTime(state));
 
         return OutputString;
     }

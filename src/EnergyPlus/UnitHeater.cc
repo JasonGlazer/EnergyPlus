@@ -1963,7 +1963,6 @@ namespace UnitHeater {
         // na
 
         // Using/Aliasing
-        using DataGlobals::SecInHour;
         using DataHVACGlobals::TimeStepSys;
 
         // Locals
@@ -1982,8 +1981,8 @@ namespace UnitHeater {
         // na
 
         // FLOW:
-        UnitHeat(UnitHeatNum).HeatEnergy = UnitHeat(UnitHeatNum).HeatPower * TimeStepSys * SecInHour;
-        UnitHeat(UnitHeatNum).ElecEnergy = UnitHeat(UnitHeatNum).ElecPower * TimeStepSys * SecInHour;
+        UnitHeat(UnitHeatNum).HeatEnergy = UnitHeat(UnitHeatNum).HeatPower * TimeStepSys * state.dataGlobal->SecInHour;
+        UnitHeat(UnitHeatNum).ElecEnergy = UnitHeat(UnitHeatNum).ElecPower * TimeStepSys * state.dataGlobal->SecInHour;
 
         if (UnitHeat(UnitHeatNum).FirstPass) { // reset sizing flags so other zone equipment can size normally
             if (!DataGlobals::SysSizingCalc) {

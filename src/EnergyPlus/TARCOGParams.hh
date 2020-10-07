@@ -56,18 +56,11 @@ namespace EnergyPlus {
 namespace TARCOGParams {
 
     // Data
-    // REAL(r64), parameter :: StefanBoltzmannConst    = 5.6697d-8     ! Stefan-Boltzman constant (5.6697e-8 [W/m^2K^4])
-    // REAL(r64), parameter :: GravityConstant = 9.807d0
     extern Real64 const e;
-    // REAL(r64), parameter :: MaxHr = 100  ! used in iterations in case temperatures on surfaces reaches identical values
     extern Real64 const DeflectionRelaxation;  // Deflection relaxation parameter
     extern int const DeflectionMaxIterations;  // maximum number of deflection iterations
     extern Real64 const DeflectionErrorMargin; // maximum temperature difference on layers for deflection iterations
-    // pi is moved to gasses since it is used there now
-    // REAL(r64), parameter :: pi       = 3.14159265358979323846d0
-
     extern int const maxpan; // maximum number of monolithic glazing layers (100)
-    // integer, parameter :: maxlay   = 1000         ! maximum number of layers (including laminates) (1000)
     extern int const maxlay;   // maximum number of layers (including laminates) (100)
     extern int const MaxGap;   // maximum number of gaps (between layers)
     extern int const maxlay1;  // maximum number of 'gaps', including in and out (maxlay+1)
@@ -75,8 +68,6 @@ namespace TARCOGParams {
     extern int const maxlay3;  // maximum number of ? (maxlay2+1)
     extern int const maxlay4;  // maximum number of ? (maxlay*4)
     extern int const maxslice; // maximum nuber of slices (100)
-
-    // integer, parameter :: MaxThetaArray = 200     ! maximum number for theta array
 
     // Debug flags
     extern int const noDebug;

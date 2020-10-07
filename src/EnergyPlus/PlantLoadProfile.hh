@@ -131,7 +131,7 @@ namespace PlantLoadProfile {
 
         void UpdatePlantProfile();
 
-        void ReportPlantProfile();
+        void ReportPlantProfile(EnergyPlusData &state);
     };
 
     // Object Data

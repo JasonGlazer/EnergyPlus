@@ -419,9 +419,9 @@ namespace PlantCentralGSHP {
 
         void CalcChillerHeaterModel(EnergyPlusData &state);
 
-        void UpdateChillerHeaterRecords();
+        void UpdateChillerHeaterRecords(EnergyPlusData &state);
 
-        void UpdateChillerRecords();
+        void UpdateChillerRecords(EnergyPlusData &state);
 
         void onInitLoopEquip(EnergyPlusData &EP_UNUSED(state), const PlantLocation &EP_UNUSED(calledFromLocation)) override;
 

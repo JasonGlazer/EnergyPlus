@@ -76,7 +76,8 @@ namespace DaylightingDevices {
 
     void GetShelfInput(EnergyPlusData &state);
 
-    Real64 CalcPipeTransBeam(Real64 const R,    // Reflectance of surface, constant (can be made R = f(theta) later)
+    Real64 CalcPipeTransBeam(EnergyPlusData &state,
+                             Real64 const R,    // Reflectance of surface, constant (can be made R = f(theta) later)
                              Real64 const A,    // Aspect ratio, L / d
                              Real64 const Theta // Angle of entry in radians
     );
@@ -104,7 +105,8 @@ namespace DaylightingDevices {
 
     void DistributeTDDAbsorbedSolar(EnergyPlusData &state);
 
-    void CalcViewFactorToShelf(int const ShelfNum); // Daylighting shelf object number
+    void CalcViewFactorToShelf(EnergyPlusData &state,
+                               int const ShelfNum); // Daylighting shelf object number
 
     void FigureTDDZoneGains();
 

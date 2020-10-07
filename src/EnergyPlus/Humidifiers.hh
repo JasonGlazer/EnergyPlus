@@ -170,11 +170,11 @@ namespace Humidifiers {
         void CalcGasSteamHumidifier(EnergyPlusData &state, Real64 const WaterAddNeeded // moisture addition rate set by controller [kg/s]
         );
 
-        void UpdateReportWaterSystem(); // number of the current humidifier being simulated
+        void UpdateReportWaterSystem(EnergyPlusData &state); // number of the current humidifier being simulated
 
         void UpdateHumidifier(); // number of the current humidifier being simulated
 
-        void ReportHumidifier(); // number of the current humidifier being simulated
+        void ReportHumidifier(EnergyPlusData &state); // number of the current humidifier being simulated
     };
 
     // Object Data

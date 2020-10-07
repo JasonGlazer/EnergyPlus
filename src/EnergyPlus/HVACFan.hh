@@ -164,7 +164,7 @@ namespace HVACFan {
 
         void update(EnergyPlusData &state) const;
 
-        void report();
+        void report(EnergyPlusData &state);
 
         // data
 

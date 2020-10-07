@@ -1424,10 +1424,7 @@ namespace ZoneEquipmentManager {
         using DataEnvironment::StdBaroPress;
         using DataEnvironment::StdRhoAir;
         using DataGlobals::AnyEnergyManagementSystemInModel;
-        using DataGlobals::BeginDay;
-        using DataGlobals::DuringDay;
         using DataGlobals::emsCallFromZoneSizing;
-        using DataGlobals::EndDay;
         using DataGlobals::HourOfDay;
         using DataGlobals::isPulseZoneSizing;
         using DataGlobals::MinutesPerTimeStep;
@@ -1473,7 +1470,7 @@ namespace ZoneEquipmentManager {
         {
             auto const SELECT_CASE_var(CallIndicator);
 
-            if (SELECT_CASE_var == BeginDay) {
+            if (SELECT_CASE_var == state.dataGlobal->BeginDay) {
 
                 for (CtrlZoneNum = 1; CtrlZoneNum <= NumOfZones; ++CtrlZoneNum) {
 
@@ -1487,7 +1484,7 @@ namespace ZoneEquipmentManager {
                     CalcZoneSizing(CurOverallSimDay, CtrlZoneNum).CoolDDNum = CurOverallSimDay;
                 }
 
-            } else if (SELECT_CASE_var == DuringDay) {
+            } else if (SELECT_CASE_var == state.dataGlobal->DuringDay) {
 
                 TimeStepInDay = (HourOfDay - 1) * NumOfTimeStepInHour + TimeStep;
 
@@ -4608,7 +4605,6 @@ namespace ZoneEquipmentManager {
         using DataContaminantBalance::ZoneAirGC;
         using DataGlobals::HourOfDay;
         using DataGlobals::KickOffSimulation;
-        using DataGlobals::SecInHour;
         using DataHeatBalance::Ventilation;
         using DataHVACGlobals::CycleOn;
         using DataHVACGlobals::CycleOnZoneFansOnly;
@@ -4921,12 +4917,12 @@ namespace ZoneEquipmentManager {
                         if (!KickOffSimulation) {
                             if (!(ZoneEquipAvail(NZ) == CycleOn || ZoneEquipAvail(NZ) == CycleOnZoneFansOnly) ||
                                 !AirflowNetwork::AirflowNetworkZoneFlag(NZ))
-                                ZnAirRpt(NZ).VentilFanElec += Ventilation(j).FanPower * TimeStepSys * SecInHour;
+                                ZnAirRpt(NZ).VentilFanElec += Ventilation(j).FanPower * TimeStepSys * state.dataGlobal->SecInHour;
                         } else if (!AirflowNetwork::AirflowNetworkZoneFlag(NZ)) {
-                            ZnAirRpt(NZ).VentilFanElec += Ventilation(j).FanPower * TimeStepSys * SecInHour;
+                            ZnAirRpt(NZ).VentilFanElec += Ventilation(j).FanPower * TimeStepSys * state.dataGlobal->SecInHour;
                         }
                     } else {
-                        ZnAirRpt(NZ).VentilFanElec += Ventilation(j).FanPower * TimeStepSys * SecInHour;
+                        ZnAirRpt(NZ).VentilFanElec += Ventilation(j).FanPower * TimeStepSys * state.dataGlobal->SecInHour;
                     }
                 }
                 // Intake fans will add some heat to the air, raising the temperature for an intake fan...

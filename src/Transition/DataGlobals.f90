@@ -36,7 +36,7 @@ PUBLIC          ! By definition, all variables which are placed in this data
 DOUBLE PRECISION, PARAMETER    :: Pi = 3.141592653589793D0   ! Pi 3.1415926535897932384626435
 DOUBLE PRECISION, PARAMETER    :: PiOvr2 = Pi/2.D0          ! Pi/2
 DOUBLE PRECISION, PARAMETER    :: DegToRadians = Pi/180.D0  ! Conversion for Degrees to Radians
-DOUBLE PRECISION, PARAMETER    :: SecInHour = 3600.0D0      ! Conversion for hours to seconds
+DOUBLE PRECISION, PARAMETER    :: state.dataGlobal->SecInHour = 3600.0D0      ! Conversion for hours to seconds
 INTEGER, PARAMETER :: MaxNameLength = 500     ! Maximum Name Length in Characters -- should be the same
                                               ! as MaxAlphaArgLength in InputProcessor module
 
@@ -167,7 +167,7 @@ DOUBLE PRECISION :: DBigNumber  ! Max Number (double precision) used for initial
 
 !     NOTICE
 !
-!     Copyright © 1996-2007 The Board of Trustees of the University of Illinois
+!     Copyright ï¿½ 1996-2007 The Board of Trustees of the University of Illinois
 !     and The Regents of the University of California through Ernest Orlando Lawrence
 !     Berkeley National Laboratory.  All rights reserved.
 !
